@@ -199,14 +199,16 @@
       التقييمات
     </button>
   </nav>
-
-  <script>
+    <script>
     function showTab(id) {
+      // إخفاء كل الأقسام
       document.querySelectorAll('section').forEach(sec => {
         sec.classList.remove('active');
       });
+      // إظهار القسم المطلوب
       document.getElementById(id).classList.add('active');
 
+      // تحديث الزر النشط في شريط التنقل فقط
       document.querySelectorAll('.bottom-nav button').forEach(btn => {
         btn.classList.remove('active');
       });
@@ -216,10 +218,10 @@
         navButton.classList.add('active');
       }
 
+      // إظهار أو إخفاء شريط التنقل والسهم حسب التبويب
       const navBar = document.querySelector('.bottom-nav');
       const profileIcon = document.getElementById('profile-icon');
-      const backArrow = document.getElement
-            const backArrow = document.getElementById('back-arrow');
+      const backArrow = document.getElementById('back-arrow');
 
       if (id === 'profile') {
         navBar.style.display = 'none';
@@ -232,13 +234,16 @@
       }
     }
 
+    // زر البروفايل
     document.getElementById('profile-icon').addEventListener('click', () => {
       showTab('profile');
     });
 
+    // زر الرجوع
     document.getElementById('back-arrow').addEventListener('click', () => {
       showTab('home');
     });
   </script>
 </body>
 </html>
+  
