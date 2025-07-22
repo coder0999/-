@@ -218,10 +218,27 @@
 
       const navBar = document.querySelector('.bottom-nav');
       const profileIcon = document.getElementById('profile-icon');
-      const backArrow = document.getElementById('back-arrow');
+      const backArrow = document.getElement
+            const backArrow = document.getElementById('back-arrow');
 
       if (id === 'profile') {
         navBar.style.display = 'none';
         profileIcon.style.display = 'none';
         backArrow.style.display = 'block';
       } else {
+        navBar.style.display = 'flex';
+        profileIcon.style.display = 'block';
+        backArrow.style.display = 'none';
+      }
+    }
+
+    document.getElementById('profile-icon').addEventListener('click', () => {
+      showTab('profile');
+    });
+
+    document.getElementById('back-arrow').addEventListener('click', () => {
+      showTab('home');
+    });
+  </script>
+</body>
+</html>
