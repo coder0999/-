@@ -15,6 +15,8 @@
             --icon-active-fill: #007bff;
             --border-color: #e9ecef;
             --card-shadow: rgba(0, 0, 0, 0.08);
+            --dropdown-bg: #ffffff;
+            --dropdown-item-hover: #f1f3f5;
         }
 
         body.dark-mode {
@@ -27,6 +29,8 @@
             --icon-active-fill: #4da6ff;
             --border-color: #2d2d2d;
             --card-shadow: rgba(0, 0, 0, 0.3);
+            --dropdown-bg: #1e1e1e;
+            --dropdown-item-hover: #2d2d2d;
         }
         
         body {
@@ -44,7 +48,7 @@
 
         #header-bar {
             display: flex;
-            justify-content: space-between; /* لتحريك العناصر إلى الأطراف */
+            justify-content: space-between;
             align-items: center;
             height: 50px;
             padding: 0 1.25rem;
@@ -55,34 +59,6 @@
             top: 0;
             width: 100%;
             z-index: 1000;
-        }
-        
-        .header-left, .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        #settings-icon {
-            display: none;
-            width: 24px;
-            height: 24px;
-            color: var(--secondary-color);
-            cursor: pointer;
-        }
-
-        #profile-icon {
-            width: 26px;
-            height: 26px;
-            color: var(--secondary-color);
-            cursor: pointer;
-            transition: transform 0.1s ease-in-out;
-            fill: none;
-            stroke: currentColor;
-        }
-
-        #profile-icon:active {
-            transform: scale(0.9);
         }
 
         #back-arrow {
@@ -105,6 +81,12 @@
             align-items: center;
             justify-content: center;
             transition: opacity 0.3s ease-in-out, background-color 0.3s ease;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
         main {
@@ -346,27 +328,82 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+        
+        /* تنسيق القائمة المنسدلة */
+        .more-menu-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        #more-menu-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--secondary-color);
+            stroke: currentColor;
+            fill: none;
+            transition: transform 0.1s ease-in-out;
+        }
+        
+        .more-menu-container.active #more-menu-icon {
+            transform: scale(0.9);
+        }
+        
+        #more-menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 0;
+            min-width: 150px;
+            background-color: var(--dropdown-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            padding: 8px 0;
+            text-align: right;
+        }
+
+        #more-menu-dropdown.active {
+            display: block;
+        }
+        
+        .dropdown-item {
+            display: block;
+            padding: 10px 16px;
+            color: var(--text-color);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--dropdown-item-hover);
+        }
+
     </style>
 </head>
 <body>
 
     <header id="header-bar">
-        <div class="header-right">
+        <div class="header-icons">
             <svg id="back-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
             <div class="points-display" id="points-display" style="display: none;">8 نقاط</div>
         </div>
-        <div class="header-left">
-            <svg id="profile-icon" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
+
+        <div class="more-menu-container">
+            <svg id="more-menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical">
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
             </svg>
-            <svg id="settings-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 4.6 19a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 2-2h.09a1.65 1.65 0 0 0 .33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H12a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V12c0 .59-.2 1.1-.5 1.5"></path>
-            </svg>
+            <div id="more-menu-dropdown">
+                <a class="dropdown-item" onclick="showTab('profile'); toggleMoreMenu();">الملف الشخصي</a>
+                <a class="dropdown-item" onclick="showTab('settings'); toggleMoreMenu();">الإعدادات</a>
+                <a class="dropdown-item" onclick="showTab('notifications'); toggleMoreMenu();">الإشعارات</a>
+            </div>
         </div>
     </header>
 
@@ -426,6 +463,10 @@
                 </label>
             </div>
         </section>
+        
+        <section id="notifications">
+            <h1>أهلاً في صفحة الإشعارات</h1>
+        </section>
     </main>
 
     <nav class="bottom-nav">
@@ -481,29 +522,21 @@
             }
 
             const navBar = document.querySelector('.bottom-nav');
-            const profileIcon = document.getElementById('profile-icon');
-            const settingsIcon = document.getElementById('settings-icon');
+            const moreMenuContainer = document.querySelector('.more-menu-container');
             const backArrow = document.getElementById('back-arrow');
             const pointsDisplay = document.getElementById('points-display');
-            const headerRight = document.querySelector('.header-right');
+            
+            const isChildPage = ['profile', 'settings', 'notifications', 'store', 'summaries'].includes(id);
 
-            if (id === 'profile' || id === 'settings' || id === 'store' || id === 'summaries') {
+            if (isChildPage) {
                 navBar.style.display = 'none';
-                profileIcon.style.display = 'none';
+                moreMenuContainer.style.display = 'none';
                 backArrow.style.display = 'block';
                 pointsDisplay.style.display = 'none';
-                headerRight.style.marginRight = 'auto'; // دفع الأيقونات إلى اليمين
-                if (id === 'profile') {
-                    settingsIcon.style.display = 'block';
-                } else {
-                    settingsIcon.style.display = 'none';
-                }
             } else {
                 navBar.style.display = 'flex';
-                profileIcon.style.display = 'block';
+                moreMenuContainer.style.display = 'block';
                 backArrow.style.display = 'none';
-                settingsIcon.style.display = 'none';
-                headerRight.style.marginRight = '0';
                 if (id === 'home') {
                     pointsDisplay.style.display = 'flex';
                 } else {
@@ -511,45 +544,53 @@
                 }
             }
         }
+        
+        function toggleMoreMenu() {
+            const dropdown = document.getElementById('more-menu-dropdown');
+            dropdown.classList.toggle('active');
+        }
 
-        document.getElementById('profile-icon').addEventListener('click', () => {
-            showTab('profile');
+        document.getElementById('more-menu-icon').addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleMoreMenu();
         });
 
-        document.getElementById('settings-icon').addEventListener('click', () => {
-            showTab('settings');
-        });
-
-        document.getElementById('back-arrow').addEventListener('click', () => {
-            const currentTab = document.querySelector('section.active');
-            if (currentTab && currentTab.id === 'settings') {
-                showTab('profile');
-            } else {
-                showTab('home');
+        document.addEventListener('click', (event) => {
+            const dropdown = document.getElementById('more-menu-dropdown');
+            const moreMenuIcon = document.getElementById('more-menu-icon');
+            if (!dropdown.contains(event.target) && !moreMenuIcon.contains(event.target)) {
+                dropdown.classList.remove('active');
             }
         });
 
+        document.getElementById('back-arrow').addEventListener('click', () => {
+            showTab('home');
+        });
+        
         document.addEventListener('DOMContentLoaded', () => {
             showTab('home');
             
-            // Dark Mode Logic
             const darkModeToggle = document.getElementById('dark-mode-toggle');
             const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
             
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
-                darkModeToggle.checked = true;
+                if (darkModeToggle) {
+                    darkModeToggle.checked = true;
+                }
             }
             
-            darkModeToggle.addEventListener('change', () => {
-                if (darkModeToggle.checked) {
-                    document.body.classList.add('dark-mode');
-                    localStorage.setItem('darkMode', 'enabled');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    localStorage.setItem('darkMode', 'disabled');
-                }
-            });
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('change', () => {
+                    if (darkModeToggle.checked) {
+                        document.body.classList.add('dark-mode');
+                        localStorage.setItem('darkMode', 'enabled');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                        localStorage.setItem('darkMode', 'disabled');
+                    }
+                });
+            }
         });
     </script>
 </body>
