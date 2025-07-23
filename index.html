@@ -12,6 +12,7 @@
       --inactive-color: #999;
       --background-color: #ffffff;
       --text-color: #212529;
+      --icon-active-fill: #0056b3; /* لون أزرق أغمق لملء الأيقونة */
     }
 
     body {
@@ -106,28 +107,49 @@
       position: relative;
       transition: color 0.3s ease, background-color 0.3s ease;
     }
-
+    
+    /* التعديل الجديد هنا */
     .bottom-nav button.active {
-      background-color: var(--active-bg);
-      color: var(--primary-color);
+      color: var(--primary-color); /* لون النص أزرق فاتح */
+    }
+
+    .bottom-nav button.active .icon-container {
+      background-color: var(--active-bg); /* لون الخلفية حول الأيقونة */
+      border-radius: 0.5rem;
+      padding: 6px 12px;
+      transition: background-color 0.3s ease;
+    }
+
+    .bottom-nav button .icon-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
       border-radius: 0.5rem;
     }
 
     .bottom-nav button svg {
       width: 24px;
       height: 24px;
-      margin-bottom: 4px;
       color: var(--inactive-color);
-      transition: color 0.3s ease, transform 0.2s ease;
+      transition: color 0.3s ease, transform 0.2s ease, fill 0.3s ease;
     }
-
+    
+    /* التعديل الجديد هنا */
     .bottom-nav button.active svg {
-      color: var(--primary-color);
+      fill: var(--icon-active-fill); /* ملء الأيقونة بلون أزرق أغمق */
+      stroke: var(--icon-active-fill); /* جعل لون الحدود أزرق أغمق */
+      color: var(--icon-active-fill); /* للتأكيد على الألوان */
     }
 
     .bottom-nav button:hover svg {
       transform: scale(1.1);
     }
+    
+    .bottom-nav button span {
+      margin-top: 4px; /* المسافة بين الأيقونة والكلمة */
+    }
+
   </style>
 </head>
 <body>
@@ -164,28 +186,34 @@
 
   <nav class="bottom-nav">
     <button onclick="showTab('home')" class="active">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-      </svg>
-      الرئيسية
+      <div class="icon-container">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </div>
+      <span>الرئيسية</span>
     </button>
     <button onclick="showTab('exams')">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <polyline points="14 2 14 8 20 8"></polyline>
-        <line x1="16" y1="13" x2="8" y2="13"></line>
-        <line x1="16" y1="17" x2="8" y2="17"></line>
-        <polyline points="10 9 9 9 8 9"></polyline>
-      </svg>
-      اختبارات
+      <div class="icon-container">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+      <span>اختبارات</span>
     </button>
     <button onclick="showTab('reviews')">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-      </svg>
-      التقييمات
+      <div class="icon-container">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      </div>
+      <span>التقييمات</span>
     </button>
   </nav>
 
