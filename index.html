@@ -1,262 +1,278 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
- <meta charset="UTF-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
- <title>موقعي</title>
- <style>
-  :root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --active-bg: #e6f2ff;
-    --inactive-color: #999;
-    --background-color: #ffffff;
-    --text-color: #212529;
-    --icon-active-fill: #007bff;
-  }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>موقعي</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --active-bg: #e6f2ff;
+            --inactive-color: #999;
+            --background-color: #ffffff;
+            --text-color: #212529;
+            --icon-active-fill: #007bff;
+        }
 
-  body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--background-color);
-    direction: rtl;
-    -webkit-tap-highlight-color: transparent;
-    color: var(--text-color);
-    font-size: 16px;
-  }
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--background-color);
+            direction: rtl;
+            -webkit-tap-highlight-color: transparent;
+            color: var(--text-color);
+            font-size: 16px;
+        }
 
-  #header-bar {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 1rem 1.25rem;
-    background-color: var(--background-color);
-    border-bottom: 1px solid #e9ecef;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  }
+        #header-bar {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background-color: var(--background-color);
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
 
-  #header-bar svg {
-    margin-left: auto;
-    width: 28px;
-    height: 28px;
-    color: var(--secondary-color);
-    cursor: pointer;
-  }
+        #profile-icon { /* تحديد أيقونة البروفايل بشكل خاص */
+            margin-left: auto;
+            width: 28px;
+            height: 28px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out; /* إضافة تأثير الضغط */
+        }
 
-  #back-arrow {
-    display: none;
-    width: 24px;
-    height: 24px;
-    color: var(--primary-color);
-  }
+        #profile-icon:active {
+            transform: scale(0.9); /* تصغير الأيقونة عند الضغط */
+        }
 
-  main {
-    padding: 2rem 1.25rem;
-    padding-bottom: 80px;
-    text-align: center;
-    background-color: #f8f9fa;
-    min-height: calc(100vh - 70px - 58px);
-  }
+        #header-bar svg:not(#profile-icon) { /* باقي أيقونات الهيدر لو فيه */
+            width: 28px;
+            height: 28px;
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
 
-  h1 {
-    color: var(--primary-color);
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-  }
+        #back-arrow {
+            display: none;
+            width: 24px;
+            height: 24px;
+            color: var(--primary-color);
+        }
 
-  section {
-    display: none;
-  }
+        main {
+            padding: 2rem 1.25rem;
+            padding-bottom: 80px;
+            text-align: center;
+            background-color: #f8f9fa;
+            min-height: calc(100vh - 70px - 58px);
+        }
 
-  section.active {
-    display: block;
-  }
+        h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
 
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 70px;
-    background-color: var(--background-color);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid #e9ecef;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-    z-index: 1000;
-  }
+        section {
+            display: none;
+        }
 
-  .bottom-nav button {
-    background: none;
-    border: none;
-    color: var(--inactive-color);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-    outline: none;
-    padding: 6px 12px;
-    position: relative;
-    transition: color 0.3s ease, background-color 0.3s ease;
-  }
+        section.active {
+            display: block;
+        }
 
-  .bottom-nav button.active {
-    color: var(--primary-color);
-  }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #e9ecef;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
 
-  .bottom-nav button .icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 12px;
-    border-radius: 0.5rem;
-    transition: background-color 0.3s ease;
-  }
+        .bottom-nav button {
+            background: none;
+            border: none;
+            color: var(--inactive-color);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            outline: none;
+            padding: 6px 12px;
+            position: relative;
+            transition: color 0.3s ease, background-color 0.3s ease, transform 0.1s ease-in-out;
+        }
 
-  .bottom-nav button.active .icon-container {
-    background-color: var(--active-bg);
-  }
+        .bottom-nav button:active {
+            transform: scale(0.95);
+        }
 
-  .bottom-nav button svg {
-    width: 24px;
-    height: 24px;
-    stroke: var(--inactive-color);
-    fill: none;
-    transition: color 0.3s ease, transform 0.2s ease, fill 0.3s ease, stroke 0.3s ease;
-  }
+        .bottom-nav button.active {
+            color: var(--primary-color);
+        }
 
-  .bottom-nav button.active svg {
-    fill: var(--icon-active-fill);
-    stroke: var(--icon-active-fill);
-  }
+        .bottom-nav button .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
 
-  .bottom-nav button:hover svg {
-    transform: scale(1.1);
-  }
+        .bottom-nav button.active .icon-container {
+            background-color: var(--active-bg);
+        }
 
-  .bottom-nav button span {
-    margin-top: 4px;
-  }
- </style>
+        .bottom-nav button svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--inactive-color);
+            fill: none;
+            transition: color 0.3s ease, transform 0.2s ease, fill 0.3s ease, stroke 0.3s ease;
+        }
+
+        .bottom-nav button.active svg {
+            fill: var(--icon-active-fill);
+            stroke: var(--icon-active-fill);
+        }
+
+        .bottom-nav button:hover svg {
+            transform: scale(1.1);
+        }
+
+        .bottom-nav button span {
+            margin-top: 4px;
+        }
+    </style>
 </head>
 <body>
 
- <header id="header-bar">
-  <svg id="profile-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
-   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-   <circle cx="12" cy="7" r="4"></circle>
-  </svg>
+    <header id="header-bar">
+        <svg id="profile-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+        </svg>
 
-  <svg id="back-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right">
-   <line x1="5" y1="12" x2="19" y2="12"></line>
-   <polyline points="12 5 19 12 12 19"></polyline>
-  </svg>
- </header>
+        <svg id="back-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+    </header>
 
- <main>
-  <section id="home" class="active">
-   <h1>أهلاً في الصفحة الرئيسية</h1>
-  </section>
+    <main>
+        <section id="home" class="active">
+            <h1>أهلاً في الصفحة الرئيسية</h1>
+        </section>
 
-  <section id="exams">
-   <h1>أهلاً في صفحة الاختبارات</h1>
-  </section>
+        <section id="exams">
+            <h1>أهلاً في صفحة الاختبارات</h1>
+        </section>
 
-  <section id="reviews">
-   <h1>أهلاً في صفحة التقييمات</h1>
-  </section>
+        <section id="reviews">
+            <h1>أهلاً في صفحة التقييمات</h1>
+        </section>
 
-  <section id="profile">
-   <h1>أهلاً في الملف الشخصي</h1>
-  </section>
- </main>
+        <section id="profile">
+            <h1>أهلاً في الملف الشخصي</h1>
+        </section>
+    </main>
 
- <nav class="bottom-nav">
-  <button onclick="showTab('home')" class="active">
-   <div class="icon-container">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-     <path d="M9 22V12h6v10"></path>
-    </svg>
-   </div>
-   <span>الرئيسية</span>
-  </button>
-  <button onclick="showTab('exams')">
-   <div class="icon-container">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
-     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-     <polyline points="14 2 14 8 20 8" fill="none"></polyline>
-     <line x1="16" y1="13" x2="8" y2="13"></line>
-     <line x1="16" y1="17" x2="8" y2="17"></line>
-     <polyline points="10 9 9 9 8 9" fill="none"></polyline>
-    </svg>
-   </div>
-   <span>اختبارات</span>
-  </button>
-  <button onclick="showTab('reviews')">
-   <div class="icon-container">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book">
-     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V6.5A2.5 2.5 0 0 0 17.5 4H6.5A2.5 2.5 0 0 0 4 6.5v13z" fill="none"></path>
-     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="none"></path>
-     <path d="M9 22V4" fill="none"></path>
-     <path d="M15 22V4" fill="none"></path>
-    </svg>
-   </div>
-   <span>التقييمات</span>
-  </button>
- </nav>
+    <nav class="bottom-nav">
+        <button onclick="showTab('home')" class="active">
+            <div class="icon-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <path d="M9 22V12h6v10"></path>
+                </svg>
+            </div>
+            <span>الرئيسية</span>
+        </button>
+        <button onclick="showTab('exams')">
+            <div class="icon-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8" fill="none"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9" fill="none"></polyline>
+                </svg>
+            </div>
+            <span>اختبارات</span>
+        </button>
+        <button onclick="showTab('reviews')">
+            <div class="icon-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V6.5A2.5 2.5 0 0 0 17.5 4H6.5A2.5 2.5 0 0 0 4 6.5v13z" fill="none"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="none"></path>
+                    <path d="M9 22V4" fill="none"></path>
+                    <path d="M15 22V4" fill="none"></path>
+                </svg>
+            </div>
+            <span>التقييمات</span>
+        </button>
+    </nav>
 
- <script>
-  function showTab(id) {
-   document.querySelectorAll('section').forEach(sec => {
-    sec.classList.remove('active');
-   });
-   document.getElementById(id).classList.add('active');
+    <script>
+        function showTab(id) {
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
 
-   document.querySelectorAll('.bottom-nav button').forEach(btn => {
-    btn.classList.remove('active');
-   });
+            document.querySelectorAll('.bottom-nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
 
-   const navButton = document.querySelector(`.bottom-nav button[onclick="showTab('${id}')"]`);
-   if (navButton) {
-    navButton.classList.add('active');
-   }
+            const navButton = document.querySelector(`.bottom-nav button[onclick="showTab('${id}')"]`);
+            if (navButton) {
+                navButton.classList.add('active');
+            }
 
-   const navBar = document.querySelector('.bottom-nav');
-   const profileIcon = document.getElementById('profile-icon');
-   const backArrow = document.getElementById('back-arrow');
+            const navBar = document.querySelector('.bottom-nav');
+            const profileIcon = document.getElementById('profile-icon');
+            const backArrow = document.getElementById('back-arrow');
 
-   if (id === 'profile') {
-    navBar.style.display = 'none';
-    profileIcon.style.display = 'none';
-    backArrow.style.display = 'block';
-   } else {
-    navBar.style.display = 'flex';
-    profileIcon.style.display = 'block';
-    backArrow.style.display = 'none';
-   }
-  }
+            if (id === 'profile') {
+                navBar.style.display = 'none';
+                profileIcon.style.display = 'none';
+                backArrow.style.display = 'block';
+            } else {
+                navBar.style.display = 'flex';
+                profileIcon.style.display = 'block';
+                backArrow.style.display = 'none';
+            }
+        }
 
-  document.getElementById('profile-icon').addEventListener('click', () => {
-   showTab('profile');
-  });
+        document.getElementById('profile-icon').addEventListener('click', () => {
+            showTab('profile');
+        });
 
-  document.getElementById('back-arrow').addEventListener('click', () => {
-   showTab('home');
-  });
+        document.getElementById('back-arrow').addEventListener('click', () => {
+            showTab('home');
+        });
 
-  // Initial active state for the first button
-  document.addEventListener('DOMContentLoaded', () => {
-   showTab('home');
-  });
- </script>
+        // Initial active state for the first button
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('home');
+        });
+    </script>
 </body>
 </html>
