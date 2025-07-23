@@ -76,14 +76,15 @@
             border-radius: 0.75rem;
             font-weight: 600;
             font-size: 0.8rem;
-            margin-right: 1rem;
+            /* تم تعديل الهامش ليكون في اليسار */
+            margin-left: 1rem;
             display: none;
             align-items: center;
             justify-content: center;
             transition: opacity 0.3s ease-in-out, background-color 0.3s ease;
         }
         
-        .header-icons {
+        .header-icons-left {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -333,8 +334,6 @@
         .more-menu-container {
             position: relative;
             cursor: pointer;
-            /* تم إضافة هامش لكي لا تكون الأيقونة ملتصقة بالحافة */
-            margin-left: 0.5rem;
         }
 
         #more-menu-icon {
@@ -354,9 +353,9 @@
             display: none;
             position: absolute;
             top: 45px;
-            /* تم تعديل هذا لكي تظهر القائمة إلى يمين الأيقونة */
-            left: 0; 
-            right: auto;
+            /* تم تعديل هذا لكي تظهر القائمة إلى يسار الأيقونة */
+            right: 0;
+            left: auto; 
             min-width: 150px;
             background-color: var(--dropdown-bg);
             border: 1px solid var(--border-color);
@@ -389,6 +388,14 @@
 <body>
 
     <header id="header-bar">
+        <div class="header-icons-left">
+            <svg id="back-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <div class="points-display" id="points-display">8 نقاط</div>
+        </div>
+
         <div class="more-menu-container">
             <svg id="more-menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical">
                 <circle cx="12" cy="12" r="1"></circle>
@@ -400,14 +407,6 @@
                 <a class="dropdown-item" onclick="showTab('settings'); toggleMoreMenu();">الإعدادات</a>
                 <a class="dropdown-item" onclick="showTab('notifications'); toggleMoreMenu();">الإشعارات</a>
             </div>
-        </div>
-
-        <div class="header-icons">
-            <svg id="back-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            <div class="points-display" id="points-display">8 نقاط</div>
         </div>
     </header>
 
