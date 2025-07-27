@@ -31,6 +31,30 @@
         textarea {
             resize: vertical;
         }
+        /* Style for the message box */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f8d7da; /* Light red for error */
+            color: #721c24; /* Dark red text */
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem;
+            animation: fadeOut 5s forwards; /* Fade out after 5 seconds */
+        }
+        .message-box.success {
+            background-color: #d4edda; /* Light green for success */
+            color: #155724; /* Dark green text */
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; display: none; }
+        }
     </style>
 </head>
 <body>
@@ -64,6 +88,9 @@
         </div>
     </div>
 
+    <!-- Message Box for user feedback -->
+    <div id="message-box" class="message-box"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
@@ -71,12 +98,12 @@
 
         // Firebase Configuration (replace with your actual config for deployment)
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "YOUR_API_KEY", // Replace with your actual API Key
+            authDomain: "YOUR_AUTH_DOMAIN", // Replace with your actual Auth Domain
+            projectId: "YOUR_PROJECT_ID", // Replace with your actual Project ID
+            storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your actual Storage Bucket
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your actual Messaging Sender ID
+            appId: "YOUR_APP_ID" // Replace with your actual App ID
         };
 
         // Use Canvas environment variables if available
@@ -104,9 +131,23 @@
         const signOutDeniedButton = document.getElementById('sign-out-denied-button');
         const adminContentTextarea = document.getElementById('admin-content-textarea');
         const saveContentButton = document.getElementById('save-content-button');
+        const messageBox = document.getElementById('message-box'); // Get message box element
 
         let currentUserId = null;
         let isAdmin = false;
+
+        // Function to display messages to the user
+        function showMessage(message, isSuccess = false) {
+            messageBox.textContent = message;
+            messageBox.classList.remove('success');
+            if (isSuccess) {
+                messageBox.classList.add('success');
+            }
+            messageBox.style.display = 'block';
+            messageBox.style.animation = 'none'; // Reset animation
+            void messageBox.offsetWidth; // Trigger reflow
+            messageBox.style.animation = 'fadeOut 5s forwards'; // Restart animation
+        }
 
         // Function to update UI based on authentication and admin status
         function updateUI() {
@@ -116,26 +157,39 @@
                     adminContentSection.classList.remove('hidden');
                     accessDeniedSection.classList.add('hidden');
                     loadAdminContent(); // Load content when admin logs in
+                    showMessage('تم تسجيل الدخول بنجاح كمسؤول.', true);
                 } else {
                     adminContentSection.classList.add('hidden');
                     accessDeniedSection.classList.remove('hidden');
+                    showMessage('ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.', false);
                 }
             } else {
                 authSection.classList.remove('hidden');
                 adminContentSection.classList.add('hidden');
                 accessDeniedSection.classList.add('hidden');
+                showMessage('الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.', false);
             }
         }
 
         // Handle Google Sign-in
         signInButton.addEventListener('click', async () => {
             try {
-                await signInWithPopup(auth, provider);
-                console.log('Google Sign-in successful.');
+                const result = await signInWithPopup(auth, provider);
+                console.log('Google Sign-in successful.', result.user);
+                showMessage('جاري تسجيل الدخول...', true); // Show immediate feedback
             } catch (error) {
                 console.error('Error during Google Sign-in:', error);
                 if (error.code === 'auth/popup-closed-by-user') {
                     console.log('Google Sign-in popup was closed by the user.');
+                    showMessage('تم إغلاق نافذة تسجيل الدخول المنبثقة.', false);
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    console.log('Cancelled popup request (already pending or blocked).');
+                    showMessage('تم إلغاء طلب النافذة المنبثقة. قد تكون نافذة منبثقة أخرى قيد الانتظار أو تم حظرها.', false);
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    console.error('Unauthorized domain. Please add your domain to Firebase console.');
+                    showMessage('النطاق غير مصرح به. الرجاء إضافة نطاق موقعك إلى قائمة "النطاقات المصرح بها" في إعدادات Firebase Authentication.', false);
+                } else {
+                    showMessage(`خطأ في تسجيل الدخول: ${error.message}`, false);
                 }
             }
         });
@@ -145,8 +199,10 @@
             try {
                 await signOut(auth);
                 console.log('User signed out.');
+                showMessage('تم تسجيل الخروج بنجاح.', true);
             } catch (error) {
                 console.error('Error during sign out:', error);
+                showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
             }
         });
 
@@ -154,8 +210,10 @@
             try {
                 await signOut(auth);
                 console.log('User signed out from denied page.');
+                showMessage('تم تسجيل الخروج بنجاح.', true);
             } catch (error) {
                 console.error('Error during sign out:', error);
+                showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
             }
         });
 
@@ -175,6 +233,7 @@
                 }
             } catch (e) {
                 console.error('Error loading admin content:', e);
+                showMessage(`خطأ في تحميل المحتوى: ${e.message}`, false);
             }
         }
 
@@ -182,6 +241,7 @@
         saveContentButton.addEventListener('click', async () => {
             if (!db || !isAdmin) {
                 console.warn('Cannot save content: Not an admin or Firestore not ready.');
+                showMessage('لا يمكنك حفظ المحتوى. يرجى تسجيل الدخول كمسؤول.', false);
                 return;
             }
             const contentToSave = adminContentTextarea.value;
@@ -193,6 +253,7 @@
                 saveContentButton.textContent = 'تم الحفظ!';
                 saveContentButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 saveContentButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                showMessage('تم حفظ المحتوى بنجاح!', true);
                 setTimeout(() => {
                     saveContentButton.textContent = 'حفظ التغييرات';
                     saveContentButton.classList.remove('bg-green-500', 'hover:bg-green-600');
@@ -203,6 +264,7 @@
                 saveContentButton.textContent = 'خطأ في الحفظ!';
                 saveContentButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 saveContentButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                showMessage(`خطأ في حفظ المحتوى: ${e.message}`, false);
                 setTimeout(() => {
                     saveContentButton.textContent = 'حفظ التغييرات';
                     saveContentButton.classList.remove('bg-red-500', 'hover:bg-red-600');
