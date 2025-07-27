@@ -96,17 +96,19 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        // Firebase Configuration (replace with your actual config for deployment)
+        // Firebase Configuration:
+        // IMPORTANT: تأكد من أن هذه القيم مطابقة تمامًا لتلك الموجودة في إعدادات مشروعك بـ Firebase Console.
+        // اذهب إلى: Project settings -> Your apps -> Web app -> Config
         const firebaseConfig = {
             apiKey: "AIzaSyC3BSf75v3qFs2xm7i-TJksrcEHELEmVpo", // تم التحديث بناءً على بيانات مشروعك
-            authDomain: "potato-e7861.firebaseapp.com", // تم التحديث بناءً على بيانات مشروعك
-            projectId: "potato-e7861", // تم التحديث بناءً على بيانات مشروعك
-            storageBucket: "potato-e7861.appspot.com", // تم التحديث بناءً على بيانات مشروعك
-            messagingSenderId: "905443935896", // تم التحديث بناءً على بيانات مشروعك
+            authDomain: "potato-e7861.firebaseapp.com",     // تم التحديث بناءً على بيانات مشروعك
+            projectId: "potato-e7861",                       // تم التحديث بناءً على بيانات مشروعك
+            storageBucket: "potato-e7861.appspot.com",       // تم التحديث بناءً على بيانات مشروعك
+            messagingSenderId: "905443935896",               // تم التحديث بناءً على بيانات مشروعك
             appId: "1:905443935896:web:93c9de4305e49bb6ff32ed" // تم التحديث بناءً على بيانات مشروعك
         };
 
-        // Use Canvas environment variables if available
+        // Use Canvas environment variables if available (لبيئة Canvas فقط، لا تؤثر على النشر المستقل)
         const effectiveFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : effectiveFirebaseConfig.projectId;
 
@@ -116,11 +118,11 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // IMPORTANT: Add the UIDs of the Google accounts that should have admin access here.
-        // You can find a user's UID in the Firebase console under Authentication -> Users.
+        // IMPORTANT: أضف معرفات المستخدمين (UIDs) لحسابات Google التي يجب أن يكون لديها صلاحية المسؤول هنا.
+        // يمكنك العثور على UID الخاص بالمستخدم في Firebase Console تحت: Authentication -> Users.
         const authorizedAdminUids = [
-            's8DYGc2HDNQG2oZu0uFByjTRxA12', // UID الذي تريده أن يكون مسؤولاً
-            // 'YOUR_ADMIN_UID_2'  // Replace with another Admin UID if needed
+            's8DYGc2HDNQG2oZu0uFByjTRxA12', // هذا هو الـ UID للمسؤول الذي تريده أن يعدل
+            // 'أضف_UID_مسؤول_آخر_هنا_إذا_لزم_الأمر'
         ];
 
         const authSection = document.getElementById('auth-section');
