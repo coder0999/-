@@ -25,12 +25,66 @@
             border-radius: 1rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 800px; /* Increased max-width for exam form */
             text-align: center;
         }
-        textarea {
+        textarea, input[type="text"], input[type="number"] {
             resize: vertical;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: 'Cairo', sans-serif;
+            color: #374151;
+            background-color: #f9fafb;
+            width: 100%;
+            box-sizing: border-box;
         }
+        textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .question-block {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #f9fafb;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .option-group input[type="radio"] {
+            width: auto;
+            margin-left: 0.5rem;
+        }
+        .remove-question-button {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        .remove-question-button:hover {
+            background-color: #dc2626;
+        }
+
         /* Style for the message box */
         .message-box {
             position: fixed;
@@ -69,13 +123,54 @@
         </div>
 
         <div id="admin-content-section" class="hidden">
-            <p class="text-green-600 font-semibold mb-4">أهلاً بك أيها المسؤول! يمكنك تعديل المحتوى هنا.</p>
+            <p class="text-green-600 font-semibold mb-4">أهلاً بك أيها المسؤول! يمكنك تعديل المحتوى العام هنا.</p>
             <textarea id="admin-content-textarea" class="w-full p-4 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="10" placeholder="اكتب محتوى الإدارة هنا..."></textarea>
             <button id="save-content-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                حفظ التغييرات
+                حفظ التغييرات العامة
             </button>
-            <button id="sign-out-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
-                تسجيل الخروج
+
+            <hr class="my-8 border-gray-300">
+
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الامتحانات</h2>
+            <button id="add-exam-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mb-6">
+                إضافة امتحان جديد
+            </button>
+
+            <div id="exam-form-section" class="hidden text-right">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">تفاصيل الامتحان الجديد</h3>
+                <div class="form-group">
+                    <label for="exam-name">اسم الامتحان:</label>
+                    <input type="text" id="exam-name" class="w-full" placeholder="مثال: امتحان اللغة العربية - الفصل الأول">
+                </div>
+                <div class="form-group">
+                    <label for="exam-duration">المدة بالدقائق:</label>
+                    <input type="number" id="exam-duration" class="w-full" placeholder="مثال: 60">
+                </div>
+                <div class="form-group">
+                    <label for="exam-num-questions">عدد الأسئلة (سيتم تحديثه تلقائيًا):</label>
+                    <input type="number" id="exam-num-questions" class="w-full" value="0" readonly>
+                </div>
+
+                <hr class="my-6 border-gray-200">
+
+                <h3 class="text-xl font-bold text-gray-800 mb-4">الأسئلة</h3>
+                <div id="questions-container">
+                    <!-- Questions will be added here dynamically -->
+                </div>
+                <button id="add-question-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
+                    إضافة سؤال
+                </button>
+
+                <button id="publish-exam-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-6">
+                    نشر الامتحان
+                </button>
+                <button id="cancel-exam-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-6 mr-2">
+                    إلغاء
+                </button>
+            </div>
+
+            <button id="sign-out-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-8">
+                تسجيل الخروج من لوحة التحكم
             </button>
         </div>
 
@@ -94,7 +189,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         // Firebase Configuration:
         // IMPORTANT: تأكد من أن هذه القيم مطابقة تمامًا لتلك الموجودة في إعدادات مشروعك بـ Firebase Console.
@@ -135,8 +230,20 @@
         const saveContentButton = document.getElementById('save-content-button');
         const messageBox = document.getElementById('message-box'); // Get message box element
 
+        // New elements for exam management
+        const addExamButton = document.getElementById('add-exam-button');
+        const examFormSection = document.getElementById('exam-form-section');
+        const examNameInput = document.getElementById('exam-name');
+        const examDurationInput = document.getElementById('exam-duration');
+        const examNumQuestionsInput = document.getElementById('exam-num-questions');
+        const questionsContainer = document.getElementById('questions-container');
+        const addQuestionButton = document.getElementById('add-question-button');
+        const publishExamButton = document.getElementById('publish-exam-button');
+        const cancelExamButton = document.getElementById('cancel-exam-button');
+
         let currentUserId = null;
         let isAdmin = false;
+        let questionCounter = 0; // Counter for unique question IDs
 
         // Function to display messages to the user
         function showMessage(message, isSuccess = false) {
@@ -158,7 +265,7 @@
                 if (isAdmin) {
                     adminContentSection.classList.remove('hidden');
                     accessDeniedSection.classList.add('hidden');
-                    loadAdminContent(); // Load content when admin logs in
+                    loadAdminContent(); // Load general admin content
                     showMessage('تم تسجيل الدخول بنجاح كمسؤول.', true);
                 } else {
                     adminContentSection.classList.add('hidden');
@@ -202,6 +309,8 @@
                 await signOut(auth);
                 console.log('User signed out.');
                 showMessage('تم تسجيل الخروج بنجاح.', true);
+                // Hide exam form if visible after sign out
+                examFormSection.classList.add('hidden');
             } catch (error) {
                 console.error('Error during sign out:', error);
                 showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
@@ -219,7 +328,7 @@
             }
         });
 
-        // Load admin content from Firestore
+        // Load general admin content from Firestore
         async function loadAdminContent() {
             if (!db || !isAdmin) return;
             // Using a public collection for shared admin content
@@ -228,22 +337,22 @@
                 const docSnap = await getDoc(adminDocRef);
                 if (docSnap.exists()) {
                     adminContentTextarea.value = docSnap.data().text || '';
-                    console.log('Admin content loaded.');
+                    console.log('Admin general content loaded.');
                 } else {
                     adminContentTextarea.value = 'محتوى الإدارة هنا. يمكنك تعديله وحفظه.';
-                    console.log('Admin content document not found, initialized default.');
+                    console.log('Admin general content document not found, initialized default.');
                 }
             } catch (e) {
-                console.error('Error loading admin content:', e);
-                showMessage(`خطأ في تحميل المحتوى: ${e.message}`, false);
+                console.error('Error loading admin general content:', e);
+                showMessage(`خطأ في تحميل المحتوى العام: ${e.message}`, false);
             }
         }
 
-        // Save admin content to Firestore
+        // Save general admin content to Firestore
         saveContentButton.addEventListener('click', async () => {
             if (!db || !isAdmin) {
                 console.warn('Cannot save content: Not an admin or Firestore not ready.');
-                showMessage('لا يمكنك حفظ المحتوى. يرجى تسجيل الدخول كمسؤول.', false);
+                showMessage('لا يمكنك حفظ المحتوى العام. يرجى تسجيل الدخول كمسؤول.', false);
                 return;
             }
             const contentToSave = adminContentTextarea.value;
@@ -251,29 +360,191 @@
 
             try {
                 await setDoc(adminDocRef, { text: contentToSave }, { merge: true });
-                console.log('Admin content saved successfully.');
+                console.log('Admin general content saved successfully.');
                 saveContentButton.textContent = 'تم الحفظ!';
                 saveContentButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 saveContentButton.classList.add('bg-green-500', 'hover:bg-green-600');
-                showMessage('تم حفظ المحتوى بنجاح!', true);
+                showMessage('تم حفظ المحتوى العام بنجاح!', true);
                 setTimeout(() => {
-                    saveContentButton.textContent = 'حفظ التغييرات';
+                    saveContentButton.textContent = 'حفظ التغييرات العامة';
                     saveContentButton.classList.remove('bg-green-500', 'hover:bg-green-600');
                     saveContentButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
                 }, 2000);
             } catch (e) {
-                console.error('Error saving admin content:', e);
+                console.error('Error saving admin general content:', e);
                 saveContentButton.textContent = 'خطأ في الحفظ!';
                 saveContentButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 saveContentButton.classList.add('bg-red-500', 'hover:bg-red-600');
-                showMessage(`خطأ في حفظ المحتوى: ${e.message}`, false);
+                showMessage(`خطأ في حفظ المحتوى العام: ${e.message}`, false);
                 setTimeout(() => {
-                    saveContentButton.textContent = 'حفظ التغييرات';
+                    saveContentButton.textContent = 'حفظ التغييرات العامة';
                     saveContentButton.classList.remove('bg-red-500', 'hover:bg-red-600');
                     saveContentButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
                 }, 2000);
             }
         });
+
+        // --- Exam Management Functions ---
+
+        // Show exam creation form
+        addExamButton.addEventListener('click', () => {
+            if (!isAdmin) {
+                showMessage('ليس لديك صلاحية لإضافة الامتحانات. يرجى تسجيل الدخول كمسؤول.', false);
+                return;
+            }
+            examFormSection.classList.remove('hidden');
+            // Reset form fields
+            examNameInput.value = '';
+            examDurationInput.value = '';
+            examNumQuestionsInput.value = 0;
+            questionsContainer.innerHTML = '';
+            questionCounter = 0;
+            addQuestion(); // Add first question by default
+        });
+
+        // Cancel exam creation
+        cancelExamButton.addEventListener('click', () => {
+            examFormSection.classList.add('hidden');
+            showMessage('تم إلغاء إضافة الامتحان.', false);
+        });
+
+        // Add a new question block to the form
+        addQuestionButton.addEventListener('click', addQuestion);
+
+        function addQuestion() {
+            questionCounter++;
+            const questionId = `q${questionCounter}`;
+
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block text-right';
+            questionBlock.setAttribute('data-question-id', questionId);
+            questionBlock.innerHTML = `
+                <div class="form-group">
+                    <label for="question-text-${questionId}">نص السؤال ${questionCounter}:</label>
+                    <textarea id="question-text-${questionId}" rows="3" placeholder="اكتب نص السؤال هنا..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>الخيارات:</label>
+                    <div id="options-container-${questionId}">
+                        <div class="option-group">
+                            <input type="radio" name="correct-option-${questionId}" value="0" id="option-${questionId}-0">
+                            <input type="text" id="option-text-${questionId}-0" placeholder="الخيار الأول">
+                        </div>
+                        <div class="option-group">
+                            <input type="radio" name="correct-option-${questionId}" value="1" id="option-${questionId}-1">
+                            <input type="text" id="option-text-${questionId}-1" placeholder="الخيار الثاني">
+                        </div>
+                        <div class="option-group">
+                            <input type="radio" name="correct-option-${questionId}" value="2" id="option-${questionId}-2">
+                            <input type="text" id="option-text-${questionId}-2" placeholder="الخيار الثالث">
+                        </div>
+                        <div class="option-group">
+                            <input type="radio" name="correct-option-${questionId}" value="3" id="option-${questionId}-3">
+                            <input type="text" id="option-text-${questionId}-3" placeholder="الخيار الرابع">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="remove-question-button" onclick="removeQuestion('${questionId}')">حذف السؤال</button>
+            `;
+            questionsContainer.appendChild(questionBlock);
+            updateQuestionCount();
+        }
+
+        // Function to remove a question block
+        window.removeQuestion = (questionId) => {
+            const questionBlock = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (questionBlock) {
+                questionBlock.remove();
+                updateQuestionCount();
+                // Re-index question numbers visually (optional, but good for UX)
+                document.querySelectorAll('.question-block').forEach((block, index) => {
+                    block.querySelector('label[for^="question-text-"]').textContent = `نص السؤال ${index + 1}:`;
+                });
+            }
+        };
+
+        // Update the displayed number of questions
+        function updateQuestionCount() {
+            examNumQuestionsInput.value = questionsContainer.children.length;
+        }
+
+        // Publish Exam to Firestore
+        publishExamButton.addEventListener('click', async () => {
+            if (!db || !isAdmin) {
+                showMessage('لا يمكنك نشر الامتحان. يرجى تسجيل الدخول كمسؤول.', false);
+                return;
+            }
+
+            const examName = examNameInput.value.trim();
+            const examDuration = parseInt(examDurationInput.value, 10);
+            const numQuestions = parseInt(examNumQuestionsInput.value, 10);
+
+            if (!examName || isNaN(examDuration) || examDuration <= 0 || numQuestions <= 0) {
+                showMessage('الرجاء إدخال اسم الامتحان والمدة وعدد الأسئلة بشكل صحيح.', false);
+                return;
+            }
+
+            const questions = [];
+            let allQuestionsValid = true;
+
+            document.querySelectorAll('.question-block').forEach((qBlock, index) => {
+                const qText = qBlock.querySelector('textarea[id^="question-text-"]').value.trim();
+                const options = [];
+                let correctOptionIndex = -1;
+
+                qBlock.querySelectorAll('.option-group').forEach((optGroup, optIndex) => {
+                    const optionText = optGroup.querySelector('input[type="text"]').value.trim();
+                    const isCorrect = optGroup.querySelector('input[type="radio"]').checked;
+                    options.push(optionText);
+                    if (isCorrect) {
+                        correctOptionIndex = optIndex;
+                    }
+                });
+
+                if (!qText || options.some(opt => !opt) || correctOptionIndex === -1) {
+                    showMessage(`الرجاء إكمال السؤال رقم ${index + 1} وجميع خياراته وتحديد الإجابة الصحيحة.`, false);
+                    allQuestionsValid = false;
+                    return;
+                }
+
+                questions.push({
+                    questionText: qText,
+                    options: options,
+                    correctOptionIndex: correctOptionIndex
+                });
+            });
+
+            if (!allQuestionsValid) {
+                return;
+            }
+
+            if (questions.length !== numQuestions) {
+                showMessage('عدد الأسئلة المدخلة لا يتطابق مع العدد المحدد. الرجاء مراجعة الأسئلة.', false);
+                return;
+            }
+
+            const examData = {
+                name: examName,
+                duration: examDuration,
+                numQuestions: numQuestions,
+                questions: questions,
+                createdAt: serverTimestamp(), // Firestore timestamp
+                createdBy: currentUserId
+            };
+
+            try {
+                // Store exams in a new collection, e.g., 'exams'
+                const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
+                await addDoc(examsCollectionRef, examData);
+                showMessage('تم نشر الامتحان بنجاح!', true);
+                examFormSection.classList.add('hidden'); // Hide form after publishing
+                // Optionally, clear form or show a success message
+            } catch (e) {
+                console.error('Error publishing exam:', e);
+                showMessage(`خطأ في نشر الامتحان: ${e.message}`, false);
+            }
+        });
+
 
         // Listen for authentication state changes
         onAuthStateChanged(auth, async (user) => {
