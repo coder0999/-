@@ -90,8 +90,6 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background-color: #f8d7da; /* Light red for error */
-            color: #721c24; /* Dark red text */
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -103,6 +101,10 @@
         .message-box.success {
             background-color: #d4edda; /* Light green for success */
             color: #155724; /* Dark green text */
+        }
+        .message-box.error {
+            background-color: #f8d7da; /* Light red for error */
+            color: #721c24; /* Dark red text */
         }
         @keyframes fadeOut {
             0% { opacity: 1; }
@@ -238,7 +240,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         // Firebase Configuration:
@@ -341,6 +343,8 @@
         // Handle Google Sign-in
         signInButton.addEventListener('click', async () => {
             try {
+                // Set persistence to LOCAL before signing in
+                await setPersistence(auth, browserLocalPersistence);
                 const result = await signInWithPopup(auth, provider);
                 console.log('Google Sign-in successful.', result.user);
                 showMessage('جاري تسجيل الدخول...', true); // Show immediate feedback
@@ -352,9 +356,6 @@
                 } else if (error.code === 'auth/cancelled-popup-request') {
                     console.log('Cancelled popup request (already pending or blocked).');
                     showMessage('تم إلغاء طلب النافذة المنبثقة. قد تكون نافذة منبثقة أخرى قيد الانتظار أو تم حظرها.', false);
-                } else if (error.code === 'auth/unauthorized-domain') {
-                    console.error('Unauthorized domain. Please add your domain to Firebase console.');
-                    showMessage('النطاق غير مصرح به. الرجاء إضافة نطاق موقعك إلى قائمة "النطاقات المصرح بها" في إعدادات Firebase Authentication.', false);
                 } else {
                     showMessage(`خطأ في تسجيل الدخول: ${error.message}`, false);
                 }
@@ -692,6 +693,8 @@
             // Handle initial custom token sign-in for Canvas environment
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && !user) {
                 try {
+                    // Set persistence for custom token sign-in as well
+                    await setPersistence(auth, browserLocalPersistence);
                     await signInWithCustomToken(auth, __initial_auth_token);
                     console.log('Signed in with custom token (Canvas environment).');
                 } catch (error) {
