@@ -72,7 +72,7 @@
             width: auto;
             margin-left: 0.5rem;
         }
-        .remove-question-button {
+        .remove-button { /* General style for remove buttons */
             background-color: #ef4444;
             color: white;
             padding: 0.5rem 1rem;
@@ -81,7 +81,7 @@
             transition: background-color 0.2s;
             margin-top: 1rem;
         }
-        .remove-question-button:hover {
+        .remove-button:hover {
             background-color: #dc2626;
         }
 
@@ -109,6 +109,35 @@
             80% { opacity: 1; }
             100% { opacity: 0; display: none; }
         }
+
+        /* Styles for lists of published items */
+        .published-list {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: right;
+        }
+        .published-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .published-item:last-child {
+            border-bottom: none;
+        }
+        .published-item span {
+            font-size: 1rem;
+            color: #374151;
+        }
+        .published-item .remove-button {
+            margin-top: 0;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -123,13 +152,7 @@
         </div>
 
         <div id="admin-content-section" class="hidden">
-            <p class="text-green-600 font-semibold mb-4">أهلاً بك أيها المسؤول! يمكنك تعديل المحتوى العام هنا.</p>
-            <textarea id="admin-content-textarea" class="w-full p-4 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="10" placeholder="اكتب محتوى الإدارة هنا..."></textarea>
-            <button id="save-content-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                حفظ التغييرات العامة
-            </button>
-
-            <hr class="my-8 border-gray-300">
+            <!-- Removed general admin content section -->
 
             <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الامتحانات</h2>
             <button id="add-exam-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mb-6">
@@ -169,6 +192,33 @@
                 </button>
             </div>
 
+            <div class="published-list" id="published-exams-list">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">الامتحانات المنشورة</h3>
+                <!-- Published exams will be listed here -->
+                <p class="text-gray-600">جاري تحميل الامتحانات...</p>
+            </div>
+
+            <hr class="my-8 border-gray-300">
+
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الإشعارات</h2>
+            <div id="notification-form-section" class="text-right mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">إضافة إشعار جديد</h3>
+                <div class="form-group">
+                    <label for="notification-message">نص الإشعار:</label>
+                    <textarea id="notification-message" rows="3" placeholder="اكتب نص الإشعار هنا..."></textarea>
+                </div>
+                <button id="publish-notification-button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    نشر الإشعار
+                </button>
+            </div>
+
+            <div class="published-list" id="published-notifications-list">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">الإشعارات المنشورة</h3>
+                <!-- Published notifications will be listed here -->
+                <p class="text-gray-600">جاري تحميل الإشعارات...</p>
+            </div>
+
+
             <button id="sign-out-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-8">
                 تسجيل الخروج من لوحة التحكم
             </button>
@@ -189,7 +239,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         // Firebase Configuration:
         // IMPORTANT: تأكد من أن هذه القيم مطابقة تمامًا لتلك الموجودة في إعدادات مشروعك بـ Firebase Console.
@@ -226,11 +276,9 @@
         const signInButton = document.getElementById('sign-in-button');
         const signOutButton = document.getElementById('sign-out-button');
         const signOutDeniedButton = document.getElementById('sign-out-denied-button');
-        const adminContentTextarea = document.getElementById('admin-content-textarea');
-        const saveContentButton = document.getElementById('save-content-button');
         const messageBox = document.getElementById('message-box'); // Get message box element
 
-        // New elements for exam management
+        // Exam management elements
         const addExamButton = document.getElementById('add-exam-button');
         const examFormSection = document.getElementById('exam-form-section');
         const examNameInput = document.getElementById('exam-name');
@@ -240,6 +288,12 @@
         const addQuestionButton = document.getElementById('add-question-button');
         const publishExamButton = document.getElementById('publish-exam-button');
         const cancelExamButton = document.getElementById('cancel-exam-button');
+        const publishedExamsList = document.getElementById('published-exams-list');
+
+        // Notification management elements
+        const notificationMessageInput = document.getElementById('notification-message');
+        const publishNotificationButton = document.getElementById('publish-notification-button');
+        const publishedNotificationsList = document.getElementById('published-notifications-list');
 
         let currentUserId = null;
         let isAdmin = false;
@@ -248,9 +302,11 @@
         // Function to display messages to the user
         function showMessage(message, isSuccess = false) {
             messageBox.textContent = message;
-            messageBox.classList.remove('success');
+            messageBox.classList.remove('success', 'error'); // Reset classes
             if (isSuccess) {
                 messageBox.classList.add('success');
+            } else {
+                messageBox.classList.add('error'); // Default to error for non-success messages
             }
             messageBox.style.display = 'block';
             messageBox.style.animation = 'none'; // Reset animation
@@ -265,7 +321,9 @@
                 if (isAdmin) {
                     adminContentSection.classList.remove('hidden');
                     accessDeniedSection.classList.add('hidden');
-                    loadAdminContent(); // Load general admin content
+                    // Load published exams and notifications when admin content is visible
+                    loadPublishedExams();
+                    loadNotifications();
                     showMessage('تم تسجيل الدخول بنجاح كمسؤول.', true);
                 } else {
                     adminContentSection.classList.add('hidden');
@@ -324,63 +382,7 @@
                 showMessage('تم تسجيل الخروج بنجاح.', true);
             } catch (error) {
                 console.error('Error during sign out:', error);
-                showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
-            }
-        });
-
-        // Load general admin content from Firestore
-        async function loadAdminContent() {
-            if (!db || !isAdmin) return;
-            // Using a public collection for shared admin content
-            const adminDocRef = doc(db, `artifacts/${appId}/public/data/adminContent`, 'sharedData');
-            try {
-                const docSnap = await getDoc(adminDocRef);
-                if (docSnap.exists()) {
-                    adminContentTextarea.value = docSnap.data().text || '';
-                    console.log('Admin general content loaded.');
-                } else {
-                    adminContentTextarea.value = 'محتوى الإدارة هنا. يمكنك تعديله وحفظه.';
-                    console.log('Admin general content document not found, initialized default.');
-                }
-            } catch (e) {
-                console.error('Error loading admin general content:', e);
-                showMessage(`خطأ في تحميل المحتوى العام: ${e.message}`, false);
-            }
-        }
-
-        // Save general admin content to Firestore
-        saveContentButton.addEventListener('click', async () => {
-            if (!db || !isAdmin) {
-                console.warn('Cannot save content: Not an admin or Firestore not ready.');
-                showMessage('لا يمكنك حفظ المحتوى العام. يرجى تسجيل الدخول كمسؤول.', false);
-                return;
-            }
-            const contentToSave = adminContentTextarea.value;
-            const adminDocRef = doc(db, `artifacts/${appId}/public/data/adminContent`, 'sharedData');
-
-            try {
-                await setDoc(adminDocRef, { text: contentToSave }, { merge: true });
-                console.log('Admin general content saved successfully.');
-                saveContentButton.textContent = 'تم الحفظ!';
-                saveContentButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                saveContentButton.classList.add('bg-green-500', 'hover:bg-green-600');
-                showMessage('تم حفظ المحتوى العام بنجاح!', true);
-                setTimeout(() => {
-                    saveContentButton.textContent = 'حفظ التغييرات العامة';
-                    saveContentButton.classList.remove('bg-green-500', 'hover:bg-green-600');
-                    saveContentButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
-                }, 2000);
-            } catch (e) {
-                console.error('Error saving admin general content:', e);
-                saveContentButton.textContent = 'خطأ في الحفظ!';
-                saveContentButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                saveContentButton.classList.add('bg-red-500', 'hover:bg-red-600');
-                showMessage(`خطأ في حفظ المحتوى العام: ${e.message}`, false);
-                setTimeout(() => {
-                    saveContentButton.textContent = 'حفظ التغييرات العامة';
-                    saveContentButton.classList.remove('bg-red-500', 'hover:bg-red-600');
-                    saveContentButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
-                }, 2000);
+                showMessage(`خطأ في تسجيل الخروج: ${e.message}`, false);
             }
         });
 
@@ -444,7 +446,7 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" class="remove-question-button" onclick="removeQuestion('${questionId}')">حذف السؤال</button>
+                <button type="button" class="remove-button" onclick="removeQuestion('${questionId}')">حذف السؤال</button>
             `;
             questionsContainer.appendChild(questionBlock);
             updateQuestionCount();
@@ -538,13 +540,149 @@
                 await addDoc(examsCollectionRef, examData);
                 showMessage('تم نشر الامتحان بنجاح!', true);
                 examFormSection.classList.add('hidden'); // Hide form after publishing
-                // Optionally, clear form or show a success message
+                loadPublishedExams(); // Reload the list of published exams
             } catch (e) {
                 console.error('Error publishing exam:', e);
                 showMessage(`خطأ في نشر الامتحان: ${e.message}`, false);
             }
         });
 
+        // Load and display published exams
+        async function loadPublishedExams() {
+            if (!db || !isAdmin) return;
+
+            publishedExamsList.innerHTML = '<p class="text-gray-600">جاري تحميل الامتحانات...</p>';
+            const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
+
+            onSnapshot(examsCollectionRef, (snapshot) => {
+                publishedExamsList.innerHTML = ''; // Clear previous list
+                if (snapshot.empty) {
+                    publishedExamsList.innerHTML = '<p class="text-gray-600">لا توجد امتحانات منشورة حاليًا.</p>';
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const exam = doc.data();
+                    const examId = doc.id;
+                    const examItem = document.createElement('div');
+                    examItem.className = 'published-item';
+                    examItem.innerHTML = `
+                        <span>${exam.name} (${exam.numQuestions} أسئلة, ${exam.duration} دقيقة)</span>
+                        <button class="remove-button" onclick="deleteExam('${examId}')">حذف</button>
+                    `;
+                    publishedExamsList.appendChild(examItem);
+                });
+            }, (error) => {
+                console.error('Error loading published exams:', error);
+                publishedExamsList.innerHTML = `<p class="text-red-500">حدث خطأ أثناء تحميل الامتحانات: ${error.message}</p>`;
+            });
+        }
+
+        // Delete an exam
+        window.deleteExam = async (examId) => {
+            if (!db || !isAdmin) {
+                showMessage('ليس لديك صلاحية لحذف الامتحانات.', false);
+                return;
+            }
+            if (!confirm('هل أنت متأكد أنك تريد حذف هذا الامتحان؟')) { // Using confirm for simplicity, can be replaced with custom modal
+                return;
+            }
+
+            const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
+            try {
+                await deleteDoc(examDocRef);
+                showMessage('تم حذف الامتحان بنجاح!', true);
+                // loadPublishedExams() will be triggered by onSnapshot
+            } catch (e) {
+                console.error('Error deleting exam:', e);
+                showMessage(`خطأ في حذف الامتحان: ${e.message}`, false);
+            }
+        };
+
+        // --- Notification Management Functions ---
+
+        // Publish Notification to Firestore
+        publishNotificationButton.addEventListener('click', async () => {
+            if (!db || !isAdmin) {
+                showMessage('ليس لديك صلاحية لنشر الإشعارات. يرجى تسجيل الدخول كمسؤول.', false);
+                return;
+            }
+
+            const message = notificationMessageInput.value.trim();
+            if (!message) {
+                showMessage('الرجاء كتابة نص الإشعار.', false);
+                return;
+            }
+
+            const notificationData = {
+                message: message,
+                createdAt: serverTimestamp(),
+                createdBy: currentUserId
+            };
+
+            try {
+                const notificationsCollectionRef = collection(db, `artifacts/${appId}/public/data/notifications`);
+                await addDoc(notificationsCollectionRef, notificationData);
+                showMessage('تم نشر الإشعار بنجاح!', true);
+                notificationMessageInput.value = ''; // Clear input field
+                // loadNotifications() will be triggered by onSnapshot
+            } catch (e) {
+                console.error('Error publishing notification:', e);
+                showMessage(`خطأ في نشر الإشعار: ${e.message}`, false);
+            }
+        });
+
+        // Load and display published notifications
+        async function loadNotifications() {
+            if (!db || !isAdmin) return;
+
+            publishedNotificationsList.innerHTML = '<p class="text-gray-600">جاري تحميل الإشعارات...</p>';
+            const notificationsCollectionRef = collection(db, `artifacts/${appId}/public/data/notifications`);
+
+            onSnapshot(notificationsCollectionRef, (snapshot) => {
+                publishedNotificationsList.innerHTML = ''; // Clear previous list
+                if (snapshot.empty) {
+                    publishedNotificationsList.innerHTML = '<p class="text-gray-600">لا توجد إشعارات منشورة حاليًا.</p>';
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const notification = doc.data();
+                    const notificationId = doc.id;
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = 'published-item';
+                    notificationItem.innerHTML = `
+                        <span>${notification.message}</span>
+                        <button class="remove-button" onclick="deleteNotification('${notificationId}')">حذف</button>
+                    `;
+                    publishedNotificationsList.appendChild(notificationItem);
+                });
+            }, (error) => {
+                console.error('Error loading published notifications:', error);
+                publishedNotificationsList.innerHTML = `<p class="text-red-500">حدث خطأ أثناء تحميل الإشعارات: ${error.message}</p>`;
+            });
+        }
+
+        // Delete a notification
+        window.deleteNotification = async (notificationId) => {
+            if (!db || !isAdmin) {
+                showMessage('ليس لديك صلاحية لحذف الإشعارات.', false);
+                return;
+            }
+            if (!confirm('هل أنت متأكد أنك تريد حذف هذا الإشعار؟')) { // Using confirm for simplicity, can be replaced with custom modal
+                return;
+            }
+
+            const notificationDocRef = doc(db, `artifacts/${appId}/public/data/notifications`, notificationId);
+            try {
+                await deleteDoc(notificationDocRef);
+                showMessage('تم حذف الإشعار بنجاح!', true);
+                // loadNotifications() will be triggered by onSnapshot
+            } catch (e) {
+                console.error('Error deleting notification:', e);
+                showMessage(`خطأ في حذف الإشعار: ${e.message}`, false);
+            }
+        };
 
         // Listen for authentication state changes
         onAuthStateChanged(auth, async (user) => {
