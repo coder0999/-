@@ -140,6 +140,29 @@
             padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
         }
+        /* Style for disabled inputs/buttons */
+        .disabled-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white overlay */
+            border-radius: 1rem;
+            z-index: 5; /* Above content, below buttons */
+            cursor: not-allowed;
+        }
+        .disabled-overlay-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6b7280; /* Gray text */
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            z-index: 6;
+        }
     </style>
 </head>
 <body>
@@ -154,7 +177,33 @@
         </div>
 
         <div id="admin-content-section" class="hidden">
-            <!-- Removed general admin content section -->
+            <!-- Admin Management Section -->
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة المشرفين</h2>
+            <div id="admin-management-form-section" class="text-right mb-6 relative">
+                <!-- Overlay for non-main admins -->
+                <div id="admin-management-overlay" class="disabled-overlay hidden"></div>
+                <p id="admin-management-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
+
+                <h3 class="text-xl font-bold text-gray-800 mb-4">إضافة مشرف جديد</h3>
+                <div class="form-group">
+                    <label for="supervisor-uid">معرف المستخدم (UID) للمشرف:</label>
+                    <input type="text" id="supervisor-uid" class="w-full" placeholder="أدخل UID المشرف">
+                </div>
+                <div class="form-group">
+                    <label for="supervisor-alias">الاسم المستعار للمشرف:</label>
+                    <input type="text" id="supervisor-alias" class="w-full" placeholder="مثال: أحمد المشرف">
+                </div>
+                <button id="add-supervisor-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    إضافة مشرف
+                </button>
+            </div>
+
+            <div class="published-list" id="supervisors-list">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">المشرفون الحاليون</h3>
+                <p class="text-gray-600">جاري تحميل المشرفين...</p>
+            </div>
+
+            <hr class="my-8 border-gray-300">
 
             <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الامتحانات</h2>
             <button id="add-exam-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mb-6">
@@ -244,18 +293,15 @@
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         // Firebase Configuration:
-        // IMPORTANT: تأكد من أن هذه القيم مطابقة تمامًا لتلك الموجودة في إعدادات مشروعك بـ Firebase Console.
-        // اذهب إلى: Project settings -> Your apps -> Web app -> Config
         const firebaseConfig = {
-            apiKey: "AIzaSyC3BSf75v3qFs2xm7i-TJksrcEHELEmVpo", // تم التحديث بناءً على بيانات مشروعك
-            authDomain: "potato-e7861.firebaseapp.com",     // تم التحديث بناءً على بيانات مشروعك
-            projectId: "potato-e7861",                       // تم التحديث بناءً على بيانات مشروعك
-            storageBucket: "potato-e7861.appspot.com",       // تم التحديث بناءً على بيانات مشروعك
-            messagingSenderId: "905443935896",               // تم التحديث بناءً على بيانات مشروعك
-            appId: "1:905443935896:web:93c9de4305e49bb6ff32ed" // تم التحديث بناءً على بيانات مشروعك
+            apiKey: "AIzaSyC3BSf75v3qFs2xm7i-TJksrcEHELEmVpo",
+            authDomain: "potato-e7861.firebaseapp.com",
+            projectId: "potato-e7861",
+            storageBucket: "potato-e7861.appspot.com",
+            messagingSenderId: "905443935896",
+            appId: "1:905443935896:web:93c9de4305e49bb6ff32ed"
         };
 
-        // Use Canvas environment variables if available (لبيئة Canvas فقط، لا تؤثر على النشر المستقل)
         const effectiveFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : effectiveFirebaseConfig.projectId;
 
@@ -265,12 +311,8 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // IMPORTANT: أضف معرفات المستخدمين (UIDs) لحسابات Google التي يجب أن يكون لديها صلاحية المسؤول هنا.
-        // يمكنك العثور على UID الخاص بالمستخدم في Firebase Console تحت: Authentication -> Users.
-        const authorizedAdminUids = [
-            's8DYGc2HDNQG2oZu0uFByjTRxA12', // هذا هو الـ UID للمسؤول الذي تريده أن يعدل
-            // 'أضف_UID_مسؤول_آخر_هنا_إذا_لزم_الأمر'
-        ];
+        // Main Admin UID (the one with full control)
+        const mainAdminUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
 
         const authSection = document.getElementById('auth-section');
         const adminContentSection = document.getElementById('admin-content-section');
@@ -278,7 +320,7 @@
         const signInButton = document.getElementById('sign-in-button');
         const signOutButton = document.getElementById('sign-out-button');
         const signOutDeniedButton = document.getElementById('sign-out-denied-button');
-        const messageBox = document.getElementById('message-box'); // Get message box element
+        const messageBox = document.getElementById('message-box');
 
         // Exam management elements
         const addExamButton = document.getElementById('add-exam-button');
@@ -297,45 +339,86 @@
         const publishNotificationButton = document.getElementById('publish-notification-button');
         const publishedNotificationsList = document.getElementById('published-notifications-list');
 
+        // Admin Management elements
+        const adminManagementFormSection = document.getElementById('admin-management-form-section');
+        const adminManagementOverlay = document.getElementById('admin-management-overlay');
+        const adminManagementOverlayText = document.getElementById('admin-management-overlay-text');
+        const supervisorUidInput = document.getElementById('supervisor-uid');
+        const supervisorAliasInput = document.getElementById('supervisor-alias');
+        const addSupervisorButton = document.getElementById('add-supervisor-button');
+        const supervisorsList = document.getElementById('supervisors-list');
+
+
         let currentUserId = null;
-        let isAdmin = false;
-        let questionCounter = 0; // Counter for unique question IDs
+        let isMainAdmin = false;
+        let isSupervisor = false; // New flag for supervisors
+        let questionCounter = 0;
 
         // Function to display messages to the user
         function showMessage(message, isSuccess = false) {
             messageBox.textContent = message;
-            messageBox.classList.remove('success', 'error'); // Reset classes
+            messageBox.classList.remove('success', 'error');
             if (isSuccess) {
                 messageBox.classList.add('success');
             } else {
-                messageBox.classList.add('error'); // Default to error for non-success messages
+                messageBox.classList.add('error');
             }
             messageBox.style.display = 'block';
-            messageBox.style.animation = 'none'; // Reset animation
-            void messageBox.offsetWidth; // Trigger reflow
-            messageBox.style.animation = 'fadeOut 5s forwards'; // Restart animation
+            messageBox.style.animation = 'none';
+            void messageBox.offsetWidth;
+            messageBox.style.animation = 'fadeOut 5s forwards';
         }
 
-        // Function to update UI based on authentication and admin status
+        // Function to update UI based on authentication and admin/supervisor status
         function updateUI() {
+            // Reset all sections to hidden first
+            authSection.classList.add('hidden');
+            adminContentSection.classList.add('hidden');
+            accessDeniedSection.classList.add('hidden');
+
             if (currentUserId) {
-                authSection.classList.add('hidden');
-                if (isAdmin) {
+                // User is authenticated
+                if (isMainAdmin || isSupervisor) {
+                    // User is either main admin or a supervisor, grant access to admin content
                     adminContentSection.classList.remove('hidden');
-                    accessDeniedSection.classList.add('hidden');
-                    // Load published exams and notifications when admin content is visible
+
+                    // Control Admin Management Section visibility/interactivity
+                    if (isMainAdmin) {
+                        adminManagementFormSection.classList.remove('hidden');
+                        adminManagementOverlay.classList.add('hidden');
+                        adminManagementOverlayText.classList.add('hidden');
+                        supervisorUidInput.disabled = false;
+                        supervisorAliasInput.disabled = false;
+                        addSupervisorButton.disabled = false;
+                    } else { // isSupervisor but not isMainAdmin
+                        // Supervisors can view but not modify admin list
+                        adminManagementFormSection.classList.remove('hidden'); // Show the form section
+                        adminManagementOverlay.classList.remove('hidden'); // Show overlay to disable inputs/buttons
+                        adminManagementOverlayText.classList.remove('hidden');
+                        supervisorUidInput.disabled = true;
+                        supervisorAliasInput.disabled = true;
+                        addSupervisorButton.disabled = true;
+                    }
+
+                    // Control Exam and Notification management buttons based on role
+                    addExamButton.disabled = !(isMainAdmin || isSupervisor);
+                    publishExamButton.disabled = !(isMainAdmin || isSupervisor);
+                    addQuestionButton.disabled = !(isMainAdmin || isSupervisor);
+                    notificationMessageInput.disabled = !(isMainAdmin || isSupervisor);
+                    publishNotificationButton.disabled = !(isMainAdmin || isSupervisor);
+
+                    showMessage('تم تسجيل الدخول بنجاح.', true);
                     loadPublishedExams();
                     loadNotifications();
-                    showMessage('تم تسجيل الدخول بنجاح كمسؤول.', true);
+                    loadSupervisors(); // Load supervisors list for all admins/supervisors
                 } else {
-                    adminContentSection.classList.add('hidden');
+                    // Authenticated but not an admin/supervisor
                     accessDeniedSection.classList.remove('hidden');
                     showMessage('ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.', false);
                 }
             } else {
+                // User is not authenticated
                 authSection.classList.remove('hidden');
-                adminContentSection.classList.add('hidden');
-                accessDeniedSection.classList.add('hidden');
                 showMessage('الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.', false);
             }
         }
@@ -343,18 +426,15 @@
         // Handle Google Sign-in
         signInButton.addEventListener('click', async () => {
             try {
-                // Set persistence to LOCAL before signing in
                 await setPersistence(auth, browserLocalPersistence);
                 const result = await signInWithPopup(auth, provider);
                 console.log('Google Sign-in successful.', result.user);
-                showMessage('جاري تسجيل الدخول...', true); // Show immediate feedback
+                showMessage('جاري تسجيل الدخول...', true);
             } catch (error) {
                 console.error('Error during Google Sign-in:', error);
                 if (error.code === 'auth/popup-closed-by-user') {
-                    console.log('Google Sign-in popup was closed by the user.');
                     showMessage('تم إغلاق نافذة تسجيل الدخول المنبثقة.', false);
                 } else if (error.code === 'auth/cancelled-popup-request') {
-                    console.log('Cancelled popup request (already pending or blocked).');
                     showMessage('تم إلغاء طلب النافذة المنبثقة. قد تكون نافذة منبثقة أخرى قيد الانتظار أو تم حظرها.', false);
                 } else {
                     showMessage(`خطأ في تسجيل الدخول: ${error.message}`, false);
@@ -368,8 +448,7 @@
                 await signOut(auth);
                 console.log('User signed out.');
                 showMessage('تم تسجيل الخروج بنجاح.', true);
-                // Hide exam form if visible after sign out
-                examFormSection.classList.add('hidden');
+                examFormSection.classList.add('hidden'); // Hide exam form if visible
             } catch (error) {
                 console.error('Error during sign out:', error);
                 showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
@@ -389,29 +468,25 @@
 
         // --- Exam Management Functions ---
 
-        // Show exam creation form
         addExamButton.addEventListener('click', () => {
-            if (!isAdmin) {
-                showMessage('ليس لديك صلاحية لإضافة الامتحانات. يرجى تسجيل الدخول كمسؤول.', false);
+            if (!isMainAdmin && !isSupervisor) {
+                showMessage('ليس لديك صلاحية لإضافة الامتحانات. يرجى تسجيل الدخول كمسؤول أو مشرف.', false);
                 return;
             }
             examFormSection.classList.remove('hidden');
-            // Reset form fields
             examNameInput.value = '';
             examDurationInput.value = '';
             examNumQuestionsInput.value = 0;
             questionsContainer.innerHTML = '';
             questionCounter = 0;
-            addQuestion(); // Add first question by default
+            addQuestion();
         });
 
-        // Cancel exam creation
         cancelExamButton.addEventListener('click', () => {
             examFormSection.classList.add('hidden');
             showMessage('تم إلغاء إضافة الامتحان.', false);
         });
 
-        // Add a new question block to the form
         addQuestionButton.addEventListener('click', addQuestion);
 
         function addQuestion() {
@@ -453,28 +528,24 @@
             updateQuestionCount();
         }
 
-        // Function to remove a question block
         window.removeQuestion = (questionId) => {
             const questionBlock = document.querySelector(`[data-question-id="${questionId}"]`);
             if (questionBlock) {
                 questionBlock.remove();
                 updateQuestionCount();
-                // Re-index question numbers visually (optional, but good for UX)
                 document.querySelectorAll('.question-block').forEach((block, index) => {
                     block.querySelector('label[for^="question-text-"]').textContent = `نص السؤال ${index + 1}:`;
                 });
             }
         };
 
-        // Update the displayed number of questions
         function updateQuestionCount() {
             examNumQuestionsInput.value = questionsContainer.children.length;
         }
 
-        // Publish Exam to Firestore
         publishExamButton.addEventListener('click', async () => {
-            if (!db || !isAdmin) {
-                showMessage('لا يمكنك نشر الامتحان. يرجى تسجيل الدخول كمسؤول.', false);
+            if (!db || (!isMainAdmin && !isSupervisor)) {
+                showMessage('لا يمكنك نشر الامتحان. يرجى تسجيل الدخول كمسؤول أو مشرف.', false);
                 return;
             }
 
@@ -531,32 +602,33 @@
                 duration: examDuration,
                 numQuestions: numQuestions,
                 questions: questions,
-                createdAt: serverTimestamp(), // Firestore timestamp
+                createdAt: serverTimestamp(),
                 createdBy: currentUserId
             };
 
             try {
-                // Store exams in a new collection, e.g., 'exams'
                 const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
                 await addDoc(examsCollectionRef, examData);
                 showMessage('تم نشر الامتحان بنجاح!', true);
-                examFormSection.classList.add('hidden'); // Hide form after publishing
-                loadPublishedExams(); // Reload the list of published exams
+                examFormSection.classList.add('hidden');
+                loadPublishedExams();
             } catch (e) {
                 console.error('Error publishing exam:', e);
                 showMessage(`خطأ في نشر الامتحان: ${e.message}`, false);
             }
         });
 
-        // Load and display published exams
         async function loadPublishedExams() {
-            if (!db || !isAdmin) return;
+            if (!db || (!isMainAdmin && !isSupervisor)) {
+                publishedExamsList.innerHTML = '<p class="text-gray-600">ليس لديك صلاحية لعرض الامتحانات المنشورة.</p>';
+                return;
+            }
 
             publishedExamsList.innerHTML = '<p class="text-gray-600">جاري تحميل الامتحانات...</p>';
             const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
 
             onSnapshot(examsCollectionRef, (snapshot) => {
-                publishedExamsList.innerHTML = ''; // Clear previous list
+                publishedExamsList.innerHTML = '';
                 if (snapshot.empty) {
                     publishedExamsList.innerHTML = '<p class="text-gray-600">لا توجد امتحانات منشورة حاليًا.</p>';
                     return;
@@ -569,7 +641,7 @@
                     examItem.className = 'published-item';
                     examItem.innerHTML = `
                         <span>${exam.name} (${exam.numQuestions} أسئلة, ${exam.duration} دقيقة)</span>
-                        <button class="remove-button" onclick="deleteExam('${examId}')">حذف</button>
+                        <button class="remove-button" onclick="deleteExam('${examId}')" ${isMainAdmin ? '' : 'disabled'}>حذف</button>
                     `;
                     publishedExamsList.appendChild(examItem);
                 });
@@ -579,13 +651,12 @@
             });
         }
 
-        // Delete an exam
         window.deleteExam = async (examId) => {
-            if (!db || !isAdmin) {
+            if (!db || !isMainAdmin) { // Only main admin can delete exams
                 showMessage('ليس لديك صلاحية لحذف الامتحانات.', false);
                 return;
             }
-            if (!confirm('هل أنت متأكد أنك تريد حذف هذا الامتحان؟')) { // Using confirm for simplicity, can be replaced with custom modal
+            if (!confirm('هل أنت متأكد أنك تريد حذف هذا الامتحان؟')) {
                 return;
             }
 
@@ -593,7 +664,6 @@
             try {
                 await deleteDoc(examDocRef);
                 showMessage('تم حذف الامتحان بنجاح!', true);
-                // loadPublishedExams() will be triggered by onSnapshot
             } catch (e) {
                 console.error('Error deleting exam:', e);
                 showMessage(`خطأ في حذف الامتحان: ${e.message}`, false);
@@ -602,10 +672,9 @@
 
         // --- Notification Management Functions ---
 
-        // Publish Notification to Firestore
         publishNotificationButton.addEventListener('click', async () => {
-            if (!db || !isAdmin) {
-                showMessage('ليس لديك صلاحية لنشر الإشعارات. يرجى تسجيل الدخول كمسؤول.', false);
+            if (!db || (!isMainAdmin && !isSupervisor)) {
+                showMessage('ليس لديك صلاحية لنشر الإشعارات. يرجى تسجيل الدخول كمسؤول أو مشرف.', false);
                 return;
             }
 
@@ -625,23 +694,24 @@
                 const notificationsCollectionRef = collection(db, `artifacts/${appId}/public/data/notifications`);
                 await addDoc(notificationsCollectionRef, notificationData);
                 showMessage('تم نشر الإشعار بنجاح!', true);
-                notificationMessageInput.value = ''; // Clear input field
-                // loadNotifications() will be triggered by onSnapshot
+                notificationMessageInput.value = '';
             } catch (e) {
                 console.error('Error publishing notification:', e);
                 showMessage(`خطأ في نشر الإشعار: ${e.message}`, false);
             }
         });
 
-        // Load and display published notifications
         async function loadNotifications() {
-            if (!db || !isAdmin) return;
+            if (!db || (!isMainAdmin && !isSupervisor)) {
+                publishedNotificationsList.innerHTML = '<p class="text-gray-600">ليس لديك صلاحية لعرض الإشعارات المنشورة.</p>';
+                return;
+            }
 
             publishedNotificationsList.innerHTML = '<p class="text-gray-600">جاري تحميل الإشعارات...</p>';
             const notificationsCollectionRef = collection(db, `artifacts/${appId}/public/data/notifications`);
 
             onSnapshot(notificationsCollectionRef, (snapshot) => {
-                publishedNotificationsList.innerHTML = ''; // Clear previous list
+                publishedNotificationsList.innerHTML = '';
                 if (snapshot.empty) {
                     publishedNotificationsList.innerHTML = '<p class="text-gray-600">لا توجد إشعارات منشورة حاليًا.</p>';
                     return;
@@ -654,7 +724,7 @@
                     notificationItem.className = 'published-item';
                     notificationItem.innerHTML = `
                         <span>${notification.message}</span>
-                        <button class="remove-button" onclick="deleteNotification('${notificationId}')">حذف</button>
+                        <button class="remove-button" onclick="deleteNotification('${notificationId}')" ${isMainAdmin ? '' : 'disabled'}>حذف</button>
                     `;
                     publishedNotificationsList.appendChild(notificationItem);
                 });
@@ -664,13 +734,12 @@
             });
         }
 
-        // Delete a notification
         window.deleteNotification = async (notificationId) => {
-            if (!db || !isAdmin) {
+            if (!db || !isMainAdmin) { // Only main admin can delete notifications
                 showMessage('ليس لديك صلاحية لحذف الإشعارات.', false);
                 return;
             }
-            if (!confirm('هل أنت متأكد أنك تريد حذف هذا الإشعار؟')) { // Using confirm for simplicity, can be replaced with custom modal
+            if (!confirm('هل أنت متأكد أنك تريد حذف هذا الإشعار؟')) {
                 return;
             }
 
@@ -678,33 +747,139 @@
             try {
                 await deleteDoc(notificationDocRef);
                 showMessage('تم حذف الإشعار بنجاح!', true);
-                // loadNotifications() will be triggered by onSnapshot
             } catch (e) {
                 console.error('Error deleting notification:', e);
                 showMessage(`خطأ في حذف الإشعار: ${e.message}`, false);
             }
         };
 
+        // --- Admin Management Functions ---
+
+        addSupervisorButton.addEventListener('click', async () => {
+            if (!db || !isMainAdmin) {
+                showMessage('ليس لديك صلاحية لإضافة مشرفين.', false);
+                return;
+            }
+
+            const uid = supervisorUidInput.value.trim();
+            const alias = supervisorAliasInput.value.trim();
+
+            if (!uid || !alias) {
+                showMessage('الرجاء إدخال معرف المستخدم (UID) والاسم المستعار للمشرف.', false);
+                return;
+            }
+
+            // Prevent adding main admin as a supervisor
+            if (uid === mainAdminUid) {
+                showMessage('لا يمكن إضافة المسؤول الرئيسي كمشرف.', false);
+                return;
+            }
+
+            const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, uid);
+            try {
+                await setDoc(supervisorDocRef, { alias: alias, addedBy: currentUserId, createdAt: serverTimestamp() });
+                showMessage(`تم إضافة المشرف ${alias} بنجاح!`, true);
+                supervisorUidInput.value = '';
+                supervisorAliasInput.value = '';
+                // loadSupervisors() will be triggered by onSnapshot
+            } catch (e) {
+                console.error('Error adding supervisor:', e);
+                showMessage(`خطأ في إضافة المشرف: ${e.message}`, false);
+            }
+        });
+
+        async function loadSupervisors() {
+            if (!db || (!isMainAdmin && !isSupervisor)) { // Anyone with admin/supervisor access can view the list
+                supervisorsList.innerHTML = '<p class="text-gray-600">ليس لديك صلاحية لعرض قائمة المشرفين.</p>';
+                return;
+            }
+
+            supervisorsList.innerHTML = '<p class="text-gray-600">جاري تحميل المشرفين...</p>';
+            const supervisorsCollectionRef = collection(db, `artifacts/${appId}/public/data/supervisors`);
+
+            onSnapshot(supervisorsCollectionRef, (snapshot) => {
+                supervisorsList.innerHTML = '';
+                if (snapshot.empty) {
+                    supervisorsList.innerHTML = '<p class="text-gray-600">لا يوجد مشرفون حاليًا.</p>';
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const supervisor = doc.data();
+                    const supervisorUid = doc.id; // UID is the document ID
+                    // Exclude the main admin from the supervisors list if they somehow got added
+                    if (supervisorUid === mainAdminUid) return;
+
+                    const supervisorItem = document.createElement('div');
+                    supervisorItem.className = 'published-item';
+                    supervisorItem.innerHTML = `
+                        <span>${supervisor.alias} (UID: ${supervisorUid})</span>
+                        <button class="remove-button" onclick="removeSupervisor('${supervisorUid}')" ${isMainAdmin ? '' : 'disabled'}>حذف</button>
+                    `;
+                    supervisorsList.appendChild(supervisorItem);
+                });
+            }, (error) => {
+                console.error('Error loading supervisors:', error);
+                supervisorsList.innerHTML = `<p class="text-red-500">حدث خطأ أثناء تحميل المشرفين: ${error.message}</p>`;
+            });
+        }
+
+        window.removeSupervisor = async (supervisorUid) => {
+            if (!db || !isMainAdmin) { // Only main admin can remove supervisors
+                showMessage('ليس لديك صلاحية لحذف المشرفين.', false);
+                return;
+            }
+            if (!confirm('هل أنت متأكد أنك تريد حذف هذا المشرف؟')) {
+                return;
+            }
+            if (supervisorUid === mainAdminUid) {
+                showMessage('لا يمكن حذف المسؤول الرئيسي.', false);
+                return;
+            }
+
+            const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, supervisorUid);
+            try {
+                await deleteDoc(supervisorDocRef);
+                showMessage('تم حذف المشرف بنجاح!', true);
+                // loadSupervisors() will be triggered by onSnapshot
+            } catch (e) {
+                console.error('Error deleting supervisor:', e);
+                showMessage(`خطأ في حذف المشرف: ${e.message}`, false);
+            }
+        };
+
+
         // Listen for authentication state changes
         onAuthStateChanged(auth, async (user) => {
             currentUserId = user ? user.uid : null;
-            isAdmin = user && authorizedAdminUids.includes(user.uid);
+            isMainAdmin = (currentUserId === mainAdminUid);
+
+            // Check if current user is a supervisor
+            if (currentUserId && !isMainAdmin) { // Only check if not main admin
+                const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, currentUserId);
+                try {
+                    const docSnap = await getDoc(supervisorDocRef);
+                    isSupervisor = docSnap.exists();
+                } catch (e) {
+                    console.error('Error checking supervisor status:', e);
+                    isSupervisor = false;
+                }
+            } else {
+                isSupervisor = false; // Reset if not logged in or is main admin
+            }
 
             // Handle initial custom token sign-in for Canvas environment
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && !user) {
                 try {
-                    // Set persistence for custom token sign-in as well
                     await setPersistence(auth, browserLocalPersistence);
                     await signInWithCustomToken(auth, __initial_auth_token);
                     console.log('Signed in with custom token (Canvas environment).');
                 } catch (error) {
                     console.error('Firebase authentication error during initial setup:', error);
-                    // If custom token fails, proceed as anonymous or logged out
                     await signInAnonymously(auth);
                     console.log('Signed in anonymously after custom token failure.');
                 }
             } else if (!user && typeof __initial_auth_token === 'undefined') {
-                // For deployed apps without custom token, sign in anonymously if no user
                 await signInAnonymously(auth);
                 console.log('Signed in anonymously (deployed environment fallback).');
             }
