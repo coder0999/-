@@ -120,6 +120,7 @@
             padding: 1.5rem;
             margin-top: 2rem;
             text-align: right;
+            position: relative; /* Added for overlay positioning */
         }
         .published-item {
             display: flex;
@@ -181,8 +182,8 @@
             <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة المشرفين</h2>
             <div id="admin-management-form-section" class="text-right mb-6 relative">
                 <!-- Overlay for non-main admins -->
-                <div id="admin-management-overlay" class="disabled-overlay hidden"></div>
-                <p id="admin-management-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
+                <div id="admin-management-form-overlay" class="disabled-overlay hidden"></div>
+                <p id="admin-management-form-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
 
                 <h3 class="text-xl font-bold text-gray-800 mb-4">إضافة مشرف جديد</h3>
                 <div class="form-group">
@@ -198,9 +199,13 @@
                 </button>
             </div>
 
-            <div class="published-list" id="supervisors-list">
+            <div class="published-list" id="supervisors-list-container"> <!-- New container for overlay -->
+                <div id="supervisors-list-overlay" class="disabled-overlay hidden"></div>
+                <p id="supervisors-list-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
                 <h3 class="text-xl font-bold text-gray-800 mb-4">المشرفون الحاليون</h3>
-                <p class="text-gray-600">جاري تحميل المشرفين...</p>
+                <div id="supervisors-list"> <!-- Actual list content -->
+                    <p class="text-gray-600">جاري تحميل المشرفين...</p>
+                </div>
             </div>
 
             <hr class="my-8 border-gray-300">
@@ -341,12 +346,17 @@
 
         // Admin Management elements
         const adminManagementFormSection = document.getElementById('admin-management-form-section');
-        const adminManagementOverlay = document.getElementById('admin-management-overlay');
-        const adminManagementOverlayText = document.getElementById('admin-management-overlay-text');
+        const adminManagementFormOverlay = document.getElementById('admin-management-form-overlay'); // Renamed for clarity
+        const adminManagementFormOverlayText = document.getElementById('admin-management-form-overlay-text'); // Renamed for clarity
+
+        const supervisorsListContainer = document.getElementById('supervisors-list-container'); // New container
+        const supervisorsListOverlay = document.getElementById('supervisors-list-overlay'); // Overlay for list
+        const supervisorsListOverlayText = document.getElementById('supervisors-list-overlay-text'); // Text for list overlay
+
         const supervisorUidInput = document.getElementById('supervisor-uid');
         const supervisorAliasInput = document.getElementById('supervisor-alias');
         const addSupervisorButton = document.getElementById('add-supervisor-button');
-        const supervisorsList = document.getElementById('supervisors-list');
+        const supervisorsList = document.getElementById('supervisors-list'); // Actual list content
 
 
         let currentUserId = null;
@@ -384,17 +394,21 @@
 
                     // Control Admin Management Section visibility/interactivity
                     if (isMainAdmin) {
-                        adminManagementFormSection.classList.remove('hidden');
-                        adminManagementOverlay.classList.add('hidden');
-                        adminManagementOverlayText.classList.add('hidden');
+                        adminManagementFormOverlay.classList.add('hidden');
+                        adminManagementFormOverlayText.classList.add('hidden');
+                        supervisorsListOverlay.classList.add('hidden'); // Hide overlay for list
+                        supervisorsListOverlayText.classList.add('hidden'); // Hide text for list overlay
+
                         supervisorUidInput.disabled = false;
                         supervisorAliasInput.disabled = false;
                         addSupervisorButton.disabled = false;
                     } else { // isSupervisor but not isMainAdmin
                         // Supervisors can view but not modify admin list
-                        adminManagementFormSection.classList.remove('hidden'); // Show the form section
-                        adminManagementOverlay.classList.remove('hidden'); // Show overlay to disable inputs/buttons
-                        adminManagementOverlayText.classList.remove('hidden');
+                        adminManagementFormOverlay.classList.remove('hidden'); // Show overlay to disable inputs/buttons
+                        adminManagementFormOverlayText.classList.remove('hidden');
+                        supervisorsListOverlay.classList.remove('hidden'); // Show overlay for list
+                        supervisorsListOverlayText.classList.remove('hidden'); // Show text for list overlay
+
                         supervisorUidInput.disabled = true;
                         supervisorAliasInput.disabled = true;
                         addSupervisorButton.disabled = true;
