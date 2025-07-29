@@ -193,6 +193,13 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        #image-upload-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -240,19 +247,26 @@
             <hr class="my-8 border-gray-300">
 
             <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الامتحانات</h2>
-            <button id="add-exam-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mb-6">
-                إضافة امتحان جديد
-            </button>
-            <button id="upload-exam-images-button" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mb-6 mr-2">
-                رفع الامتحان بالصور
-            </button>
-            <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
-
-            <div id="image-preview-container">
-                <!-- Image thumbnails will be displayed here -->
+            <div id="exam-creation-buttons" class="mb-6">
+                <button id="add-exam-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    إضافة امتحان جديد (يدوي)
+                </button>
+                <button id="upload-exam-images-button" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mr-2">
+                    رفع الامتحان بالصور
+                </button>
+                <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
             </div>
-            <div id="image-processing-spinner" class="loading-spinner"></div>
-            <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
+
+            <div id="image-upload-controls" class="hidden">
+                <div id="image-preview-container">
+                    <!-- Image thumbnails will be displayed here -->
+                </div>
+                <button id="generate-questions-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
+                    استخراج الأسئلة
+                </button>
+                <div id="image-processing-spinner" class="loading-spinner"></div>
+                <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
+            </div>
 
 
             <div id="exam-form-section" class="hidden text-right">
@@ -369,11 +383,13 @@
 
         // Exam management elements
         const addExamButton = document.getElementById('add-exam-button');
-        const uploadExamImagesButton = document.getElementById('upload-exam-images-button'); // New button
-        const imageUploadInput = document.getElementById('image-upload-input'); // New file input
-        const imagePreviewContainer = document.getElementById('image-preview-container'); // New container
-        const imageProcessingSpinner = document.getElementById('image-processing-spinner'); // New spinner
-        const imageProcessingMessage = document.getElementById('image-processing-message'); // New message
+        const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
+        const imageUploadInput = document.getElementById('image-upload-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imageProcessingSpinner = document.getElementById('image-processing-spinner');
+        const imageProcessingMessage = document.getElementById('image-processing-message');
+        const generateQuestionsButton = document.getElementById('generate-questions-button'); // New button
+        const imageUploadControls = document.getElementById('image-upload-controls'); // New container for image upload related elements
 
         const examFormSection = document.getElementById('exam-form-section');
         const examNameInput = document.getElementById('exam-name');
@@ -409,6 +425,7 @@
         let isMainAdmin = false;
         let isSupervisor = false;
         let questionCounter = 0;
+        let uploadedImageData = []; // Global variable to store image data
 
         // Function to display messages to the user
         function showMessage(message, isSuccess = false) {
@@ -467,6 +484,7 @@
                     addQuestionButton.disabled = !(isMainAdmin || isSupervisor);
                     notificationMessageInput.disabled = !(isMainAdmin || isSupervisor);
                     publishNotificationButton.disabled = !(isMainAdmin || isSupervisor);
+                    generateQuestionsButton.disabled = !(isMainAdmin || isSupervisor); // Disable/Enable generate button
 
                     showMessage('تم تسجيل الدخول بنجاح.', true);
                     loadPublishedExams();
@@ -519,6 +537,11 @@
                 console.log('User signed out.');
                 showMessage('تم تسجيل الخروج بنجاح.', true);
                 examFormSection.classList.add('hidden'); // Hide exam form if visible
+                imageUploadControls.classList.add('hidden'); // Hide image upload controls
+                imagePreviewContainer.innerHTML = '';
+                imageProcessingSpinner.style.display = 'none';
+                imageProcessingMessage.classList.add('hidden');
+                uploadedImageData = []; // Clear stored image data
             } catch (error) {
                 console.error('Error during sign out:', error);
                 showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
@@ -530,6 +553,11 @@
                 await signOut(auth);
                 console.log('User signed out from denied page.');
                 showMessage('تم تسجيل الخروج بنجاح.', true);
+                imageUploadControls.classList.add('hidden'); // Hide image upload controls
+                imagePreviewContainer.innerHTML = '';
+                imageProcessingSpinner.style.display = 'none';
+                imageProcessingMessage.classList.add('hidden');
+                uploadedImageData = []; // Clear stored image data
             } catch (error) {
                 console.error('Error during sign out:', error);
                 showMessage(`خطأ في تسجيل الخروج: ${e.message}`, false);
@@ -550,17 +578,21 @@
             questionsContainer.innerHTML = '';
             questionCounter = 0;
             addQuestion();
+            imageUploadControls.classList.add('hidden'); // Hide image upload controls
             imagePreviewContainer.innerHTML = ''; // Clear image previews
             imageProcessingSpinner.style.display = 'none';
             imageProcessingMessage.classList.add('hidden');
+            uploadedImageData = []; // Clear stored image data
         });
 
         cancelExamButton.addEventListener('click', () => {
             examFormSection.classList.add('hidden');
             showMessage('تم إلغاء إضافة الامتحان.', false);
+            imageUploadControls.classList.add('hidden'); // Hide image upload controls
             imagePreviewContainer.innerHTML = ''; // Clear image previews
             imageProcessingSpinner.style.display = 'none';
             imageProcessingMessage.classList.add('hidden');
+            uploadedImageData = []; // Clear stored image data
         });
 
         addQuestionButton.addEventListener('click', addQuestion);
@@ -677,6 +709,11 @@
                 await addDoc(examsCollectionRef, examData);
                 showMessage('تم نشر الامتحان بنجاح!', true);
                 examFormSection.classList.add('hidden');
+                imageUploadControls.classList.add('hidden'); // Hide image upload controls
+                imagePreviewContainer.innerHTML = ''; // Clear image previews
+                imageProcessingSpinner.style.display = 'none';
+                imageProcessingMessage.classList.add('hidden');
+                uploadedImageData = []; // Clear stored image data
                 loadPublishedExams();
             } catch (e) {
                 console.error('Error publishing exam:', e);
@@ -924,6 +961,16 @@
                 return;
             }
             imageUploadInput.click(); // Trigger the hidden file input click
+            examFormSection.classList.add('hidden'); // Hide exam form when new images are uploaded
+            questionsContainer.innerHTML = '';
+            examNumQuestionsInput.value = 0;
+            questionCounter = 0;
+            imageUploadControls.classList.remove('hidden'); // Show image upload controls
+            imagePreviewContainer.innerHTML = ''; // Clear existing previews
+            imageProcessingSpinner.style.display = 'none';
+            imageProcessingMessage.classList.add('hidden');
+            generateQuestionsButton.classList.add('hidden'); // Hide generate button initially
+            uploadedImageData = []; // Clear stored image data
         });
 
         imageUploadInput.addEventListener('change', handleImageUpload);
@@ -934,16 +981,12 @@
                 return;
             }
 
-            // Clear previous previews and form data
-            imagePreviewContainer.innerHTML = '';
-            examFormSection.classList.add('hidden');
-            questionsContainer.innerHTML = '';
-            examNumQuestionsInput.value = 0;
-            questionCounter = 0;
+            imagePreviewContainer.innerHTML = ''; // Clear previous previews
+            imageProcessingSpinner.style.display = 'none'; // Hide spinner
+            imageProcessingMessage.classList.add('hidden'); // Hide message
+            generateQuestionsButton.classList.add('hidden'); // Hide generate button until images are loaded
 
-            imageProcessingSpinner.style.display = 'block';
-            imageProcessingMessage.classList.remove('hidden');
-            showMessage('جاري تحميل الصور ومعالجتها بواسطة الذكاء الاصطناعي...', true);
+            uploadedImageData = []; // Reset stored image data
 
             const imagePromises = Array.from(files).map(file => {
                 return new Promise((resolve, reject) => {
@@ -956,7 +999,8 @@
 
                         // Extract base64 data (remove prefix "data:image/jpeg;base64,")
                         const base64Data = e.target.result.split(',')[1];
-                        resolve({ mimeType: file.type, data: base64Data });
+                        uploadedImageData.push({ mimeType: file.type, data: base64Data }); // Store data
+                        resolve();
                     };
                     reader.onerror = error => reject(error);
                     reader.readAsDataURL(file);
@@ -964,18 +1008,42 @@
             });
 
             try {
-                const imageDataArray = await Promise.all(imagePromises);
-                await processImagesWithAI(imageDataArray);
+                await Promise.all(imagePromises);
+                if (uploadedImageData.length > 0) {
+                    generateQuestionsButton.classList.remove('hidden'); // Show generate button after images are loaded
+                    showMessage('تم تحميل الصور بنجاح. اضغط على "استخراج الأسئلة" لبدء المعالجة.', true);
+                }
             } catch (error) {
-                console.error('Error handling image upload or AI processing:', error);
-                showMessage('حدث خطأ أثناء معالجة الصور. الرجاء التأكد من أن الصور واضحة وتحتوي على أسئلة.', false);
-                imageProcessingSpinner.style.display = 'none';
-                imageProcessingMessage.classList.add('hidden');
+                console.error('Error handling image upload:', error);
+                showMessage('حدث خطأ أثناء تحميل الصور. الرجاء المحاولة مرة أخرى.', false);
             } finally {
-                // Clear the file input value to allow re-uploading the same files
-                imageUploadInput.value = '';
+                imageUploadInput.value = ''; // Clear the file input value to allow re-uploading the same files
             }
         }
+
+        generateQuestionsButton.addEventListener('click', async () => {
+            if (uploadedImageData.length === 0) {
+                showMessage('الرجاء رفع الصور أولاً.', false);
+                return;
+            }
+
+            imageProcessingSpinner.style.display = 'block';
+            imageProcessingMessage.classList.remove('hidden');
+            generateQuestionsButton.disabled = true; // Disable button during processing
+            showMessage('جاري معالجة الصور واستخراج الأسئلة بواسطة الذكاء الاصطناعي...', true);
+
+            try {
+                await processImagesWithAI(uploadedImageData);
+            } catch (error) {
+                console.error('Error during AI processing triggered by button:', error);
+                showMessage('حدث خطأ أثناء معالجة الأسئلة. الرجاء التأكد من أن الصور واضحة وتحتوي على أسئلة.', false);
+            } finally {
+                imageProcessingSpinner.style.display = 'none';
+                imageProcessingMessage.classList.add('hidden');
+                generateQuestionsButton.disabled = false; // Re-enable button
+            }
+        });
+
 
         async function processImagesWithAI(imageDataArray) {
             let allExtractedQuestions = [];
@@ -1055,9 +1123,6 @@
                     // Continue to next image even if one fails
                 }
             }
-
-            imageProcessingSpinner.style.display = 'none';
-            imageProcessingMessage.classList.add('hidden');
 
             if (allExtractedQuestions.length > 0) {
                 populateExamFormFromAI(allExtractedQuestions);
