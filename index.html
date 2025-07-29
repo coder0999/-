@@ -346,22 +346,22 @@
 
         // Admin Management elements
         const adminManagementFormSection = document.getElementById('admin-management-form-section');
-        const adminManagementFormOverlay = document.getElementById('admin-management-form-overlay'); // Renamed for clarity
-        const adminManagementFormOverlayText = document.getElementById('admin-management-form-overlay-text'); // Renamed for clarity
+        const adminManagementFormOverlay = document.getElementById('admin-management-form-overlay');
+        const adminManagementFormOverlayText = document.getElementById('admin-management-form-overlay-text');
 
-        const supervisorsListContainer = document.getElementById('supervisors-list-container'); // New container
-        const supervisorsListOverlay = document.getElementById('supervisors-list-overlay'); // Overlay for list
-        const supervisorsListOverlayText = document.getElementById('supervisors-list-overlay-text'); // Text for list overlay
+        const supervisorsListContainer = document.getElementById('supervisors-list-container');
+        const supervisorsListOverlay = document.getElementById('supervisors-list-overlay');
+        const supervisorsListOverlayText = document.getElementById('supervisors-list-overlay-text');
 
         const supervisorUidInput = document.getElementById('supervisor-uid');
         const supervisorAliasInput = document.getElementById('supervisor-alias');
         const addSupervisorButton = document.getElementById('add-supervisor-button');
-        const supervisorsList = document.getElementById('supervisors-list'); // Actual list content
+        const supervisorsList = document.getElementById('supervisors-list');
 
 
         let currentUserId = null;
         let isMainAdmin = false;
-        let isSupervisor = false; // New flag for supervisors
+        let isSupervisor = false;
         let questionCounter = 0;
 
         // Function to display messages to the user
@@ -664,7 +664,7 @@
                     examItem.className = 'published-item';
                     examItem.innerHTML = `
                         <span>${exam.name} (${exam.numQuestions} أسئلة, ${exam.duration} دقيقة)</span>
-                        <button class="remove-button" onclick="deleteExam('${examId}')" ${isMainAdmin ? '' : 'disabled'}>حذف</button>
+                        <button class="remove-button" onclick="deleteExam('${examId}')" ${isMainAdmin || isSupervisor ? '' : 'disabled'}>حذف</button>
                     `;
                     publishedExamsList.appendChild(examItem);
                 });
@@ -675,7 +675,8 @@
         }
 
         window.deleteExam = async (examId) => {
-            if (!db || !isMainAdmin) { // Only main admin can delete exams
+            // Changed condition to allow main admin OR supervisor to delete exams
+            if (!db || (!isMainAdmin && !isSupervisor)) {
                 showMessage('ليس لديك صلاحية لحذف الامتحانات.', false);
                 return;
             }
@@ -747,7 +748,7 @@
                     notificationItem.className = 'published-item';
                     notificationItem.innerHTML = `
                         <span>${notification.message}</span>
-                        <button class="remove-button" onclick="deleteNotification('${notificationId}')" ${isMainAdmin ? '' : 'disabled'}>حذف</button>
+                        <button class="remove-button" onclick="deleteNotification('${notificationId}')" ${isMainAdmin || isSupervisor ? '' : 'disabled'}>حذف</button>
                     `;
                     publishedNotificationsList.appendChild(notificationItem);
                 });
@@ -758,7 +759,8 @@
         }
 
         window.deleteNotification = async (notificationId) => {
-            if (!db || !isMainAdmin) { // Only main admin can delete notifications
+            // Changed condition to allow main admin OR supervisor to delete notifications
+            if (!db || (!isMainAdmin && !isSupervisor)) {
                 showMessage('ليس لديك صلاحية لحذف الإشعارات.', false);
                 return;
             }
