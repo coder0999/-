@@ -8,10 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Font: Cairo -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons (Optional, but recommended for UI enhancement) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f0f2f5;
+            background-color: #f8f9fa; /* Light background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -21,90 +23,233 @@
         }
         .container {
             background-color: #ffffff;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 3rem; /* Increased padding */
+            border-radius: 1.25rem; /* More rounded corners */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* Stronger shadow */
             width: 100%;
-            max-width: 800px; /* Increased max-width for exam form */
+            max-width: 900px; /* Increased max-width for better layout */
             text-align: center;
+            border: 1px solid #e0e0e0; /* Subtle border */
+        }
+        h1, h2, h3 {
+            color: #2c3e50; /* Darker heading color */
+        }
+        h1 {
+            font-size: 2.5rem; /* Larger main heading */
+            margin-bottom: 1.5rem;
+            color: #3498db; /* Blue for main heading */
+        }
+        h2 {
+            font-size: 2rem; /* Larger section headings */
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #3498db;
+            border-bottom: 2px solid #e0e0e0; /* Underline for sections */
+            padding-bottom: 0.75rem;
+        }
+        h3 {
+            font-size: 1.6rem; /* Sub-section headings */
+            margin-bottom: 1.25rem;
+            color: #34495e;
         }
         textarea, input[type="text"], input[type="number"] {
             resize: vertical;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
+            padding: 1rem; /* Increased padding */
+            border: 1px solid #ced4da; /* Lighter border */
+            border-radius: 0.75rem; /* More rounded */
             font-family: 'Cairo', sans-serif;
-            color: #374151;
-            background-color: #f9fafb;
+            color: #495057;
+            background-color: #fdfdfe; /* Slightly off-white */
             width: 100%;
             box-sizing: border-box;
+            transition: all 0.2s ease-in-out; /* Smooth transition */
         }
         textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            border-color: #3498db; /* Blue focus */
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2); /* Softer shadow */
+            background-color: #ffffff;
         }
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem; /* Increased margin */
             text-align: right;
         }
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #4b5563;
+            margin-bottom: 0.75rem; /* Increased margin */
+            font-weight: 700; /* Bolder label */
+            color: #34495e;
+            font-size: 1.05rem;
         }
-        .question-block {
-            border: 1px solid #e5e7eb;
+        .button-primary {
+            background-color: #3498db; /* Blue */
+            color: white;
+            padding: 0.85rem 1.75rem; /* Larger padding */
+            border-radius: 0.75rem; /* More rounded */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button-primary:hover {
+            background-color: #2980b9; /* Darker blue */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+        }
+        .button-secondary {
+            background-color: #2ecc71; /* Green */
+            color: white;
+            padding: 0.85rem 1.75rem;
             border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            background-color: #f9fafb;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button-secondary:hover {
+            background-color: #27ae60; /* Darker green */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.3);
+        }
+        .button-danger {
+            background-color: #e74c3c; /* Red */
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button-danger:hover {
+            background-color: #c0392b; /* Darker red */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
+        }
+        .button-info {
+            background-color: #9b59b6; /* Purple */
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 10px rgba(155, 89, 182, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button-info:hover {
+            background-color: #8e44ad; /* Darker purple */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(155, 89, 182, 0.3);
+        }
+        .button-teal {
+            background-color: #1abc9c; /* Teal */
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button-teal:hover {
+            background-color: #16a085; /* Darker teal */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(26, 188, 156, 0.3);
+        }
+        .button-gray {
+            background-color: #95a5a6; /* Gray */
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 10px rgba(149, 165, 166, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .button-gray:hover {
+            background-color: #7f8c8d; /* Darker gray */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .question-block {
+            border: 1px solid #e0e0e0;
+            border-radius: 1rem; /* More rounded */
+            padding: 2rem; /* Increased padding */
+            margin-bottom: 2rem; /* Increased margin */
+            background-color: #fdfdfe;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Stronger shadow */
         }
         .option-group {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
+            gap: 0.75rem; /* Increased gap */
+            margin-bottom: 0.75rem; /* Increased margin */
         }
         .option-group input[type="radio"] {
             width: auto;
-            margin-left: 0.5rem;
+            margin-left: 0.75rem; /* Adjusted margin */
+            transform: scale(1.2); /* Slightly larger radio buttons */
+            accent-color: #3498db; /* Blue accent for radio */
         }
-        .remove-button { /* General style for remove buttons */
-            background-color: #ef4444;
+        .remove-button { /* Specific style for question remove button */
+            background-color: #e74c3c;
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            padding: 0.6rem 1.2rem; /* Adjusted padding */
+            border-radius: 0.6rem;
             cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 1rem;
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 1.5rem; /* Increased margin */
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
         }
         .remove-button:hover {
-            background-color: #dc2626;
+            background-color: #c0392b;
         }
 
         /* Style for the message box */
         .message-box {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            top: 25px; /* Slightly lower */
+            right: 25px; /* Slightly more to the right */
+            padding: 18px 25px; /* Larger padding */
+            border-radius: 10px; /* More rounded */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow */
             z-index: 1000;
-            display: none; /* Hidden by default */
-            font-size: 0.9rem;
-            animation: fadeOut 5s forwards; /* Fade out after 5 seconds */
+            display: none;
+            font-size: 1rem; /* Larger font */
+            animation: fadeOut 5s forwards;
+            font-weight: 600;
         }
         .message-box.success {
-            background-color: #d4edda; /* Light green for success */
-            color: #155724; /* Dark green text */
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
         .message-box.error {
-            background-color: #f8d7da; /* Light red for error */
-            color: #721c24; /* Dark red text */
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         @keyframes fadeOut {
             0% { opacity: 1; }
@@ -114,32 +259,36 @@
 
         /* Styles for lists of published items */
         .published-list {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
+            background-color: #fdfdfe;
+            border: 1px solid #e0e0e0;
+            border-radius: 1rem;
+            padding: 2rem; /* Increased padding */
+            margin-top: 2.5rem; /* Increased margin */
             text-align: right;
-            position: relative; /* Added for overlay positioning */
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         .published-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px dashed #e5e7eb;
+            padding: 1rem 0; /* Increased padding */
+            border-bottom: 1px dashed #e9ecef; /* Lighter dashed border */
+            font-size: 1.05rem;
+            color: #34495e;
         }
         .published-item:last-child {
             border-bottom: none;
         }
         .published-item span {
-            font-size: 1rem;
-            color: #374151;
+            flex-grow: 1; /* Allow text to take more space */
+            padding-left: 1rem; /* Space for text */
         }
         .published-item .remove-button {
             margin-top: 0;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
+            padding: 0.5rem 1rem; /* Adjusted padding */
+            font-size: 0.85rem;
+            border-radius: 0.5rem;
         }
         /* Style for disabled inputs/buttons */
         .disabled-overlay {
@@ -148,80 +297,116 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white overlay */
+            background-color: rgba(255, 255, 255, 0.85); /* More opaque overlay */
             border-radius: 1rem;
-            z-index: 5; /* Above content, below buttons */
+            z-index: 5;
             cursor: not-allowed;
+            display: flex; /* Use flex for centering text */
+            justify-content: center;
+            align-items: center;
         }
         .disabled-overlay-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #6b7280; /* Gray text */
-            font-size: 1.2rem;
-            font-weight: 600;
+            position: static; /* Remove absolute positioning */
+            transform: none; /* Remove transform */
+            color: #6c757d; /* Darker gray text */
+            font-size: 1.3rem; /* Larger font */
+            font-weight: 700; /* Bolder */
             text-align: center;
             z-index: 6;
+            padding: 1rem; /* Add padding */
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly opaque background for text */
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         /* Styles for image upload section */
         #image-preview-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 1rem;
+            gap: 15px; /* Increased gap */
+            margin-top: 1.5rem; /* Increased margin */
             justify-content: center;
+            padding: 1rem;
+            border: 1px dashed #ced4da; /* Dashed border for drop area feel */
+            border-radius: 0.75rem;
+            min-height: 120px; /* Minimum height */
+            align-items: center;
         }
         .image-thumbnail {
-            width: 100px;
-            height: 100px;
-            object-fit: contain; /* Changed to contain to show full image */
+            width: 110px; /* Slightly larger thumbnail */
+            height: 110px;
+            object-fit: contain;
             border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
+            border-radius: 0.6rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .loading-spinner {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3b82f6; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 1rem auto;
-            display: none; /* Hidden by default */
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db; /* Blue */
+            width: 40px; /* Larger spinner */
+            height: 40px;
+            margin: 1.5rem auto; /* Increased margin */
         }
         #image-upload-controls {
             display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: center;
+            gap: 15px; /* Increased gap */
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background-color: #fdfdfe;
+            border: 1px solid #e0e0e0;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        #image-upload-controls .button-primary {
+            width: fit-content; /* Adjust button width */
+        }
+        #exam-creation-buttons {
+            display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 1rem;
+            gap: 1rem; /* Space between buttons */
+            margin-bottom: 2rem;
+        }
+        #exam-creation-buttons button {
+            flex-grow: 1; /* Allow buttons to grow */
+            min-width: 200px; /* Minimum width for buttons */
+        }
+        hr {
+            border-color: #e9ecef; /* Lighter hr color */
+            margin: 3rem 0; /* More vertical space */
+        }
+        .text-gray-600 {
+            color: #6c757d; /* Darker gray for text */
+        }
+        .text-red-600 {
+            color: #e74c3c; /* Consistent red for errors */
+        }
+        .text-blue-600 {
+            color: #3498db; /* Consistent blue */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="text-3xl font-bold text-blue-600 mb-6">لوحة تحكم الإدارة</h1>
+        <h1 class="text-3xl font-bold mb-6">لوحة تحكم الإدارة</h1>
 
         <div id="auth-section" class="mb-8">
             <p class="text-gray-700 mb-4">الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.</p>
-            <button id="sign-in-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                تسجيل الدخول باستخدام جوجل
+            <button id="sign-in-button" class="button-primary">
+                <i class="fab fa-google"></i> تسجيل الدخول باستخدام جوجل
             </button>
         </div>
 
         <div id="admin-content-section" class="hidden">
             <!-- Admin Management Section -->
-            <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة المشرفين</h2>
-            <div id="admin-management-form-section" class="text-right mb-6 relative">
+            <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
+            <div id="admin-management-form-section" class="text-right mb-6 relative published-list">
                 <!-- Overlay for non-main admins -->
                 <div id="admin-management-form-overlay" class="disabled-overlay hidden"></div>
                 <p id="admin-management-form-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
 
-                <h3 class="text-xl font-bold text-gray-800 mb-4">إضافة مشرف جديد</h3>
+                <h3 class="text-xl font-bold mb-4">إضافة مشرف جديد</h3>
                 <div class="form-group">
                     <label for="supervisor-uid">معرف المستخدم (UID) للمشرف:</label>
                     <input type="text" id="supervisor-uid" class="w-full" placeholder="أدخل UID المشرف">
@@ -230,47 +415,48 @@
                     <label for="supervisor-alias">الاسم المستعار للمشرف:</label>
                     <input type="text" id="supervisor-alias" class="w-full" placeholder="مثال: أحمد المشرف">
                 </div>
-                <button id="add-supervisor-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                    إضافة مشرف
+                <button id="add-supervisor-button" class="button-secondary">
+                    <i class="fas fa-user-plus"></i> إضافة مشرف
                 </button>
             </div>
 
-            <div class="published-list" id="supervisors-list-container"> <!-- New container for overlay -->
+            <div class="published-list" id="supervisors-list-container">
                 <div id="supervisors-list-overlay" class="disabled-overlay hidden"></div>
                 <p id="supervisors-list-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
-                <h3 class="text-xl font-bold text-gray-800 mb-4">المشرفون الحاليون</h3>
-                <div id="supervisors-list"> <!-- Actual list content -->
+                <h3 class="text-xl font-bold mb-4">المشرفون الحاليون</h3>
+                <div id="supervisors-list">
                     <p class="text-gray-600">جاري تحميل المشرفين...</p>
                 </div>
             </div>
 
             <hr class="my-8 border-gray-300">
 
-            <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الامتحانات</h2>
+            <h2 class="text-2xl font-bold mb-4">إدارة الامتحانات</h2>
             <div id="exam-creation-buttons" class="mb-6">
-                <button id="add-exam-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                    إضافة امتحان جديد (يدوي)
+                <button id="add-exam-button" class="button-info">
+                    <i class="fas fa-plus-circle"></i> إضافة امتحان جديد (يدوي)
                 </button>
-                <button id="upload-exam-images-button" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mr-2">
-                    رفع الامتحان بالصور
+                <button id="upload-exam-images-button" class="button-teal">
+                    <i class="fas fa-upload"></i> رفع الامتحان بالصور
                 </button>
                 <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
             </div>
 
             <div id="image-upload-controls" class="hidden">
                 <div id="image-preview-container">
+                    <p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>
                     <!-- Image thumbnails will be displayed here -->
                 </div>
-                <button id="generate-questions-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
-                    استخراج الأسئلة
+                <button id="generate-questions-button" class="button-primary mt-4">
+                    <i class="fas fa-magic"></i> استخراج الأسئلة
                 </button>
                 <div id="image-processing-spinner" class="loading-spinner"></div>
                 <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
             </div>
 
 
-            <div id="exam-form-section" class="hidden text-right">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">تفاصيل الامتحان الجديد</h3>
+            <div id="exam-form-section" class="hidden text-right published-list">
+                <h3 class="text-xl font-bold mb-4">تفاصيل الامتحان الجديد</h3>
                 <div class="form-group">
                     <label for="exam-name">اسم الامتحان:</label>
                     <input type="text" id="exam-name" class="w-full" placeholder="مثال: امتحان اللغة العربية - الفصل الأول">
@@ -286,59 +472,61 @@
 
                 <hr class="my-6 border-gray-200">
 
-                <h3 class="text-xl font-bold text-gray-800 mb-4">الأسئلة</h3>
+                <h3 class="text-xl font-bold mb-4">الأسئلة</h3>
                 <div id="questions-container">
                     <!-- Questions will be added here dynamically -->
                 </div>
-                <button id="add-question-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
-                    إضافة سؤال
+                <button id="add-question-button" class="button-secondary mt-4">
+                    <i class="fas fa-question-circle"></i> إضافة سؤال
                 </button>
 
-                <button id="publish-exam-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-6">
-                    نشر الامتحان
-                </button>
-                <button id="cancel-exam-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-6 mr-2">
-                    إلغاء
-                </button>
+                <div class="flex justify-end gap-4 mt-6">
+                    <button id="publish-exam-button" class="button-primary">
+                        <i class="fas fa-paper-plane"></i> نشر الامتحان
+                    </button>
+                    <button id="cancel-exam-button" class="button-gray">
+                        <i class="fas fa-times-circle"></i> إلغاء
+                    </button>
+                </div>
             </div>
 
             <div class="published-list" id="published-exams-list">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">الامتحانات المنشورة</h3>
+                <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
                 <!-- Published exams will be listed here -->
                 <p class="text-gray-600">جاري تحميل الامتحانات...</p>
             </div>
 
             <hr class="my-8 border-gray-300">
 
-            <h2 class="text-2xl font-bold text-blue-600 mb-4">إدارة الإشعارات</h2>
-            <div id="notification-form-section" class="text-right mb-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">إضافة إشعار جديد</h3>
+            <h2 class="text-2xl font-bold mb-4">إدارة الإشعارات</h2>
+            <div id="notification-form-section" class="text-right mb-6 published-list">
+                <h3 class="text-xl font-bold mb-4">إضافة إشعار جديد</h3>
                 <div class="form-group">
                     <label for="notification-message">نص الإشعار:</label>
-                    <textarea id="notification-message" rows="3" placeholder="اكتب نص الإشعار هنا..."></textarea>
+                    <textarea id="notification-message" rows="4" placeholder="اكتب نص الإشعار هنا..."></textarea>
                 </div>
-                <button id="publish-notification-button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                    نشر الإشعار
+                <button id="publish-notification-button" class="button-info">
+                    <i class="fas fa-bell"></i> نشر الإشعار
                 </button>
             </div>
 
             <div class="published-list" id="published-notifications-list">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">الإشعارات المنشورة</h3>
+                <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
                 <!-- Published notifications will be listed here -->
                 <p class="text-gray-600">جاري تحميل الإشعارات...</p>
             </div>
 
 
-            <button id="sign-out-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-8">
-                تسجيل الخروج من لوحة التحكم
+            <button id="sign-out-button" class="button-danger mt-8">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج من لوحة التحكم
             </button>
         </div>
 
         <div id="access-denied-section" class="hidden">
             <p class="text-red-600 font-semibold text-lg mb-4">ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.</p>
             <p class="text-gray-700">الرجاء تسجيل الدخول بحساب مسؤول مصرح به.</p>
-            <button id="sign-out-denied-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
-                تسجيل الخروج
+            <button id="sign-out-denied-button" class="button-danger mt-4">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
             </button>
         </div>
     </div>
@@ -579,7 +767,7 @@
             questionCounter = 0;
             addQuestion();
             imageUploadControls.classList.add('hidden'); // Hide image upload controls
-            imagePreviewContainer.innerHTML = ''; // Clear image previews
+            imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>'; // Reset image preview message
             imageProcessingSpinner.style.display = 'none';
             imageProcessingMessage.classList.add('hidden');
             uploadedImageData = []; // Clear stored image data
@@ -589,7 +777,7 @@
             examFormSection.classList.add('hidden');
             showMessage('تم إلغاء إضافة الامتحان.', false);
             imageUploadControls.classList.add('hidden'); // Hide image upload controls
-            imagePreviewContainer.innerHTML = ''; // Clear image previews
+            imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>'; // Reset image preview message
             imageProcessingSpinner.style.display = 'none';
             imageProcessingMessage.classList.add('hidden');
             uploadedImageData = []; // Clear stored image data
@@ -620,7 +808,7 @@
                         `).join('')}
                     </div>
                 </div>
-                <button type="button" class="remove-button" onclick="removeQuestion('${questionId}')">حذف السؤال</button>
+                <button type="button" class="remove-button" onclick="removeQuestion('${questionId}')"><i class="fas fa-trash-alt"></i> حذف السؤال</button>
             `;
             questionsContainer.appendChild(questionBlock);
             updateQuestionCount();
@@ -710,7 +898,7 @@
                 showMessage('تم نشر الامتحان بنجاح!', true);
                 examFormSection.classList.add('hidden');
                 imageUploadControls.classList.add('hidden'); // Hide image upload controls
-                imagePreviewContainer.innerHTML = ''; // Clear image previews
+                imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>'; // Reset image preview message
                 imageProcessingSpinner.style.display = 'none';
                 imageProcessingMessage.classList.add('hidden');
                 uploadedImageData = []; // Clear stored image data
@@ -744,7 +932,7 @@
                     examItem.className = 'published-item';
                     examItem.innerHTML = `
                         <span>${exam.name} (${exam.numQuestions} أسئلة, ${exam.duration} دقيقة)</span>
-                        <button class="remove-button" onclick="deleteExam('${examId}')" ${isMainAdmin || isSupervisor ? '' : 'disabled'}>حذف</button>
+                        <button class="remove-button" onclick="deleteExam('${examId}')" ${isMainAdmin || isSupervisor ? '' : 'disabled'}><i class="fas fa-trash-alt"></i> حذف</button>
                     `;
                     publishedExamsList.appendChild(examItem);
                 });
@@ -828,7 +1016,7 @@
                     notificationItem.className = 'published-item';
                     notificationItem.innerHTML = `
                         <span>${notification.message}</span>
-                        <button class="remove-button" onclick="deleteNotification('${notificationId}')" ${isMainAdmin || isSupervisor ? '' : 'disabled'}>حذف</button>
+                        <button class="remove-button" onclick="deleteNotification('${notificationId}')" ${isMainAdmin || isSupervisor ? '' : 'disabled'}><i class="fas fa-trash-alt"></i> حذف</button>
                     `;
                     publishedNotificationsList.appendChild(notificationItem);
                 });
@@ -919,7 +1107,7 @@
                     supervisorItem.className = 'published-item';
                     supervisorItem.innerHTML = `
                         <span>${supervisor.alias} (UID: ${supervisorUid})</span>
-                        <button class="remove-button" onclick="removeSupervisor('${supervisorUid}')" ${isMainAdmin ? '' : 'disabled'}>حذف</button>
+                        <button class="remove-button" onclick="removeSupervisor('${supervisorUid}')" ${isMainAdmin ? '' : 'disabled'}><i class="fas fa-trash-alt"></i> حذف</button>
                     `;
                     supervisorsList.appendChild(supervisorItem);
                 });
@@ -966,7 +1154,7 @@
             examNumQuestionsInput.value = 0;
             questionCounter = 0;
             imageUploadControls.classList.remove('hidden'); // Show image upload controls
-            imagePreviewContainer.innerHTML = ''; // Clear existing previews
+            imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>'; // Clear existing previews and add message
             imageProcessingSpinner.style.display = 'none';
             imageProcessingMessage.classList.add('hidden');
             generateQuestionsButton.classList.add('hidden'); // Hide generate button initially
