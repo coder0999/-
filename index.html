@@ -1146,8 +1146,10 @@
                     reader.onload = (e) => {
                         const base64Data = e.target.result.split(',')[1];
                         uploadedImageData.push({
-                            mimeType: file.type,
-                            data: base64Data
+                            inlineData: {
+                                mimeType: file.type,
+                                data: base64Data
+                            }
                         });
 
                         const img = document.createElement('img');
@@ -1180,9 +1182,7 @@
                              role: "user",
                              parts: [
                                  { text: prompt },
-                                 ...uploadedImageData.map(image => ({
-                                     inlineData: image
-                                 }))
+                                 ...uploadedImageData.map(image => image.inlineData)
                              ]
                          }
                      ],
@@ -1206,6 +1206,7 @@
                  };
                 const apiKey = "";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1213,13 +1214,15 @@
                 });
 
                 if (!response.ok) {
-                     throw new Error(`HTTP error! status: ${response.status}`);
+                     const errorText = await response.text();
+                     throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
                  }
 
                 const result = await response.json();
                 const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                console.log('API Response JSON Text:', jsonText);
 
-                if (jsonText) {
+                if (jsonText && typeof jsonText === 'string') {
                     const extractedQuestions = JSON.parse(jsonText);
                     questionsContainer.innerHTML = '';
                     questionCounter = 0;
@@ -1227,7 +1230,7 @@
                     examFormSection.classList.remove('hidden');
                     showMessage('تم استخراج الأسئلة بنجاح!', true);
                 } else {
-                    showMessage('لم يتم العثور على أي أسئلة في الصور.', false);
+                    showMessage('لم يتم العثور على أي أسئلة في الصور أو كان الرد غير صالح.', false);
                 }
             } catch (error) {
                 console.error('Error extracting questions:', error);
