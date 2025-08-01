@@ -389,10 +389,11 @@
     <div id="message-box" class="message-box"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Constants and Element selection
         const firebaseConfig = {
             apiKey: "AIzaSyC3BSf75v3qFs2xm7i-TJksrcEHELEmVpo",
             authDomain: "potato-e7861.firebaseapp.com",
@@ -408,6 +409,7 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
         const mainAdminUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
+        
         const authSection = document.getElementById('auth-section');
         const adminContentSection = document.getElementById('admin-content-section');
         const accessDeniedSection = document.getElementById('access-denied-section');
@@ -416,11 +418,9 @@
         const signOutDeniedButton = document.getElementById('sign-out-denied-button');
         const messageBox = document.getElementById('message-box');
 
-        // Sidebar and content sections
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         const contentSections = document.querySelectorAll('.content-section');
 
-        // Exam management elements
         const addExamButton = document.getElementById('add-exam-button');
         const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
         const imageUploadInput = document.getElementById('image-upload-input');
@@ -439,13 +439,11 @@
         const cancelExamButton = document.getElementById('cancel-exam-button');
         const publishedExamsList = document.getElementById('published-exams-list');
 
-        // Notification management elements
         const notificationFormSection = document.getElementById('notification-form-section');
         const notificationMessageInput = document.getElementById('notification-message');
         const publishNotificationButton = document.getElementById('publish-notification-button');
         const publishedNotificationsList = document.getElementById('published-notifications-list');
 
-        // Admin Management elements
         const adminManagementFormSection = document.getElementById('admin-management-form-section');
         const adminManagementFormOverlay = document.getElementById('admin-management-form-overlay');
         const adminManagementFormOverlayText = document.getElementById('admin-management-form-overlay-text');
@@ -456,7 +454,7 @@
         const supervisorAliasInput = document.getElementById('supervisor-alias');
         const addSupervisorButton = document.getElementById('add-supervisor-button');
         const supervisorsList = document.getElementById('supervisors-list');
-        
+
         let currentUserId = null;
         let isMainAdmin = false;
         let isSupervisor = false;
@@ -520,7 +518,7 @@
                         supervisorAliasInput.disabled = true;
                         addSupervisorButton.disabled = true;
                     }
-
+                    
                     addExamButton.disabled = !(isMainAdmin || isSupervisor);
                     uploadExamImagesButton.disabled = !(isMainAdmin || isSupervisor);
                     publishExamButton.disabled = !(isMainAdmin || isSupervisor);
@@ -616,7 +614,7 @@
 
         updateUI();
 
-        // Exam form handlers (unmodified)
+        // Exam form handlers
         addExamButton.addEventListener('click', () => {
             examFormSection.classList.remove('hidden');
         });
@@ -709,42 +707,213 @@
         };
 
         publishExamButton.addEventListener('click', async () => {
-            // ... (unmodified code for publishing exam)
+            const examName = examNameInput.value.trim();
+            const examDuration = parseInt(examDurationInput.value, 10);
+            if (!examName || isNaN(examDuration) || examDuration <= 0) {
+                showMessage('الرجاء إدخال اسم ومدة صالحة للامتحان.', false);
+                return;
+            }
+
+            const questions = [];
+            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+            if (questionBlocks.length === 0) {
+                showMessage('الرجاء إضافة سؤال واحد على الأقل للامتحان.', false);
+                return;
+            }
+
+            let allQuestionsValid = true;
+            questionBlocks.forEach((block, index) => {
+                const questionText = block.querySelector('textarea').value.trim();
+                const options = Array.from(block.querySelectorAll('.option-text')).map(input => input.value.trim());
+                const correctOptionRadio = block.querySelector(`input[name="correct-option-${index + 1}"]:checked`);
+                const correctOptionIndex = correctOptionRadio ? parseInt(correctOptionRadio.value, 10) : null;
+
+                if (!questionText || options.some(opt => opt === '') || options.length < 2 || !correctOptionIndex) {
+                    allQuestionsValid = false;
+                } else {
+                    questions.push({
+                        text: questionText,
+                        options: options,
+                        correctOptionIndex: correctOptionIndex
+                    });
+                }
+            });
+
+            if (!allQuestionsValid) {
+                showMessage('الرجاء ملء جميع حقول الأسئلة والخيار الصحيح.', false);
+                return;
+            }
+
+            try {
+                const examCollectionRef = collection(db, `artifacts/${appId}/publishedExams`);
+                await addDoc(examCollectionRef, {
+                    name: examName,
+                    duration: examDuration,
+                    questions: questions,
+                    createdAt: serverTimestamp()
+                });
+                showMessage('تم نشر الامتحان بنجاح!', true);
+                examFormSection.classList.add('hidden');
+                examNameInput.value = '';
+                examDurationInput.value = '';
+                questionsContainer.innerHTML = '';
+                questionCounter = 0;
+                examNumQuestionsInput.value = 0;
+            } catch (error) {
+                console.error('Error publishing exam:', error);
+                showMessage('فشل نشر الامتحان. الرجاء المحاولة مرة أخرى.', false);
+            }
         });
 
         // Exam list handlers
         function loadPublishedExams() {
-            // ... (unmodified code for loading exams)
+            const examCollectionRef = collection(db, `artifacts/${appId}/publishedExams`);
+            onSnapshot(examCollectionRef, (snapshot) => {
+                publishedExamsList.innerHTML = `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">الامتحانات المنشورة</h3>
+                `;
+                if (snapshot.empty) {
+                    publishedExamsList.innerHTML += `<p class="text-gray-600">لا توجد امتحانات منشورة حالياً.</p>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const exam = doc.data();
+                        const examItem = document.createElement('div');
+                        examItem.className = 'published-item';
+                        examItem.innerHTML = `
+                            <span>${exam.name} - ${exam.questions.length} سؤال</span>
+                            <button class="remove-button" onclick="removeExam('${doc.id}')" ${!(isMainAdmin || isSupervisor) ? 'disabled' : ''}>إزالة</button>
+                        `;
+                        publishedExamsList.appendChild(examItem);
+                    });
+                }
+            });
         }
 
         window.removeExam = async function(examId) {
-            // ... (unmodified code for removing exam)
+            if (!confirm('هل أنت متأكد من حذف هذا الامتحان؟')) return;
+            try {
+                const examDocRef = doc(db, `artifacts/${appId}/publishedExams`, examId);
+                await deleteDoc(examDocRef);
+                showMessage('تم حذف الامتحان بنجاح.', true);
+            } catch (error) {
+                console.error('Error removing exam:', error);
+                showMessage('فشل حذف الامتحان. الرجاء المحاولة مرة أخرى.', false);
+            }
         };
 
         // Notification handlers
         publishNotificationButton.addEventListener('click', async () => {
-            // ... (unmodified code for publishing notifications)
+            const message = notificationMessageInput.value.trim();
+            if (!message) {
+                showMessage('الرجاء كتابة نص الإشعار.', false);
+                return;
+            }
+            try {
+                const notificationsCollectionRef = collection(db, `artifacts/${appId}/notifications`);
+                await addDoc(notificationsCollectionRef, {
+                    message: message,
+                    timestamp: serverTimestamp()
+                });
+                showMessage('تم نشر الإشعار بنجاح!', true);
+                notificationMessageInput.value = '';
+            } catch (error) {
+                console.error('Error publishing notification:', error);
+                showMessage('فشل نشر الإشعار. الرجاء المحاولة مرة أخرى.', false);
+            }
         });
 
         function loadNotifications() {
-            // ... (unmodified code for loading notifications)
+            const notificationsCollectionRef = collection(db, `artifacts/${appId}/notifications`);
+            onSnapshot(notificationsCollectionRef, (snapshot) => {
+                publishedNotificationsList.innerHTML = `
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">الإشعارات المنشورة</h3>
+                `;
+                if (snapshot.empty) {
+                    publishedNotificationsList.innerHTML += `<p class="text-gray-600">لا توجد إشعارات منشورة حالياً.</p>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const notification = doc.data();
+                        const notificationItem = document.createElement('div');
+                        notificationItem.className = 'published-item';
+                        const time = notification.timestamp ? new Date(notification.timestamp.toDate()).toLocaleString() : 'قريباً';
+                        notificationItem.innerHTML = `
+                            <span>${notification.message} (${time})</span>
+                            <button class="remove-button" onclick="removeNotification('${doc.id}')" ${!(isMainAdmin || isSupervisor) ? 'disabled' : ''}>إزالة</button>
+                        `;
+                        publishedNotificationsList.appendChild(notificationItem);
+                    });
+                }
+            });
         }
 
         window.removeNotification = async function(notificationId) {
-            // ... (unmodified code for removing notifications)
+            if (!confirm('هل أنت متأكد من حذف هذا الإشعار؟')) return;
+            try {
+                const notificationDocRef = doc(db, `artifacts/${appId}/notifications`, notificationId);
+                await deleteDoc(notificationDocRef);
+                showMessage('تم حذف الإشعار بنجاح.', true);
+            } catch (error) {
+                console.error('Error removing notification:', error);
+                showMessage('فشل حذف الإشعار. الرجاء المحاولة مرة أخرى.', false);
+            }
         };
 
         // Admin management handlers
         addSupervisorButton.addEventListener('click', async () => {
-            // ... (unmodified code for adding supervisors)
+            const supervisorUid = supervisorUidInput.value.trim();
+            const supervisorAlias = supervisorAliasInput.value.trim();
+            if (!supervisorUid || !supervisorAlias) {
+                showMessage('الرجاء إدخال UID واسم مستعار للمشرف.', false);
+                return;
+            }
+            try {
+                const supervisorDocRef = doc(db, `artifacts/${appId}/supervisors`, supervisorUid);
+                await setDoc(supervisorDocRef, {
+                    uid: supervisorUid,
+                    alias: supervisorAlias,
+                    addedBy: currentUserId,
+                    createdAt: serverTimestamp()
+                });
+                showMessage('تم إضافة المشرف بنجاح.', true);
+                supervisorUidInput.value = '';
+                supervisorAliasInput.value = '';
+            } catch (error) {
+                console.error('Error adding supervisor:', error);
+                showMessage('فشل إضافة المشرف. الرجاء المحاولة مرة أخرى.', false);
+            }
         });
 
         function loadSupervisors() {
-            // ... (unmodified code for loading supervisors)
+            const supervisorsCollectionRef = collection(db, `artifacts/${appId}/supervisors`);
+            onSnapshot(supervisorsCollectionRef, (snapshot) => {
+                supervisorsList.innerHTML = '';
+                if (snapshot.empty) {
+                    supervisorsList.innerHTML += `<p class="text-gray-600">لا يوجد مشرفون حالياً.</p>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const supervisor = doc.data();
+                        const supervisorItem = document.createElement('div');
+                        supervisorItem.className = 'published-item';
+                        supervisorItem.innerHTML = `
+                            <span>${supervisor.alias} (${supervisor.uid})</span>
+                            <button class="remove-button" onclick="removeSupervisor('${doc.id}')" ${!isMainAdmin ? 'disabled' : ''}>إزالة</button>
+                        `;
+                        supervisorsList.appendChild(supervisorItem);
+                    });
+                }
+            });
         }
 
         window.removeSupervisor = async function(supervisorId) {
-            // ... (unmodified code for removing supervisors)
+            if (!confirm('هل أنت متأكد من حذف هذا المشرف؟')) return;
+            try {
+                const supervisorDocRef = doc(db, `artifacts/${appId}/supervisors`, supervisorId);
+                await deleteDoc(supervisorDocRef);
+                showMessage('تم حذف المشرف بنجاح.', true);
+            } catch (error) {
+                console.error('Error removing supervisor:', error);
+                showMessage('فشل حذف المشرف. الرجاء المحاولة مرة أخرى.', false);
+            }
         };
 
         // Image upload handlers
@@ -753,17 +922,121 @@
         });
 
         imageUploadInput.addEventListener('change', (event) => {
-            // ... (unmodified code for handling image upload)
+            if (event.target.files.length === 0) return;
+
+            imagePreviewContainer.innerHTML = '';
+            uploadedImageData = [];
+
+            Array.from(event.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-thumbnail';
+                    imagePreviewContainer.appendChild(img);
+
+                    const base64String = e.target.result.split(',')[1];
+                    uploadedImageData.push(base64String);
+                };
+                reader.readAsDataURL(file);
+            });
+            imageUploadControls.classList.remove('hidden');
         });
 
         generateQuestionsButton.addEventListener('click', async () => {
-            // ... (unmodified code for generating questions)
-        });
+            if (uploadedImageData.length === 0) {
+                showMessage('الرجاء رفع صورة واحدة على الأقل.', false);
+                return;
+            }
 
-        // Add `window.removeExam`, `window.removeNotification`, `window.removeSupervisor`, `window.addOption`, `window.removeOption`, `window.removeQuestion` to global scope
-        window.removeExam = removeExam;
-        window.removeNotification = removeNotification;
-        window.removeSupervisor = removeSupervisor;
+            imageProcessingSpinner.style.display = 'block';
+            imageProcessingMessage.classList.remove('hidden');
+            generateQuestionsButton.disabled = true;
+
+            try {
+                const parts = [{ text: "استخرج الأسئلة والاختيارات والإجابة الصحيحة من هذه الصور. لكل سؤال، حدد الإجابة الصحيحة من الخيارات. أعد إجابتك بتنسيق JSON، حيث يكون كل عنصر في القائمة عبارة عن كائن يحتوي على المفاتيح: 'text' لنص السؤال، 'options' لقائمة الخيارات، و 'correctOptionIndex' لرقم الإجابة الصحيحة (بدءًا من 1)." }];
+                uploadedImageData.forEach(imageData => {
+                    parts.push({
+                        inlineData: {
+                            mimeType: 'image/png', // Assuming PNG, adjust if needed
+                            data: imageData
+                        }
+                    });
+                });
+
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: parts
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "text": { "type": "STRING" },
+                                    "options": {
+                                        "type": "ARRAY",
+                                        "items": { "type": "STRING" }
+                                    },
+                                    "correctOptionIndex": { "type": "NUMBER" }
+                                },
+                                "propertyOrdering": ["text", "options", "correctOptionIndex"]
+                            }
+                        }
+                    }
+                };
+                
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                let generatedQuestions;
+                try {
+                    const jsonString = result.candidates[0].content.parts[0].text;
+                    generatedQuestions = JSON.parse(jsonString);
+                } catch (jsonError) {
+                    console.error('Failed to parse JSON:', jsonError);
+                    showMessage('فشل في معالجة إجابة الذكاء الاصطناعي. الرجاء المحاولة مرة أخرى.', false);
+                    return;
+                }
+
+                if (Array.isArray(generatedQuestions) && generatedQuestions.length > 0) {
+                    questionsContainer.innerHTML = '';
+                    questionCounter = 0;
+                    generatedQuestions.forEach(q => addQuestion(q));
+                    examFormSection.classList.remove('hidden');
+                    showMessage('تم استخراج الأسئلة بنجاح!', true);
+                } else {
+                    showMessage('لم يتم العثور على أسئلة في الصور.', false);
+                }
+
+            } catch (error) {
+                console.error('Error generating questions:', error);
+                showMessage('حدث خطأ أثناء استخراج الأسئلة. الرجاء التحقق من الصور والمحاولة مرة أخرى.', false);
+            } finally {
+                imageProcessingSpinner.style.display = 'none';
+                imageProcessingMessage.classList.add('hidden');
+                generateQuestionsButton.disabled = false;
+                imageUploadInput.value = '';
+                imagePreviewContainer.innerHTML = '';
+                uploadedImageData = [];
+                imageUploadControls.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
