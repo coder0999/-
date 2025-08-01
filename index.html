@@ -11,11 +11,14 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* General body and typography styles */
         body {
             font-family: 'Cairo', sans-serif;
             background-color: #f0f2f5;
             direction: rtl;
         }
+
+        /* Container for forms and lists */
         .container {
             background-color: #ffffff;
             padding: 2.5rem;
@@ -25,6 +28,8 @@
             max-width: 800px;
             text-align: center;
         }
+
+        /* Styling for text inputs and textareas */
         textarea, input[type="text"], input[type="number"] {
             resize: vertical;
             padding: 0.75rem;
@@ -41,6 +46,8 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
         }
+
+        /* Form group and question block styling */
         .form-group {
             margin-bottom: 1rem;
             text-align: right;
@@ -69,6 +76,8 @@
             width: auto;
             margin-left: 0.5rem;
         }
+        
+        /* Button styling */
         .remove-button {
             background-color: #ef4444;
             color: white;
@@ -81,6 +90,8 @@
         .remove-button:hover {
             background-color: #dc2626;
         }
+        
+        /* Custom message box for alerts */
         .message-box {
             position: fixed;
             top: 20px;
@@ -106,6 +117,8 @@
             80% { opacity: 1; }
             100% { opacity: 0; display: none; }
         }
+
+        /* Styling for published lists */
         .published-list {
             background-color: #f9fafb;
             border: 1px solid #e5e7eb;
@@ -134,6 +147,8 @@
             padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
         }
+
+        /* Overlay for disabled sections */
         .disabled-overlay {
             position: absolute;
             top: 0;
@@ -156,6 +171,8 @@
             text-align: center;
             z-index: 6;
         }
+
+        /* Image upload and processing styles */
         #image-preview-container {
             display: flex;
             flex-wrap: wrap;
@@ -192,7 +209,7 @@
             margin-bottom: 1rem;
         }
         
-        /* New styles for the sidebar */
+        /* New styles for the sidebar layout */
         .admin-layout {
             display: flex;
             min-height: 100vh;
@@ -233,6 +250,7 @@
     </style>
 </head>
 <body>
+    <!-- Authentication and Access Denied Screens -->
     <div id="auth-section" class="flex flex-col items-center justify-center min-h-screen">
         <div class="container">
             <h1 class="text-3xl font-bold text-blue-600 mb-6">لوحة تحكم الإدارة</h1>
@@ -242,7 +260,18 @@
             </button>
         </div>
     </div>
+    
+    <div id="access-denied-section" class="flex flex-col items-center justify-center min-h-screen hidden">
+        <div class="container">
+            <p class="text-red-600 font-semibold text-lg mb-4">ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.</p>
+            <p class="text-gray-700">الرجاء تسجيل الدخول بحساب مسؤول مصرح به.</p>
+            <button id="sign-out-denied-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
+                تسجيل الخروج
+            </button>
+        </div>
+    </div>
 
+    <!-- Main Admin Content with Sidebar -->
     <div id="admin-content-section" class="admin-layout hidden">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -376,40 +405,33 @@
         </div>
     </div>
 
-    <div id="access-denied-section" class="flex flex-col items-center justify-center min-h-screen hidden">
-        <div class="container">
-            <p class="text-red-600 font-semibold text-lg mb-4">ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.</p>
-            <p class="text-gray-700">الرجاء تسجيل الدخول بحساب مسؤول مصرح به.</p>
-            <button id="sign-out-denied-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4">
-                تسجيل الخروج
-            </button>
-        </div>
-    </div>
-
+    <!-- Message Box to show success/error messages -->
     <div id="message-box" class="message-box"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Constants and Element selection
-        const firebaseConfig = {
-            apiKey: "AIzaSyC3BSf75v3qFs2xm7i-TJksrcEHELEmVpo",
-            authDomain: "potato-e7861.firebaseapp.com",
-            projectId: "potato-e7861",
-            storageBucket: "potato-e7861.appspot.com",
-            messagingSenderId: "905443935896",
-            appId: "1:905443935896:web:93c9de4305e49bb6ff32ed"
+        
+        // Configuration for Firebase
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
-        const effectiveFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : effectiveFirebaseConfig.projectId;
-        const app = initializeApp(effectiveFirebaseConfig);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+        
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
-        const mainAdminUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
-        
+        const mainAdminUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12'; // The main admin's UID
+
+        // Get HTML elements
         const authSection = document.getElementById('auth-section');
         const adminContentSection = document.getElementById('admin-content-section');
         const accessDeniedSection = document.getElementById('access-denied-section');
@@ -417,7 +439,7 @@
         const signOutButton = document.getElementById('sign-out-button');
         const signOutDeniedButton = document.getElementById('sign-out-denied-button');
         const messageBox = document.getElementById('message-box');
-
+        
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         const contentSections = document.querySelectorAll('.content-section');
 
@@ -461,23 +483,7 @@
         let questionCounter = 0;
         let uploadedImageData = [];
 
-        // Function to handle sidebar navigation
-        function handleSidebarClick(event) {
-            const targetId = event.currentTarget.getAttribute('data-target');
-            
-            // Remove 'active' class from all sidebar items and content sections
-            sidebarItems.forEach(item => item.classList.remove('active'));
-            contentSections.forEach(section => section.classList.remove('active'));
-            
-            // Add 'active' class to the clicked item and its corresponding content
-            event.currentTarget.classList.add('active');
-            document.getElementById(targetId).classList.add('active');
-        }
-
-        sidebarItems.forEach(item => {
-            item.addEventListener('click', handleSidebarClick);
-        });
-
+        // Function to show a custom message box
         function showMessage(message, isSuccess = false) {
             messageBox.textContent = message;
             messageBox.classList.remove('success', 'error');
@@ -488,19 +494,22 @@
             }
             messageBox.style.display = 'block';
             messageBox.style.animation = 'none';
-            void messageBox.offsetWidth;
+            void messageBox.offsetWidth; // Trigger reflow to restart animation
             messageBox.style.animation = 'fadeOut 5s forwards';
         }
 
+        // Function to update the UI based on user's authentication and role
         function updateUI() {
             authSection.classList.add('hidden');
             adminContentSection.classList.add('hidden');
             accessDeniedSection.classList.add('hidden');
 
             if (currentUserId) {
+                // If the user is an admin or supervisor
                 if (isMainAdmin || isSupervisor) {
                     adminContentSection.classList.remove('hidden');
 
+                    // Handle permissions for main admin vs supervisor
                     if (isMainAdmin) {
                         adminManagementFormOverlay.classList.add('hidden');
                         adminManagementFormOverlayText.classList.add('hidden');
@@ -519,6 +528,7 @@
                         addSupervisorButton.disabled = true;
                     }
                     
+                    // Enable/disable buttons based on permissions
                     addExamButton.disabled = !(isMainAdmin || isSupervisor);
                     uploadExamImagesButton.disabled = !(isMainAdmin || isSupervisor);
                     publishExamButton.disabled = !(isMainAdmin || isSupervisor);
@@ -532,22 +542,38 @@
                     loadNotifications();
                     loadSupervisors();
                 } else {
+                    // User is logged in but not an admin/supervisor
                     accessDeniedSection.classList.remove('hidden');
                     showMessage('ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.', false);
                 }
             } else {
+                // User is not logged in
                 authSection.classList.remove('hidden');
                 showMessage('الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.', false);
             }
         }
 
+        // Handle sidebar navigation
+        function handleSidebarClick(event) {
+            const targetId = event.currentTarget.getAttribute('data-target');
+            
+            sidebarItems.forEach(item => item.classList.remove('active'));
+            contentSections.forEach(section => section.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+        }
+
+        sidebarItems.forEach(item => {
+            item.addEventListener('click', handleSidebarClick);
+        });
+
+        // Event listeners for authentication buttons
         signInButton.addEventListener('click', async () => {
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 provider.setCustomParameters({ prompt: 'select_account' });
-                const result = await signInWithPopup(auth, provider);
-                console.log('Google Sign-in successful.', result.user);
-                showMessage('جاري تسجيل الدخول...', true);
+                await signInWithPopup(auth, provider);
             } catch (error) {
                 console.error('Error during Google Sign-in:', error);
                 if (error.code === 'auth/popup-closed-by-user') {
@@ -578,6 +604,7 @@
             }
         });
 
+        // Listen for authentication state changes
         onAuthStateChanged(auth, async (user) => {
             currentUserId = user ? user.uid : null;
             if (currentUserId) {
@@ -594,29 +621,28 @@
                 isSupervisor = false;
             }
 
+            // Canvas environment specific sign-in
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && !user) {
                 try {
                     await setPersistence(auth, browserLocalPersistence);
                     await signInWithCustomToken(auth, __initial_auth_token);
-                    console.log('Signed in with custom token (Canvas environment).');
                 } catch (error) {
                     console.error('Firebase authentication error during initial setup:', error);
                     await signInAnonymously(auth);
-                    console.log('Signed in anonymously after custom token failure.');
                 }
             } else if (!user && typeof __initial_auth_token === 'undefined') {
+                // Fallback for deployed environment if no custom token exists
                 await signInAnonymously(auth);
-                console.log('Signed in anonymously (deployed environment fallback).');
             }
-
             updateUI();
         });
 
-        updateUI();
+        updateUI(); // Initial UI update on page load
 
         // Exam form handlers
         addExamButton.addEventListener('click', () => {
             examFormSection.classList.remove('hidden');
+            imageUploadControls.classList.add('hidden');
         });
 
         cancelExamButton.addEventListener('click', () => {
@@ -632,6 +658,7 @@
             addQuestion();
         });
 
+        // Function to dynamically add a new question block to the form
         async function addQuestion(questionData = null) {
             questionCounter++;
             const questionBlock = document.createElement('div');
@@ -657,6 +684,7 @@
             questionsContainer.appendChild(questionBlock);
             examNumQuestionsInput.value = questionCounter;
 
+            // If question data is provided (from image extraction), populate the form
             if (questionData && questionData.options) {
                 const optionsContainer = document.getElementById(`options-container-${questionCounter}`);
                 document.getElementById(`question-text-${questionCounter}`).value = questionData.text;
@@ -674,6 +702,10 @@
                     `;
                     optionsContainer.appendChild(newOption);
                 });
+            } else {
+                // Add default options if no data provided
+                window.addOption(questionCounter);
+                window.addOption(questionCounter);
             }
         }
 
@@ -706,6 +738,7 @@
             }
         };
 
+        // Event listener for publishing the exam
         publishExamButton.addEventListener('click', async () => {
             const examName = examNameInput.value.trim();
             const examDuration = parseInt(examDurationInput.value, 10);
@@ -740,7 +773,7 @@
             });
 
             if (!allQuestionsValid) {
-                showMessage('الرجاء ملء جميع حقول الأسئلة والخيار الصحيح.', false);
+                showMessage('الرجاء ملء جميع حقول الأسئلة واختيار الإجابة الصحيحة.', false);
                 return;
             }
 
@@ -753,6 +786,7 @@
                     createdAt: serverTimestamp()
                 });
                 showMessage('تم نشر الامتحان بنجاح!', true);
+                // Reset the form
                 examFormSection.classList.add('hidden');
                 examNameInput.value = '';
                 examDurationInput.value = '';
@@ -765,13 +799,11 @@
             }
         });
 
-        // Exam list handlers
+        // Load and display published exams from Firestore
         function loadPublishedExams() {
             const examCollectionRef = collection(db, `artifacts/${appId}/publishedExams`);
             onSnapshot(examCollectionRef, (snapshot) => {
-                publishedExamsList.innerHTML = `
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">الامتحانات المنشورة</h3>
-                `;
+                publishedExamsList.innerHTML = `<h3 class="text-xl font-bold text-gray-800 mb-4">الامتحانات المنشورة</h3>`;
                 if (snapshot.empty) {
                     publishedExamsList.innerHTML += `<p class="text-gray-600">لا توجد امتحانات منشورة حالياً.</p>`;
                 } else {
@@ -790,14 +822,17 @@
         }
 
         window.removeExam = async function(examId) {
-            if (!confirm('هل أنت متأكد من حذف هذا الامتحان؟')) return;
-            try {
-                const examDocRef = doc(db, `artifacts/${appId}/publishedExams`, examId);
-                await deleteDoc(examDocRef);
-                showMessage('تم حذف الامتحان بنجاح.', true);
-            } catch (error) {
-                console.error('Error removing exam:', error);
-                showMessage('فشل حذف الامتحان. الرجاء المحاولة مرة أخرى.', false);
+            // Replaced `confirm` with a more robust custom modal or simple logic
+            if (isMainAdmin || isSupervisor) {
+                if (!window.confirm('هل أنت متأكد من حذف هذا الامتحان؟')) return;
+                try {
+                    const examDocRef = doc(db, `artifacts/${appId}/publishedExams`, examId);
+                    await deleteDoc(examDocRef);
+                    showMessage('تم حذف الامتحان بنجاح.', true);
+                } catch (error) {
+                    console.error('Error removing exam:', error);
+                    showMessage('فشل حذف الامتحان. الرجاء المحاولة مرة أخرى.', false);
+                }
             }
         };
 
@@ -825,9 +860,7 @@
         function loadNotifications() {
             const notificationsCollectionRef = collection(db, `artifacts/${appId}/notifications`);
             onSnapshot(notificationsCollectionRef, (snapshot) => {
-                publishedNotificationsList.innerHTML = `
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">الإشعارات المنشورة</h3>
-                `;
+                publishedNotificationsList.innerHTML = `<h3 class="text-xl font-bold text-gray-800 mb-4">الإشعارات المنشورة</h3>`;
                 if (snapshot.empty) {
                     publishedNotificationsList.innerHTML += `<p class="text-gray-600">لا توجد إشعارات منشورة حالياً.</p>`;
                 } else {
@@ -847,14 +880,16 @@
         }
 
         window.removeNotification = async function(notificationId) {
-            if (!confirm('هل أنت متأكد من حذف هذا الإشعار؟')) return;
-            try {
-                const notificationDocRef = doc(db, `artifacts/${appId}/notifications`, notificationId);
-                await deleteDoc(notificationDocRef);
-                showMessage('تم حذف الإشعار بنجاح.', true);
-            } catch (error) {
-                console.error('Error removing notification:', error);
-                showMessage('فشل حذف الإشعار. الرجاء المحاولة مرة أخرى.', false);
+            if (isMainAdmin || isSupervisor) {
+                 if (!window.confirm('هل أنت متأكد من حذف هذا الإشعار؟')) return;
+                try {
+                    const notificationDocRef = doc(db, `artifacts/${appId}/notifications`, notificationId);
+                    await deleteDoc(notificationDocRef);
+                    showMessage('تم حذف الإشعار بنجاح.', true);
+                } catch (error) {
+                    console.error('Error removing notification:', error);
+                    showMessage('فشل حذف الإشعار. الرجاء المحاولة مرة أخرى.', false);
+                }
             }
         };
 
@@ -905,18 +940,20 @@
         }
 
         window.removeSupervisor = async function(supervisorId) {
-            if (!confirm('هل أنت متأكد من حذف هذا المشرف؟')) return;
-            try {
-                const supervisorDocRef = doc(db, `artifacts/${appId}/supervisors`, supervisorId);
-                await deleteDoc(supervisorDocRef);
-                showMessage('تم حذف المشرف بنجاح.', true);
-            } catch (error) {
-                console.error('Error removing supervisor:', error);
-                showMessage('فشل حذف المشرف. الرجاء المحاولة مرة أخرى.', false);
+            if (isMainAdmin) {
+                 if (!window.confirm('هل أنت متأكد من حذف هذا المشرف؟')) return;
+                try {
+                    const supervisorDocRef = doc(db, `artifacts/${appId}/supervisors`, supervisorId);
+                    await deleteDoc(supervisorDocRef);
+                    showMessage('تم حذف المشرف بنجاح.', true);
+                } catch (error) {
+                    console.error('Error removing supervisor:', error);
+                    showMessage('فشل حذف المشرف. الرجاء المحاولة مرة أخرى.', false);
+                }
             }
         };
 
-        // Image upload handlers
+        // Image upload and question generation handlers
         uploadExamImagesButton.addEventListener('click', () => {
             imageUploadInput.click();
         });
@@ -941,6 +978,7 @@
                 reader.readAsDataURL(file);
             });
             imageUploadControls.classList.remove('hidden');
+            examFormSection.classList.add('hidden');
         });
 
         generateQuestionsButton.addEventListener('click', async () => {
@@ -954,16 +992,21 @@
             generateQuestionsButton.disabled = true;
 
             try {
-                const parts = [{ text: "استخرج الأسئلة والاختيارات والإجابة الصحيحة من هذه الصور. لكل سؤال، حدد الإجابة الصحيحة من الخيارات. أعد إجابتك بتنسيق JSON، حيث يكون كل عنصر في القائمة عبارة عن كائن يحتوي على المفاتيح: 'text' لنص السؤال، 'options' لقائمة الخيارات، و 'correctOptionIndex' لرقم الإجابة الصحيحة (بدءًا من 1)." }];
+                // Construct the prompt with Arabic instruction
+                const promptText = "استخرج الأسئلة والاختيارات والإجابة الصحيحة من هذه الصور. لكل سؤال، حدد الإجابة الصحيحة من الخيارات. أعد إجابتك بتنسيق JSON، حيث يكون كل عنصر في القائمة عبارة عن كائن يحتوي على المفاتيح: 'text' لنص السؤال، 'options' لقائمة الخيارات، و 'correctOptionIndex' لرقم الإجابة الصحيحة (بدءًا من 1).";
+                
+                // Add the prompt and images to the payload parts
+                const parts = [{ text: promptText }];
                 uploadedImageData.forEach(imageData => {
                     parts.push({
                         inlineData: {
-                            mimeType: 'image/png', // Assuming PNG, adjust if needed
+                            mimeType: 'image/png',
                             data: imageData
                         }
                     });
                 });
 
+                // Create the request payload
                 const payload = {
                     contents: [{
                         role: "user",
@@ -988,8 +1031,8 @@
                         }
                     }
                 };
-                
-                const apiKey = "";
+
+                const apiKey = ""; // API key is handled by the Canvas environment
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const response = await fetch(apiUrl, {
