@@ -393,7 +393,6 @@
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- Firebase Init ---
-        // These global variables are provided by the Canvas environment.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const __initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -472,8 +471,10 @@
         const aiGeneratedQuestionsContainer = document.getElementById('ai-generated-questions-container');
         const confirmAiQuestionsButton = document.getElementById('confirm-ai-questions-button');
         
-        // --- Authentication State Listener & UI Logic ---
+        // --- Authentication State Listener & UI Logic (FIXED) ---
         onAuthStateChanged(auth, async (user) => {
+            console.log('onAuthStateChanged fired. User:', user);
+            
             let isMainAdmin = false;
             isAdmin = false;
             isSupervisor = false;
@@ -496,15 +497,19 @@
                 isAdmin = isMainAdmin || isSupervisor;
             }
 
+            // Await custom token sign-in if available and no user is logged in
             if (__initial_auth_token && !user) {
                 try {
                     await signInWithCustomToken(auth, __initial_auth_token);
+                    console.log('Signed in with custom token (Canvas environment).');
                 } catch (error) {
                     console.error('Firebase authentication error during initial setup:', error);
                     await signInAnonymously(auth);
+                    console.log('Signed in anonymously after custom token failure.');
                 }
             } else if (!user) {
                 await signInAnonymously(auth);
+                console.log('Signed in anonymously (no custom token).');
             }
 
             updateUI(); // Update UI after auth state is determined
@@ -554,6 +559,7 @@
         signinButton.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
+                // This is for a live environment, not the Canvas preview
                 await signInWithPopup(auth, provider);
             } catch (error) {
                 console.error("Google sign-in error: ", error);
