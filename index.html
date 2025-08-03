@@ -15,12 +15,13 @@
             font-family: 'Cairo', sans-serif;
             background-color: #f8f9fa;
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Align to top to see full page */
+            flex-direction: column; /* Changed to column to accommodate the footer nav */
+            justify-content: space-between; /* Space between content and nav */
+            align-items: center;
             min-height: 100vh;
             margin: 0;
             padding-top: 2rem;
-            padding-bottom: 2rem;
+            padding-bottom: 7rem; /* Added padding for the footer nav */
             direction: rtl;
         }
         .container {
@@ -54,7 +55,7 @@
             margin-bottom: 1.25rem;
             color: #34495e;
         }
-        textarea, input[type="text"], input[type="number"] {
+        textarea, input[type="text"], input[type="number"], input[type="password"] {
             resize: vertical;
             padding: 1rem;
             border: 1px solid #ced4da;
@@ -66,7 +67,7 @@
             box-sizing: border-box;
             transition: all 0.2s ease-in-out;
         }
-        textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+        textarea:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
@@ -83,7 +84,7 @@
             color: #34495e;
             font-size: 1.05rem;
         }
-        .button-primary, .button-secondary, .button-danger, .button-info, .button-teal, .button-gray, .button-ai {
+        .button-primary, .button-secondary, .button-danger, .button-info, .button-teal, .button-gray, .button-ai, .nav-button {
             color: white;
             padding: 0.85rem 1.75rem;
             border-radius: 0.75rem;
@@ -92,6 +93,7 @@
             transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
             display: inline-flex;
             align-items: center;
+            justify-content: center; /* Center content in buttons */
             gap: 0.5rem;
             border: none;
         }
@@ -182,22 +184,6 @@
         .published-item:last-child { border-bottom: none; }
         .published-item span { flex-grow: 1; padding-left: 1rem; }
         .published-item .remove-button { margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 0.5rem; }
-        .disabled-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 1rem;
-            z-index: 5;
-            cursor: not-allowed;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .disabled-overlay-text {
-            position: static; transform: none; color: #6c757d; font-size: 1.3rem; font-weight: 700;
-            text-align: center; z-index: 6; padding: 1rem; background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
         #image-preview-container {
             display: flex; flex-wrap: wrap; gap: 15px; margin-top: 1.5rem; justify-content: center;
             padding: 1rem; border: 1px dashed #ced4da; border-radius: 0.75rem; min-height: 120px; align-items: center;
@@ -223,169 +209,197 @@
         }
         #exam-creation-buttons button { flex-grow: 1; min-width: 200px; }
         hr { border-color: #e9ecef; margin: 3rem 0; }
+        
+        /* Navigation Bar Styling */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #ffffff;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 1rem;
+            z-index: 999;
+            border-top: 1px solid #e0e0e0;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #95a5a6;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            width: 100%;
+        }
+        .nav-item i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .nav-item.active {
+            color: #3498db;
+        }
+        .nav-item:hover:not(.active) {
+            color: #7f8c8d;
+        }
     </style>
 </head>
 <body>
+    <!-- The main container for the admin panel -->
     <div class="container">
-        <h1 class="text-3xl font-bold mb-6">لوحة تحكم الإدارة</h1>
-
-        <div id="auth-section" class="mb-8">
-            <p class="text-gray-700 mb-4">الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.</p>
-            <button id="sign-in-button" class="button-primary"><i class="fab fa-google"></i> تسجيل الدخول باستخدام جوجل</button>
+        <!-- Main title and sign-out button -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-center flex-grow">لوحة تحكم الإدارة</h1>
+            <button id="sign-out-button" class="button-danger ml-auto hidden"><i class="fas fa-sign-out-alt"></i></button>
         </div>
 
+        <!-- Authentication Section -->
+        <div id="auth-section" class="mb-8">
+            <h3 class="text-xl font-bold mb-4">تسجيل الدخول</h3>
+            <div class="form-group max-w-sm mx-auto">
+                <label for="password-input">كلمة السر:</label>
+                <input type="password" id="password-input" class="w-full text-center" placeholder="أدخل كلمة السر">
+            </div>
+            <button id="login-button" class="button-primary"><i class="fas fa-sign-in-alt"></i> دخول</button>
+        </div>
+
+        <!-- Admin Content Section (Main View) -->
         <div id="admin-content-section" class="hidden">
-            <!-- Admin Management Section -->
-            <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
-            <div id="admin-management-form-section" class="text-right mb-6 relative published-list">
-                <div id="admin-management-form-overlay" class="disabled-overlay hidden"></div>
-                <p id="admin-management-form-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
-                <h3 class="text-xl font-bold mb-4">إضافة مشرف جديد</h3>
-                <div class="form-group">
-                    <label for="supervisor-uid">معرف المستخدم (UID) للمشرف:</label>
-                    <input type="text" id="supervisor-uid" class="w-full" placeholder="أدخل UID المشرف">
+            <!-- Exams Management Section -->
+            <div id="exam-section" class="main-content-section">
+                <h2 class="text-2xl font-bold mb-4">إدارة الامتحانات</h2>
+                <div id="exam-creation-buttons" class="mb-6">
+                    <button id="add-exam-button" class="button-info"><i class="fas fa-plus-circle"></i> إضافة امتحان جديد (يدوي)</button>
+                    <button id="upload-exam-images-button" class="button-teal"><i class="fas fa-upload"></i> رفع الامتحان بالصور</button>
+                    <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
                 </div>
-                <div class="form-group">
-                    <label for="supervisor-alias">الاسم المستعار للمشرف:</label>
-                    <input type="text" id="supervisor-alias" class="w-full" placeholder="مثال: أحمد المشرف">
-                </div>
-                <button id="add-supervisor-button" class="button-secondary"><i class="fas fa-user-plus"></i> إضافة مشرف</button>
-            </div>
-            <div class="published-list" id="supervisors-list-container">
-                <div id="supervisors-list-overlay" class="disabled-overlay hidden"></div>
-                <p id="supervisors-list-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
-                <h3 class="text-xl font-bold mb-4">المشرفون الحاليون</h3>
-                <div id="supervisors-list"><p class="text-gray-600">جاري تحميل المشرفين...</p></div>
-            </div>
+                
+                <!-- Exam Form and Image Upload Sections (Initially hidden) -->
+                <div id="exam-forms-container">
+                    <div id="image-upload-controls" class="hidden">
+                        <div id="image-preview-container"><p class="text-gray-600">لا توجد صور مرفوعة بعد.</p></div>
+                        <button id="generate-questions-button" class="button-primary mt-4"><i class="fas fa-magic"></i> استخراج الأسئلة</button>
+                        <div id="image-processing-spinner" class="loading-spinner"></div>
+                        <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
+                        <button id="cancel-upload-button" class="button-gray mt-4"><i class="fas fa-times-circle"></i> إلغاء</button>
+                    </div>
 
-            <hr class="my-8 border-gray-300">
+                    <div id="exam-form-section" class="hidden text-right published-list">
+                        <h3 class="text-xl font-bold mb-4">تفاصيل الامتحان الجديد</h3>
+                        <div class="form-group">
+                            <label for="exam-name">اسم الامتحان:</label>
+                            <input type="text" id="exam-name" class="w-full" placeholder="مثال: امتحان اللغة العربية - الفصل الأول">
+                        </div>
+                        <div class="form-group">
+                            <label for="exam-duration">المدة بالدقائق:</label>
+                            <input type="number" id="exam-duration" class="w-full" placeholder="مثال: 60">
+                        </div>
+                        <div class="form-group">
+                            <label for="exam-num-questions">عدد الأسئلة (سيتم تحديثه تلقائيًا):</label>
+                            <input type="number" id="exam-num-questions" class="w-full" value="0" readonly>
+                        </div>
+                        <hr class="my-6 border-gray-200">
+                        <h3 class="text-xl font-bold mb-4">الأسئلة</h3>
+                        <div id="questions-container"></div>
+                        <button id="add-question-button" class="button-secondary mt-4"><i class="fas fa-question-circle"></i> إضافة سؤال</button>
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button id="publish-exam-button" class="button-primary"><i class="fas fa-paper-plane"></i> نشر الامتحان</button>
+                            <button id="cancel-exam-button" class="button-gray"><i class="fas fa-times-circle"></i> إلغاء</button>
+                        </div>
+                    </div>
+                </div>
 
-            <h2 class="text-2xl font-bold mb-4">إدارة الامتحانات</h2>
-            <div id="exam-creation-buttons" class="mb-6">
-                <button id="add-exam-button" class="button-info"><i class="fas fa-plus-circle"></i> إضافة امتحان جديد (يدوي)</button>
-                <button id="upload-exam-images-button" class="button-teal"><i class="fas fa-upload"></i> رفع الامتحان بالصور</button>
-                <button id="ai-source-button" class="button-ai"><i class="fas fa-robot"></i> إنشاء امتحان من مصدر AI</button>
-                <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
-            </div>
-
-            <!-- AI Source Section (New) -->
-            <div id="ai-source-section" class="hidden w-full text-right">
-                <h3 class="text-xl font-bold mb-4 text-center">إنشاء امتحان باستخدام مصدر AI</h3>
-                <div class="form-group w-full">
-                    <label for="ai-book-content">محتوى الكتاب (المصدر):</label>
-                    <textarea id="ai-book-content" rows="10" class="w-full" placeholder="الصق هنا محتوى الكتاب أو الفصل الذي تريد إنشاء أسئلة منه..."></textarea>
-                </div>
-                <div class="form-group w-full">
-                    <label for="ai-prompt">طلب للذكاء الاصطناعي:</label>
-                    <input type="text" id="ai-prompt" class="w-full" placeholder="مثال: أنشئ امتحانًا من 5 أسئلة مع تحديد الإجابة الصحيحة.">
-                </div>
-                <button id="generate-ai-exam-button" class="button-primary mt-4"><i class="fas fa-cogs"></i> إنشاء الأسئلة بالـ AI</button>
-                <div id="ai-processing-spinner" class="loading-spinner"></div>
-                <p id="ai-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري تحليل المصدر وإنشاء الأسئلة...</p>
-            </div>
-
-            <div id="image-upload-controls" class="hidden">
-                <div id="image-preview-container"><p class="text-gray-600">لا توجد صور مرفوعة بعد.</p></div>
-                <button id="generate-questions-button" class="button-primary mt-4"><i class="fas fa-magic"></i> استخراج الأسئلة</button>
-                <div id="image-processing-spinner" class="loading-spinner"></div>
-                <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
-            </div>
-
-            <div id="exam-form-section" class="hidden text-right published-list">
-                <h3 class="text-xl font-bold mb-4">تفاصيل الامتحان الجديد</h3>
-                <div class="form-group">
-                    <label for="exam-name">اسم الامتحان:</label>
-                    <input type="text" id="exam-name" class="w-full" placeholder="مثال: امتحان اللغة العربية - الفصل الأول">
-                </div>
-                <div class="form-group">
-                    <label for="exam-duration">المدة بالدقائق:</label>
-                    <input type="number" id="exam-duration" class="w-full" placeholder="مثال: 60">
-                </div>
-                <div class="form-group">
-                    <label for="exam-num-questions">عدد الأسئلة (سيتم تحديثه تلقائيًا):</label>
-                    <input type="number" id="exam-num-questions" class="w-full" value="0" readonly>
-                </div>
-                <hr class="my-6 border-gray-200">
-                <h3 class="text-xl font-bold mb-4">الأسئلة</h3>
-                <div id="questions-container"></div>
-                <button id="add-question-button" class="button-secondary mt-4"><i class="fas fa-question-circle"></i> إضافة سؤال</button>
-                <div class="flex justify-end gap-4 mt-6">
-                    <button id="publish-exam-button" class="button-primary"><i class="fas fa-paper-plane"></i> نشر الامتحان</button>
-                    <button id="cancel-exam-button" class="button-gray"><i class="fas fa-times-circle"></i> إلغاء</button>
+                <!-- List of Published Exams -->
+                <div class="published-list" id="published-exams-list">
+                    <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
+                    <p class="text-gray-600">جاري تحميل الامتحانات...</p>
                 </div>
             </div>
-
-            <div class="published-list" id="published-exams-list">
-                <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
-                <p class="text-gray-600">جاري تحميل الامتحانات...</p>
-            </div>
-
-            <hr class="my-8 border-gray-300">
 
             <!-- Notification Management Section -->
-            <h2 class="text-2xl font-bold mb-4">إدارة الإشعارات</h2>
-            <div id="notification-form-section" class="text-right mb-6 published-list">
-                <h3 class="text-xl font-bold mb-4">إضافة إشعار جديد</h3>
-                <div class="form-group">
-                    <label for="notification-message">نص الإشعار:</label>
-                    <textarea id="notification-message" rows="4" placeholder="اكتب نص الإشعار هنا..."></textarea>
+            <div id="notifications-section" class="hidden main-content-section">
+                <h2 class="text-2xl font-bold mb-4">إدارة الإشعارات</h2>
+                <div id="notification-form-section" class="text-right mb-6 published-list">
+                    <h3 class="text-xl font-bold mb-4">إضافة إشعار جديد</h3>
+                    <div class="form-group">
+                        <label for="notification-message">نص الإشعار:</label>
+                        <textarea id="notification-message" rows="4" placeholder="اكتب نص الإشعار هنا..."></textarea>
+                    </div>
+                    <button id="publish-notification-button" class="button-info"><i class="fas fa-bell"></i> نشر الإشعار</button>
                 </div>
-                <button id="publish-notification-button" class="button-info"><i class="fas fa-bell"></i> نشر الإشعار</button>
-            </div>
-            <div class="published-list" id="published-notifications-list">
-                <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
-                <p class="text-gray-600">جاري تحميل الإشعارات...</p>
+                <div class="published-list" id="published-notifications-list">
+                    <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
+                    <p class="text-gray-600">جاري تحميل الإشعارات...</p>
+                </div>
             </div>
 
-            <button id="sign-out-button" class="button-danger mt-8"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج من لوحة التحكم</button>
-        </div>
-
-        <div id="access-denied-section" class="hidden">
-            <p class="text-red-600 font-semibold text-lg mb-4">ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.</p>
-            <p class="text-gray-700">الرجاء تسجيل الدخول بحساب مسؤول مصرح به.</p>
-            <button id="sign-out-denied-button" class="button-danger mt-4"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
         </div>
     </div>
-
+    
+    <!-- Floating message box for notifications -->
     <div id="message-box" class="message-box"></div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav hidden" id="main-nav">
+        <div class="nav-item active" id="nav-exams">
+            <i class="fas fa-clipboard-list"></i>
+            <span>الامتحانات</span>
+        </div>
+        <div class="nav-item" id="nav-notifications">
+            <i class="fas fa-bell"></i>
+            <span>الإشعارات</span>
+        </div>
+    </nav>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY", // Replace with your actual config
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            // New API key provided by the user
+            apiKey: "AIzaSyCMPfEbzmPNt-pewHG0rmtFTx6WwvJq9W8",
+            authDomain: "potato-e7861.firebaseapp.com",
+            projectId: "potato-e7861",
+            storageBucket: "potato-e7861.appspot.com",
+            messagingSenderId: "905443935896",
+            appId: "1:905443935896:web:93c9de4305e49bb6ff32ed"
         };
         
-        // Gemini API Key
-        const geminiApiKey = "YOUR_GEMINI_API_KEY"; // IMPORTANT: Replace with your actual Gemini API Key
-
+        // Use the Canvas-provided Firebase config if available, otherwise use the local one.
         const effectiveFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
         const appId = typeof __app_id !== 'undefined' ? __app_id : effectiveFirebaseConfig.projectId;
 
         const app = initializeApp(effectiveFirebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-
-        const mainAdminUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
 
         // --- DOM Element Selection ---
         const authSection = document.getElementById('auth-section');
+        const passwordInput = document.getElementById('password-input');
+        const loginButton = document.getElementById('login-button');
+        
         const adminContentSection = document.getElementById('admin-content-section');
-        const accessDeniedSection = document.getElementById('access-denied-section');
-        const signInButton = document.getElementById('sign-in-button');
         const signOutButton = document.getElementById('sign-out-button');
-        const signOutDeniedButton = document.getElementById('sign-out-denied-button');
         const messageBox = document.getElementById('message-box');
 
+        // Main navigation elements
+        const mainNav = document.getElementById('main-nav');
+        const navExams = document.getElementById('nav-exams');
+        const navNotifications = document.getElementById('nav-notifications');
+
+        // Content sections
+        const examSection = document.getElementById('exam-section');
+        const notificationsSection = document.getElementById('notifications-section');
+        
         // Exam management elements
         const addExamButton = document.getElementById('add-exam-button');
         const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
@@ -395,16 +409,9 @@
         const imageProcessingMessage = document.getElementById('image-processing-message');
         const generateQuestionsButton = document.getElementById('generate-questions-button');
         const imageUploadControls = document.getElementById('image-upload-controls');
-        
-        // New AI Source elements
-        const aiSourceButton = document.getElementById('ai-source-button');
-        const aiSourceSection = document.getElementById('ai-source-section');
-        const aiBookContent = document.getElementById('ai-book-content');
-        const aiPrompt = document.getElementById('ai-prompt');
-        const generateAiExamButton = document.getElementById('generate-ai-exam-button');
-        const aiProcessingSpinner = document.getElementById('ai-processing-spinner');
-        const aiProcessingMessage = document.getElementById('ai-processing-message');
+        const cancelUploadButton = document.getElementById('cancel-upload-button');
 
+        const examFormsContainer = document.getElementById('exam-forms-container');
         const examFormSection = document.getElementById('exam-form-section');
         const examNameInput = document.getElementById('exam-name');
         const examDurationInput = document.getElementById('exam-duration');
@@ -420,19 +427,7 @@
         const publishNotificationButton = document.getElementById('publish-notification-button');
         const publishedNotificationsList = document.getElementById('published-notifications-list');
 
-        // Admin Management elements
-        const supervisorUidInput = document.getElementById('supervisor-uid');
-        const supervisorAliasInput = document.getElementById('supervisor-alias');
-        const addSupervisorButton = document.getElementById('add-supervisor-button');
-        const supervisorsList = document.getElementById('supervisors-list');
-        const adminManagementFormOverlay = document.getElementById('admin-management-form-overlay');
-        const adminManagementFormOverlayText = document.getElementById('admin-management-form-overlay-text');
-        const supervisorsListOverlay = document.getElementById('supervisors-list-overlay');
-        const supervisorsListOverlayText = document.getElementById('supervisors-list-overlay-text');
-
-        let currentUserId = null;
-        let isMainAdmin = false;
-        let isSupervisor = false;
+        let isLoggedIn = false;
         let questionCounter = 0;
         let uploadedImageData = [];
 
@@ -446,70 +441,159 @@
             void messageBox.offsetWidth;
             messageBox.style.animation = 'fadeOut 5s forwards';
         }
+        // This function will replace the confirm() and alert() calls
+        function showCustomConfirm(message, onConfirm, onCancel) {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '2000';
 
-        function hideAllCreationSections() {
-            examFormSection.classList.add('hidden');
-            imageUploadControls.classList.add('hidden');
-            aiSourceSection.classList.add('hidden');
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#fff';
+            modalContent.style.padding = '2rem';
+            modalContent.style.borderRadius = '1rem';
+            modalContent.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+            modalContent.style.maxWidth = '400px';
+            modalContent.style.textAlign = 'center';
+            modalContent.style.fontFamily = 'Cairo, sans-serif';
+            modalContent.style.direction = 'rtl';
+
+            const messageP = document.createElement('p');
+            messageP.textContent = message;
+            messageP.style.fontSize = '1.2rem';
+            messageP.style.marginBottom = '1.5rem';
+            messageP.style.color = '#34495e';
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'center';
+            buttonContainer.style.gap = '1rem';
+
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = 'نعم';
+            confirmButton.className = 'button-danger';
+            confirmButton.style.marginTop = '0';
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'إلغاء';
+            cancelButton.className = 'button-gray';
+            cancelButton.style.marginTop = '0';
+
+            confirmButton.addEventListener('click', () => {
+                onConfirm();
+                document.body.removeChild(modal);
+            });
+
+            cancelButton.addEventListener('click', () => {
+                if (onCancel) onCancel();
+                document.body.removeChild(modal);
+            });
+
+            buttonContainer.appendChild(confirmButton);
+            buttonContainer.appendChild(cancelButton);
+            modalContent.appendChild(messageP);
+            modalContent.appendChild(buttonContainer);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
         }
 
-        // --- Auth and UI Update ---
-        function updateUI() {
-            // ... (The rest of the updateUI function remains the same)
-            authSection.classList.add('hidden');
-            adminContentSection.classList.add('hidden');
-            accessDeniedSection.classList.add('hidden');
+        // --- Navigation and UI State Management ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.main-content-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Handle nav bar active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            if (sectionId === 'exam-section') {
+                navExams.classList.add('active');
+            } else if (sectionId === 'notifications-section') {
+                navNotifications.classList.add('active');
+            }
+        }
+        
+        function showExamMainPage() {
+            examFormsContainer.classList.add('hidden');
+            document.getElementById('exam-creation-buttons').classList.remove('hidden');
+            publishedExamsList.classList.remove('hidden');
+        }
 
-            if (currentUserId) {
-                if (isMainAdmin || isSupervisor) {
-                    adminContentSection.classList.remove('hidden');
-                    if (isMainAdmin) {
-                        [adminManagementFormOverlay, adminManagementFormOverlayText, supervisorsListOverlay, supervisorsListOverlayText].forEach(el => el.classList.add('hidden'));
-                        [supervisorUidInput, supervisorAliasInput, addSupervisorButton].forEach(el => el.disabled = false);
-                    } else {
-                        [adminManagementFormOverlay, adminManagementFormOverlayText, supervisorsListOverlay, supervisorsListOverlayText].forEach(el => el.classList.remove('hidden'));
-                        [supervisorUidInput, supervisorAliasInput, addSupervisorButton].forEach(el => el.disabled = true);
-                    }
-                    loadPublishedExams();
-                    loadNotifications();
-                    loadSupervisors();
-                } else {
-                    accessDeniedSection.classList.remove('hidden');
-                }
+        function showExamForm() {
+            document.getElementById('exam-creation-buttons').classList.add('hidden');
+            publishedExamsList.classList.add('hidden');
+            examFormsContainer.classList.remove('hidden');
+            examFormSection.classList.remove('hidden');
+            imageUploadControls.classList.add('hidden');
+        }
+
+        function showImageUploadForm() {
+            document.getElementById('exam-creation-buttons').classList.add('hidden');
+            publishedExamsList.classList.add('hidden');
+            examFormsContainer.classList.remove('hidden');
+            imageUploadControls.classList.remove('hidden');
+            examFormSection.classList.add('hidden');
+        }
+
+        function updateUI() {
+            if (isLoggedIn) {
+                authSection.classList.add('hidden');
+                adminContentSection.classList.remove('hidden');
+                mainNav.classList.remove('hidden');
+                signOutButton.classList.remove('hidden');
+                // By default, show the exams section
+                showSection('exam-section'); 
+                loadPublishedExams();
+                loadNotifications();
             } else {
                 authSection.classList.remove('hidden');
+                adminContentSection.classList.add('hidden');
+                mainNav.classList.add('hidden');
+                signOutButton.classList.add('hidden');
+                showExamMainPage();
             }
         }
 
         // --- Event Listeners ---
-        signInButton.addEventListener('click', async () => {
-            try {
-                await setPersistence(auth, browserLocalPersistence);
-                provider.setCustomParameters({ prompt: 'select_account' });
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error('Error during Google Sign-in:', error);
-                showMessage(`خطأ في تسجيل الدخول: ${error.message}`, false);
+        loginButton.addEventListener('click', () => {
+            if (passwordInput.value.trim() === '123') {
+                isLoggedIn = true;
+                passwordInput.value = '';
+                updateUI();
+                showMessage('تم تسجيل الدخول بنجاح!', true);
+            } else {
+                showMessage('كلمة السر غير صحيحة.', false);
             }
         });
 
-        const handleSignOut = async () => {
-            try {
-                await signOut(auth);
-                showMessage('تم تسجيل الخروج بنجاح.', true);
-                hideAllCreationSections();
-            } catch (error) {
-                console.error('Error during sign out:', error);
-                showMessage(`خطأ في تسجيل الخروج: ${error.message}`, false);
+        passwordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                loginButton.click();
             }
-        };
-        signOutButton.addEventListener('click', handleSignOut);
-        signOutDeniedButton.addEventListener('click', handleSignOut);
+        });
 
-        // --- Exam Creation Flow ---
+        signOutButton.addEventListener('click', () => {
+            isLoggedIn = false;
+            updateUI();
+            showMessage('تم تسجيل الخروج.', true);
+        });
+
+        navExams.addEventListener('click', () => showSection('exam-section'));
+        navNotifications.addEventListener('click', () => showSection('notifications-section'));
+
+        // Exam Creation Flow buttons
         addExamButton.addEventListener('click', () => {
-            hideAllCreationSections();
-            examFormSection.classList.remove('hidden');
+            showExamForm();
+            // Reset form
             examNameInput.value = '';
             examDurationInput.value = '';
             questionsContainer.innerHTML = '';
@@ -519,20 +603,19 @@
         });
 
         uploadExamImagesButton.addEventListener('click', () => {
-            hideAllCreationSections();
-            imageUploadControls.classList.remove('hidden');
+            showImageUploadForm();
             imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
             imageUploadInput.click();
         });
 
-        aiSourceButton.addEventListener('click', () => {
-            hideAllCreationSections();
-            aiSourceSection.classList.remove('hidden');
+        cancelExamButton.addEventListener('click', () => {
+            showExamMainPage();
+            showMessage('تم إلغاء إضافة الامتحان.', false);
         });
 
-        cancelExamButton.addEventListener('click', () => {
-            examFormSection.classList.add('hidden');
-            showMessage('تم إلغاء إضافة الامتحان.', false);
+        cancelUploadButton.addEventListener('click', () => {
+            showExamMainPage();
+            showMessage('تم إلغاء رفع الصور.', false);
         });
 
         // --- Question Management ---
@@ -572,7 +655,6 @@
             if (questionBlock) {
                 questionBlock.remove();
                 updateQuestionCount();
-                // Renumber questions
                 document.querySelectorAll('.question-block').forEach((block, index) => {
                     block.querySelector('label[for^="question-text-"]').textContent = `نص السؤال ${index + 1}:`;
                 });
@@ -583,160 +665,186 @@
             examNumQuestionsInput.value = questionsContainer.children.length;
         }
 
-        // --- AI Source Exam Generation (New) ---
-        generateAiExamButton.addEventListener('click', async () => {
-            const bookContent = aiBookContent.value.trim();
-            const userPrompt = aiPrompt.value.trim();
+        // --- Data Persistence Functions ---
+        
+        publishExamButton.addEventListener('click', async () => {
+            if (!db) return;
+            const examName = examNameInput.value.trim();
+            const examDuration = parseInt(examDurationInput.value, 10);
+            const numQuestions = parseInt(examNumQuestionsInput.value, 10);
 
-            if (!bookContent || !userPrompt) {
-                showMessage('الرجاء لصق محتوى المصدر وكتابة طلب واضح للذكاء الاصطناعي.', false);
+            if (!examName || isNaN(examDuration) || examDuration <= 0 || numQuestions <= 0) {
+                showMessage('الرجاء إدخال اسم الامتحان والمدة وعدد الأسئلة بشكل صحيح.', false);
                 return;
             }
+            const questions = [];
+            let allQuestionsValid = true;
 
-            aiProcessingSpinner.style.display = 'block';
-            aiProcessingMessage.classList.remove('hidden');
-            generateAiExamButton.disabled = true;
-            showMessage('جاري تحليل المصدر وإنشاء الأسئلة...', true);
+            document.querySelectorAll('.question-block').forEach((qBlock, index) => {
+                const qText = qBlock.querySelector('textarea[id^="question-text-"]').value.trim();
+                const options = [];
+                let correctOptionIndex = -1;
 
-            const fullPrompt = `بناءً على النص التالي، قم بتنفيذ الطلب المحدد.
-            الطلب: "${userPrompt}"
-            النص: "${bookContent}"
-            
-            يرجى تقديم الإخراج كمصفوفة JSON من الكائنات. يجب أن يحتوي كل كائن على ثلاثة حقول:
-            1. "questionText": سلسلة نصية تحتوي على نص السؤال.
-            2. "options": مصفوفة من أربع سلاسل نصية تمثل الخيارات.
-            3. "correctOptionIndex": رقم (من 0 إلى 3) يمثل فهرس الإجابة الصحيحة في مصفوفة الخيارات.
-            
-            تأكد من أن الإجابة هي JSON صالح تمامًا بدون أي نص إضافي قبله أو بعده.`;
-
-            let chatHistory = [{ role: "user", parts: [{ text: fullPrompt }] }];
-            const payload = {
-                contents: chatHistory,
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                "questionText": { "type": "STRING" },
-                                "options": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                "correctOptionIndex": { "type": "NUMBER" }
-                            },
-                            required: ["questionText", "options", "correctOptionIndex"]
-                        }
+                qBlock.querySelectorAll('.option-group').forEach((optGroup, optIndex) => {
+                    const optionText = optGroup.querySelector('input[type="text"]').value.trim();
+                    const isCorrect = optGroup.querySelector('input[type="radio"]').checked;
+                    options.push(optionText);
+                    if (isCorrect) {
+                        correctOptionIndex = optIndex;
                     }
-                }
-            };
-
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API error: ${response.status}. ${errorText}`);
+                if (!qText || options.some(opt => !opt) || correctOptionIndex === -1) {
+                    showMessage(`الرجاء إكمال السؤال رقم ${index + 1} وجميع خياراته وتحديد الإجابة الصحيحة.`, false);
+                    allQuestionsValid = false;
+                    return;
                 }
 
-                const result = await response.json();
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
-                    const jsonString = result.candidates[0].content.parts[0].text;
-                    const questions = JSON.parse(jsonString);
-                    if (Array.isArray(questions) && questions.length > 0) {
-                        populateExamFormFromAI(questions);
-                        showMessage('تم إنشاء الأسئلة بنجاح! يرجى مراجعتها.', true);
-                    } else {
-                        throw new Error('لم يتمكن الذكاء الاصطناعي من إنشاء أسئلة صالحة.');
-                    }
-                } else {
-                    throw new Error('استجابة غير متوقعة من الذكاء الاصطناعي.');
-                }
-            } catch (error) {
-                console.error('Error generating exam with AI:', error);
-                showMessage(`حدث خطأ أثناء إنشاء الامتحان: ${error.message}`, false);
-            } finally {
-                aiProcessingSpinner.style.display = 'none';
-                aiProcessingMessage.classList.add('hidden');
-                generateAiExamButton.disabled = false;
+                questions.push({
+                    questionText: qText,
+                    options: options,
+                    correctOptionIndex: correctOptionIndex
+                });
+            });
+
+            if (!allQuestionsValid) return;
+
+            const examData = {
+                name: examName,
+                duration: examDuration,
+                numQuestions: numQuestions,
+                questions: questions,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
+                await addDoc(examsCollectionRef, examData);
+                showMessage('تم نشر الامتحان بنجاح!', true);
+                showExamMainPage();
+            } catch (e) {
+                console.error('Error publishing exam:', e);
+                showMessage(`خطأ في نشر الامتحان: ${e.message}`, false);
             }
         });
 
-        function populateExamFormFromAI(questions) {
-            hideAllCreationSections();
-            examFormSection.classList.remove('hidden');
-            questionsContainer.innerHTML = ''; // Clear existing questions
-            questionCounter = 0; // Reset counter
+        async function loadPublishedExams() {
+            if (!db) return;
+            publishedExamsList.innerHTML = '<p class="text-gray-600">جاري تحميل الامتحانات...</p>';
+            const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
 
-            questions.forEach(q => {
-                const paddedOptions = [...(q.options || [])];
-                while (paddedOptions.length < 4) paddedOptions.push('');
-                addQuestion(q.questionText, paddedOptions.slice(0, 4), q.correctOptionIndex);
+            onSnapshot(examsCollectionRef, (snapshot) => {
+                publishedExamsList.innerHTML = '';
+                if (snapshot.empty) {
+                    publishedExamsList.innerHTML = '<p class="text-gray-600">لا توجد امتحانات منشورة حاليًا.</p>';
+                    return;
+                }
+                snapshot.forEach((doc) => {
+                    const exam = doc.data();
+                    const examId = doc.id;
+                    const examItem = document.createElement('div');
+                    examItem.className = 'published-item';
+                    examItem.innerHTML = `
+                        <span>${exam.name} (${exam.numQuestions} أسئلة, ${exam.duration} دقيقة)</span>
+                        <button class="remove-button" onclick="window.deleteExam('${examId}')"><i class="fas fa-trash-alt"></i> حذف</button>
+                    `;
+                    publishedExamsList.appendChild(examItem);
+                });
+            }, (error) => {
+                console.error('Error loading published exams:', error);
+                publishedExamsList.innerHTML = `<p class="text-red-500">حدث خطأ أثناء تحميل الامتحانات: ${error.message}</p>`;
             });
-
-            updateQuestionCount();
         }
 
-        // --- Publish, Load, Delete, etc. Functions (Mostly Unchanged) ---
-        // ... The existing functions for publishExamButton, loadPublishedExams, deleteExam, 
-        // ... publishNotificationButton, loadNotifications, deleteNotification, 
-        // ... addSupervisorButton, loadSupervisors, removeSupervisor, handleImageUpload, processImagesWithAI
-        // ... and onAuthStateChanged would go here. They are omitted for brevity but should be included from the original file.
-        // ... Make sure to adapt `processImagesWithAI` to use the `geminiApiKey` variable.
-        // --- Placeholder for other functions for brevity ---
-        
-        publishExamButton.addEventListener('click', async () => { /* ... same as original ... */ });
-        window.deleteExam = async (examId) => { /* ... same as original ... */ };
-        publishNotificationButton.addEventListener('click', async () => { /* ... same as original ... */ });
-        window.deleteNotification = async (notificationId) => { /* ... same as original ... */ };
-        addSupervisorButton.addEventListener('click', async () => { /* ... same as original ... */ });
-        window.removeSupervisor = async (supervisorUid) => { /* ... same as original ... */ };
-        
-        async function loadPublishedExams() { /* ... same as original ... */ }
-        async function loadNotifications() { /* ... same as original ... */ }
-        async function loadSupervisors() { /* ... same as original ... */ }
-
-        // --- Auth State Change Listener ---
-        onAuthStateChanged(auth, async (user) => {
-            currentUserId = user ? user.uid : null;
-            isMainAdmin = (currentUserId === mainAdminUid);
-
-            if (currentUserId && !isMainAdmin) {
-                const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, currentUserId);
+        window.deleteExam = async (examId) => {
+            if (!db) return;
+            showCustomConfirm('هل أنت متأكد أنك تريد حذف هذا الامتحان؟', async () => {
+                const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
                 try {
-                    const docSnap = await getDoc(supervisorDocRef);
-                    isSupervisor = docSnap.exists();
+                    await deleteDoc(examDocRef);
+                    showMessage('تم حذف الامتحان بنجاح!', true);
                 } catch (e) {
-                    console.error('Error checking supervisor status:', e);
-                    isSupervisor = false;
+                    console.error('Error deleting exam:', e);
+                    showMessage(`خطأ في حذف الامتحان: ${e.message}`, false);
                 }
-            } else {
-                isSupervisor = false;
+            });
+        };
+        
+        publishNotificationButton.addEventListener('click', async () => {
+            if (!db) return;
+            const message = notificationMessageInput.value.trim();
+            if (!message) {
+                showMessage('الرجاء كتابة نص الإشعار.', false);
+                return;
             }
+            const notificationData = {
+                message: message,
+                createdAt: serverTimestamp()
+            };
+            try {
+                const notificationsCollectionRef = collection(db, `artifacts/${appId}/public/data/notifications`);
+                await addDoc(notificationsCollectionRef, notificationData);
+                showMessage('تم نشر الإشعار بنجاح!', true);
+                notificationMessageInput.value = '';
+            } catch (e) {
+                console.error('Error publishing notification:', e);
+                showMessage(`خطأ في نشر الإشعار: ${e.message}`, false);
+            }
+        });
 
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && !user) {
+        async function loadNotifications() {
+            if (!db) return;
+            publishedNotificationsList.innerHTML = '<p class="text-gray-600">جاري تحميل الإشعارات...</p>';
+            const notificationsCollectionRef = collection(db, `artifacts/${appId}/public/data/notifications`);
+            onSnapshot(notificationsCollectionRef, (snapshot) => {
+                publishedNotificationsList.innerHTML = '';
+                if (snapshot.empty) {
+                    publishedNotificationsList.innerHTML = '<p class="text-gray-600">لا توجد إشعارات منشورة حاليًا.</p>';
+                    return;
+                }
+                snapshot.forEach((doc) => {
+                    const notification = doc.data();
+                    const notificationId = doc.id;
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = 'published-item';
+                    notificationItem.innerHTML = `
+                        <span>${notification.message}</span>
+                        <button class="remove-button" onclick="window.deleteNotification('${notificationId}')"><i class="fas fa-trash-alt"></i> حذف</button>
+                    `;
+                    publishedNotificationsList.appendChild(notificationItem);
+                });
+            }, (error) => {
+                console.error('Error loading published notifications:', error);
+                publishedNotificationsList.innerHTML = `<p class="text-red-500">حدث خطأ أثناء تحميل الإشعارات: ${error.message}</p>`;
+            });
+        }
+
+        window.deleteNotification = async (notificationId) => {
+            if (!db) return;
+            showCustomConfirm('هل أنت متأكد أنك تريد حذف هذا الإشعار؟', async () => {
+                const notificationDocRef = doc(db, `artifacts/${appId}/public/data/notifications`, notificationId);
                 try {
-                    await setPersistence(auth, browserLocalPersistence);
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } catch (error) {
-                    console.error('Firebase custom token sign-in error:', error);
-                    await signInAnonymously(auth);
+                    await deleteDoc(notificationDocRef);
+                    showMessage('تم حذف الإشعار بنجاح!', true);
+                } catch (e) {
+                    console.error('Error deleting notification:', e);
+                    showMessage(`خطأ في حذف الإشعار: ${e.message}`, false);
                 }
-            } else if (!user && typeof __initial_auth_token === 'undefined') {
-                await signInAnonymously(auth);
-            }
+            });
+        };
 
-            updateUI();
+        // --- Anonymous Firebase Sign-in for Backend Access ---
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                signInAnonymously(auth).catch((error) => {
+                    console.error("Anonymous sign-in failed:", error);
+                    showMessage("لا يمكن الاتصال بقاعدة البيانات. قد لا تعمل بعض الميزات.", false);
+                });
+            }
         });
 
         // Initial UI update
         updateUI();
-
     </script>
 </body>
 </html>
-
