@@ -13,682 +13,475 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f8f9fa; /* Light background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
             direction: rtl;
+            padding: 2rem;
         }
         .container {
             background-color: #ffffff;
-            padding: 2rem;
+            padding: 3rem;
             border-radius: 1.25rem;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            max-width: 1200px;
-            margin: 2rem auto;
+            width: 100%;
+            max-width: 1200px; /* Increased max-width for better layout */
             border: 1px solid #e0e0e0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+            padding: 1.5rem;
+            border-left: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            border-radius: 1.25rem 0 0 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding-right: 2rem;
         }
         h1, h2, h3 {
             color: #2c3e50;
+            text-align: right;
         }
         h1 {
             font-size: 2.5rem;
             margin-bottom: 1.5rem;
             color: #3498db;
+            text-align: center;
         }
         h2 {
             font-size: 2rem;
-            margin-top: 2.5rem;
+            margin-top: 0;
             margin-bottom: 1.5rem;
             color: #3498db;
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 0.75rem;
         }
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        .dashboard-card {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            border: 1px solid #d1e8ff;
-            text-align: center;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            background: linear-gradient(135deg, #e6f7ff 0%, #d1edff 100%);
-        }
-        .dashboard-card h3 {
+        h3 {
             font-size: 1.6rem;
-            margin-bottom: 1rem;
-            color: #2980b9;
-        }
-        .dashboard-card p {
+            margin-bottom: 1.25rem;
             color: #34495e;
+        }
+        textarea, input[type="text"], input[type="number"] {
+            resize: vertical;
+            padding: 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.75rem;
+            font-family: 'Cairo', sans-serif;
+            color: #495057;
+            background-color: #fdfdfe;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.2s ease-in-out;
+        }
+        textarea:focus, input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+            background-color: #ffffff;
+        }
+        .form-group {
             margin-bottom: 1.5rem;
+            text-align: right;
         }
-        .dashboard-icon {
-            font-size: 3rem;
-            color: #3498db;
-            margin-bottom: 1rem;
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            color: #34495e;
+            font-size: 1.05rem;
         }
-        .button-primary {
+        .button-primary, .button-secondary, .button-danger, .button-info, .button-teal, .button-gray, .sidebar-button {
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: white;
+            border: none;
+            width: 100%;
+        }
+        .button-primary { background-color: #3498db; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2); }
+        .button-primary:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3); }
+        .button-secondary { background-color: #2ecc71; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2); }
+        .button-secondary:hover { background-color: #27ae60; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46, 204, 113, 0.3); }
+        .button-danger { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
+        .button-danger:hover { background-color: #c0392b; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3); }
+        .button-info { background-color: #9b59b6; box-shadow: 0 4px 10px rgba(155, 89, 182, 0.2); }
+        .button-info:hover { background-color: #8e44ad; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(155, 89, 182, 0.3); }
+        .button-teal { background-color: #1abc9c; box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2); }
+        .button-teal:hover { background-color: #16a085; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(26, 188, 156, 0.3); }
+        .button-gray { background-color: #95a5a6; box-shadow: 0 4px 10px rgba(149, 165, 166, 0.2); }
+        .button-gray:hover { background-color: #7f8c8d; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(149, 165, 166, 0.3); }
+        .sidebar-button {
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: right;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .sidebar-button:hover {
+            background-color: #dee2e6;
+            transform: scale(1.02);
+        }
+        .sidebar-button.active {
             background-color: #3498db;
             color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
             box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
-            display: inline-flex;
+        }
+        .question-block, .published-list {
+            border: 1px solid #e0e0e0;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background-color: #fdfdfe;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: right;
+            position: relative;
+        }
+        .option-group {
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            border: none;
-            text-decoration: none;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
         }
-        .button-primary:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+        .option-group input[type="radio"] {
+            width: auto;
+            margin-left: 0.75rem;
+            transform: scale(1.2);
+            accent-color: #3498db;
         }
-        .button-secondary {
-            background-color: #2ecc71;
-            color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            border: none;
-        }
-        .button-danger {
+        .remove-button {
             background-color: #e74c3c;
             color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.6rem;
             cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2);
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            border: none;
+            gap: 0.4rem;
         }
-        .button-info {
-            background-color: #9b59b6;
-            color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
+        .remove-button:hover {
+            background-color: #c0392b;
+        }
+        .message-box {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            padding: 18px 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            font-size: 1rem;
+            animation: fadeOut 5s forwards;
             font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-            box-shadow: 0 4px 10px rgba(155, 89, 182, 0.2);
-            display: inline-flex;
+        }
+        .message-box.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message-box.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; display: none; } }
+        .published-item {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
-            border: none;
+            padding: 1rem 0;
+            border-bottom: 1px dashed #e9ecef;
+            font-size: 1.05rem;
+            color: #34495e;
         }
-        .button-teal {
-            background-color: #1abc9c;
-            color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-            box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            border: none;
-        }
-        .button-gray {
-            background-color: #95a5a6;
-            color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-            box-shadow: 0 4px 10px rgba(149, 165, 166, 0.2);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            border: none;
-        }
-        .navigation {
-            background-color: #3498db;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            margin-bottom: 2rem;
-        }
-        .navigation ul {
+        .published-item:last-child { border-bottom: none; }
+        .published-item span { flex-grow: 1; padding-left: 1rem; }
+        .published-item .remove-button { margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 0.5rem; }
+        .disabled-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 1rem;
+            z-index: 5;
+            cursor: not-allowed;
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-wrap: wrap;
-        }
-        .navigation li a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
-            display: flex;
             align-items: center;
-            gap: 0.5rem;
         }
-        .navigation li a:hover, .navigation li a.active {
-            background-color: rgba(255, 255, 255, 0.2);
+        .disabled-overlay-text {
+            position: static;
+            transform: none;
+            color: #6c757d;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+            z-index: 6;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .section {
+        #image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 1.5rem;
+            justify-content: center;
+            padding: 1rem;
+            border: 1px dashed #ced4da;
+            border-radius: 0.75rem;
+            min-height: 120px;
+            align-items: center;
+        }
+        .image-thumbnail {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            border: 1px solid #d1d5db;
+            border-radius: 0.6rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            width: 40px;
+            height: 40px;
+            margin: 1.5rem auto;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #image-upload-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background-color: #fdfdfe;
+            border: 1px solid #e0e0e0;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        #image-upload-controls .button-primary { width: fit-content; }
+        #exam-creation-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        #exam-creation-buttons button {
+            flex-grow: 1;
+            min-width: 200px;
+        }
+        hr {
+            border-color: #e9ecef;
+            margin: 3rem 0;
+        }
+        .text-gray-600 { color: #6c757d; }
+        .text-red-600 { color: #e74c3c; }
+        .text-blue-600 { color: #3498db; }
+        
+        .tab-content {
             display: none;
         }
-        .section.active {
+        .tab-content.active {
             display: block;
         }
-        .welcome-message {
-            text-align: center;
-            padding: 1.5rem;
-            background-color: #e8f4fd;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-        }
-        .welcome-message h2 {
-            color: #2c3e50;
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .welcome-message p {
-            color: #34495e;
-            font-size: 1.1rem;
-            max-width: 800px;
-            margin: 1rem auto;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        .stat-card {
-            background-color: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            text-align: center;
-            border: 1px solid #e0e0e0;
-        }
-        .stat-card .number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #3498db;
-            margin-bottom: 0.5rem;
-        }
-        .stat-card .label {
-            font-size: 1.1rem;
-            color: #34495e;
-        }
-        .stat-card .icon {
-            font-size: 2rem;
-            color: #3498db;
-            margin-bottom: 1rem;
-        }
-        .recent-activity {
-            background-color: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            margin-top: 2rem;
-            border: 1px solid #e0e0e0;
-        }
-        .recent-activity h3 {
-            font-size: 1.5rem;
-            color: #2980b9;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-        .activity-icon {
-            background-color: #e8f4fd;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3498db;
-            font-size: 1.2rem;
-        }
-        .activity-content {
-            flex-grow: 1;
-        }
-        .activity-title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.25rem;
-        }
-        .activity-time {
-            color: #7f8c8d;
-            font-size: 0.9rem;
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .sidebar {
+                width: 100%;
+                border-left: none;
+                border-bottom: 1px solid #e0e0e0;
+                border-radius: 1.25rem 1.25rem 0 0;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .main-content {
+                padding-right: 0;
+            }
+            .sidebar-button {
+                flex-grow: 1;
+                min-width: 120px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold">لوحة تحكم الإدارة</h1>
-            <p class="text-gray-600">إدارة كافة جوانب النظام التعليمي من مكان واحد</p>
-        </header>
-        
-        <!-- قسم المصادقة -->
-        <div id="auth-section" class="mb-8 text-center">
+        <div id="auth-section" class="flex-grow text-center">
+            <h1 class="text-3xl font-bold mb-6">لوحة تحكم الإدارة</h1>
             <p class="text-gray-700 mb-4">الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.</p>
-            <button id="sign-in-button" class="button-primary">
+            <button id="sign-in-button" class="button-primary mx-auto">
                 <i class="fab fa-google"></i> تسجيل الدخول باستخدام جوجل
             </button>
         </div>
-        
-        <!-- لوحة التحكم بعد المصادقة -->
-        <div id="admin-content-section" class="hidden">
-            <nav class="navigation">
-                <ul>
-                    <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</a></li>
-                    <li><a href="#" data-section="admins"><i class="fas fa-users-cog"></i> إدارة المشرفين</a></li>
-                    <li><a href="#" data-section="exams"><i class="fas fa-book"></i> إدارة الامتحانات</a></li>
-                    <li><a href="#" data-section="notifications"><i class="fas fa-bell"></i> إدارة الإشعارات</a></li>
-                    <li><a href="#" id="sign-out-button" class="button-danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a></li>
-                </ul>
-            </nav>
-            
-            <!-- لوحة التحكم الرئيسية -->
-            <div id="dashboard" class="section active">
-                <div class="welcome-message">
-                    <h2>مرحبًا بك في لوحة التحكم</h2>
-                    <p>من هنا يمكنك إدارة كافة جوانب النظام التعليمي، بدءًا من إضافة المشرفين ومرورًا بإنشاء الامتحانات وحتى إرسال الإشعارات للمستخدمين.</p>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="icon"><i class="fas fa-users"></i></div>
-                        <div class="number">12</div>
-                        <div class="label">عدد المشرفين</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="icon"><i class="fas fa-book"></i></div>
-                        <div class="number">24</div>
-                        <div class="label">الامتحانات المنشورة</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="icon"><i class="fas fa-bell"></i></div>
-                        <div class="number">8</div>
-                        <div class="label">الإشعارات النشطة</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="icon"><i class="fas fa-user-graduate"></i></div>
-                        <div class="number">350</div>
-                        <div class="label">الطلاب المسجلين</div>
-                    </div>
-                </div>
-                
-                <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <div class="dashboard-icon"><i class="fas fa-users-cog"></i></div>
-                        <h3>إدارة المشرفين</h3>
-                        <p>إضافة أو إزالة المشرفين المسؤولين عن النظام</p>
-                        <a href="#" class="button-primary" data-section="admins">
-                            <i class="fas fa-arrow-right"></i> الانتقال للإدارة
-                        </a>
-                    </div>
-                    <div class="dashboard-card">
-                        <div class="dashboard-icon"><i class="fas fa-book"></i></div>
-                        <h3>إدارة الامتحانات</h3>
-                        <p>إنشاء الامتحانات الجديدة وإدارة الامتحانات الحالية</p>
-                        <a href="#" class="button-primary" data-section="exams">
-                            <i class="fas fa-arrow-right"></i> الانتقال للإدارة
-                        </a>
-                    </div>
-                    <div class="dashboard-card">
-                        <div class="dashboard-icon"><i class="fas fa-bell"></i></div>
-                        <h3>إدارة الإشعارات</h3>
-                        <p>إرسال إشعارات للطلاب والمستخدمين حول التحديثات</p>
-                        <a href="#" class="button-primary" data-section="notifications">
-                            <i class="fas fa-arrow-right"></i> الانتقال للإدارة
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="recent-activity">
-                    <h3><i class="fas fa-history"></i> النشاطات الأخيرة</h3>
-                    <div class="activity-item">
-                        <div class="activity-icon"><i class="fas fa-book"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">تم إضافة امتحان جديد: اللغة العربية - الفصل الأول</div>
-                            <div class="activity-time">منذ 2 ساعة</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon"><i class="fas fa-bell"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">تم إرسال إشعار حول مواعيد الامتحانات النهائية</div>
-                            <div class="activity-time">منذ 5 ساعات</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon"><i class="fas fa-user-plus"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">تمت إضافة مشرف جديد: أحمد المشرف</div>
-                            <div class="activity-time">منذ يوم واحد</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon"><i class="fas fa-user-graduate"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">تم تسجيل 15 طالب جديد في النظام</div>
-                            <div class="activity-time">منذ يومين</div>
-                        </div>
-                    </div>
-                </div>
+
+        <div id="admin-content-section" class="hidden w-full flex">
+            <!-- Sidebar for navigation -->
+            <div class="sidebar">
+                <button id="nav-supervisors" class="sidebar-button active">
+                    <i class="fas fa-users-cog ml-2"></i> إدارة المشرفين
+                </button>
+                <button id="nav-exams" class="sidebar-button">
+                    <i class="fas fa-file-alt ml-2"></i> إدارة الامتحانات
+                </button>
+                <button id="nav-notifications" class="sidebar-button">
+                    <i class="fas fa-bell ml-2"></i> إدارة الإشعارات
+                </button>
+                <button id="sign-out-button" class="button-danger mt-auto">
+                    <i class="fas fa-sign-out-alt ml-2"></i> تسجيل الخروج
+                </button>
             </div>
-            
-            <!-- قسم إدارة المشرفين -->
-            <div id="admins" class="section">
-                <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
+
+            <!-- Main content area -->
+            <div class="main-content">
+                <h1 class="text-3xl font-bold mb-6">لوحة تحكم الإدارة</h1>
                 
-                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h3 class="text-xl font-bold mb-4">إضافة مشرف جديد</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 mb-2">معرف المستخدم (UID) للمشرف:</label>
-                            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="أدخل UID المشرف">
+                <!-- Admin Management Section -->
+                <div id="tab-supervisors" class="tab-content active">
+                    <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
+                    <div id="admin-management-form-section" class="text-right mb-6 relative published-list">
+                        <div id="admin-management-form-overlay" class="disabled-overlay hidden"></div>
+                        <p id="admin-management-form-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
+
+                        <h3 class="text-xl font-bold mb-4">إضافة مشرف جديد</h3>
+                        <div class="form-group">
+                            <label for="supervisor-uid">معرف المستخدم (UID) للمشرف:</label>
+                            <input type="text" id="supervisor-uid" class="w-full" placeholder="أدخل UID المشرف">
                         </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">الاسم المستعار للمشرف:</label>
-                            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="مثال: أحمد المشرف">
+                        <div class="form-group">
+                            <label for="supervisor-alias">الاسم المستعار للمشرف:</label>
+                            <input type="text" id="supervisor-alias" class="w-full" placeholder="مثال: أحمد المشرف">
+                        </div>
+                        <button id="add-supervisor-button" class="button-secondary">
+                            <i class="fas fa-user-plus"></i> إضافة مشرف
+                        </button>
+                    </div>
+
+                    <div class="published-list" id="supervisors-list-container">
+                        <div id="supervisors-list-overlay" class="disabled-overlay hidden"></div>
+                        <p id="supervisors-list-overlay-text" class="disabled-overlay-text hidden">للمسؤول الرئيسي فقط</p>
+                        <h3 class="text-xl font-bold mb-4">المشرفون الحاليون</h3>
+                        <div id="supervisors-list">
+                            <p class="text-gray-600">جاري تحميل المشرفين...</p>
                         </div>
                     </div>
-                    <button class="button-secondary mt-4">
-                        <i class="fas fa-user-plus"></i> إضافة مشرف
-                    </button>
                 </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="text-xl font-bold mb-4">المشرفون الحاليون</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th class="py-3 px-4 text-right border-b">الاسم المستعار</th>
-                                    <th class="py-3 px-4 text-right border-b">معرف المستخدم</th>
-                                    <th class="py-3 px-4 text-right border-b">تاريخ الإضافة</th>
-                                    <th class="py-3 px-4 text-right border-b">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">أحمد المشرف</td>
-                                    <td class="py-3 px-4 border-b">s8DYGc2HDNQG2oZu0uFByjTRxA12</td>
-                                    <td class="py-3 px-4 border-b">2023-10-15</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">محمد المدير</td>
-                                    <td class="py-3 px-4 border-b">k9JYFd3KEMPH3pAv1vGBykUSyB23</td>
-                                    <td class="py-3 px-4 border-b">2023-09-20</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">سارة المشرفة</td>
-                                    <td class="py-3 px-4 border-b">m7XCVb1JDNRE1qZw0tEByiOPzC34</td>
-                                    <td class="py-3 px-4 border-b">2023-11-05</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                <!-- Exam Management Section -->
+                <div id="tab-exams" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4">إدارة الامتحانات</h2>
+                    <div id="exam-creation-buttons" class="mb-6">
+                        <button id="add-exam-button" class="button-info">
+                            <i class="fas fa-plus-circle"></i> إضافة امتحان جديد (يدوي)
+                        </button>
+                        <button id="upload-exam-images-button" class="button-teal">
+                            <i class="fas fa-upload"></i> رفع الامتحان بالصور
+                        </button>
+                        <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
                     </div>
-                </div>
-            </div>
-            
-            <!-- قسم إدارة الامتحانات -->
-            <div id="exams" class="section">
-                <h2 class="text-2xl font-bold mb-4">إدارة الامتحانات</h2>
-                
-                <div class="flex flex-wrap gap-4 mb-6">
-                    <button class="button-info">
-                        <i class="fas fa-plus-circle"></i> إضافة امتحان جديد (يدوي)
-                    </button>
-                    <button class="button-teal">
-                        <i class="fas fa-upload"></i> رفع الامتحان بالصور
-                    </button>
-                </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th class="py-3 px-4 text-right border-b">اسم الامتحان</th>
-                                    <th class="py-3 px-4 text-right border-b">عدد الأسئلة</th>
-                                    <th class="py-3 px-4 text-right border-b">المدة (دقيقة)</th>
-                                    <th class="py-3 px-4 text-right border-b">تاريخ النشر</th>
-                                    <th class="py-3 px-4 text-right border-b">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">اللغة العربية - الفصل الأول</td>
-                                    <td class="py-3 px-4 border-b">20</td>
-                                    <td class="py-3 px-4 border-b">60</td>
-                                    <td class="py-3 px-4 border-b">2023-12-10</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-primary text-sm p-2 mr-2">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </button>
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">الرياضيات - الاختبار النصفي</td>
-                                    <td class="py-3 px-4 border-b">15</td>
-                                    <td class="py-3 px-4 border-b">45</td>
-                                    <td class="py-3 px-4 border-b">2023-11-25</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-primary text-sm p-2 mr-2">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </button>
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">العلوم - الوحدة الثالثة</td>
-                                    <td class="py-3 px-4 border-b">25</td>
-                                    <td class="py-3 px-4 border-b">75</td>
-                                    <td class="py-3 px-4 border-b">2023-11-15</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-primary text-sm p-2 mr-2">
-                                            <i class="fas fa-eye"></i> عرض
-                                        </button>
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div id="image-upload-controls" class="hidden">
+                        <div id="image-preview-container">
+                            <p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>
+                            <!-- Image thumbnails will be displayed here -->
+                        </div>
+                        <button id="generate-questions-button" class="button-primary mt-4">
+                            <i class="fas fa-magic"></i> استخراج الأسئلة
+                        </button>
+                        <div id="image-processing-spinner" class="loading-spinner hidden"></div>
+                        <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
                     </div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="text-xl font-bold mb-4">إنشاء امتحان جديد</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div>
-                            <label class="block text-gray-700 mb-2">اسم الامتحان:</label>
-                            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="مثال: امتحان اللغة العربية">
+                    <div id="exam-form-section" class="hidden text-right published-list">
+                        <h3 class="text-xl font-bold mb-4">تفاصيل الامتحان الجديد</h3>
+                        <div class="form-group">
+                            <label for="exam-name">اسم الامتحان:</label>
+                            <input type="text" id="exam-name" class="w-full" placeholder="مثال: امتحان اللغة العربية - الفصل الأول">
                         </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">المدة بالدقائق:</label>
-                            <input type="number" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="مثال: 60">
+                        <div class="form-group">
+                            <label for="exam-duration">المدة بالدقائق:</label>
+                            <input type="number" id="exam-duration" class="w-full" placeholder="مثال: 60">
                         </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">عدد الأسئلة:</label>
-                            <input type="number" class="w-full p-3 border border-gray-300 rounded-lg" value="0" readonly>
+                        <div class="form-group">
+                            <label for="exam-num-questions">عدد الأسئلة (سيتم تحديثه تلقائيًا):</label>
+                            <input type="number" id="exam-num-questions" class="w-full" value="0" readonly>
                         </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold mb-3">الأسئلة:</h4>
-                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                            <div class="mb-4">
-                                <label class="block text-gray-700 mb-2">نص السؤال 1:</label>
-                                <textarea class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="اكتب نص السؤال هنا..."></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">الخيارات:</label>
-                                <div class="space-y-2">
-                                    <div class="flex items-center">
-                                        <input type="radio" name="correct-option" class="mr-2">
-                                        <input type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="الخيار 1">
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="radio" name="correct-option" class="mr-2">
-                                        <input type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="الخيار 2">
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="radio" name="correct-option" class="mr-2">
-                                        <input type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="الخيار 3">
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="radio" name="correct-option" class="mr-2">
-                                        <input type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="الخيار 4">
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="button-danger mt-3 p-2 text-sm">
-                                <i class="fas fa-trash-alt"></i> حذف السؤال
+                        <hr class="my-6 border-gray-200">
+                        <h3 class="text-xl font-bold mb-4">الأسئلة</h3>
+                        <div id="questions-container">
+                            <!-- Questions will be added here dynamically -->
+                        </div>
+                        <button id="add-question-button" class="button-secondary mt-4">
+                            <i class="fas fa-question-circle"></i> إضافة سؤال
+                        </button>
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button id="publish-exam-button" class="button-primary">
+                                <i class="fas fa-paper-plane"></i> نشر الامتحان
+                            </button>
+                            <button id="cancel-exam-button" class="button-gray">
+                                <i class="fas fa-times-circle"></i> إلغاء
                             </button>
                         </div>
-                        
-                        <button class="button-secondary">
-                            <i class="fas fa-plus"></i> إضافة سؤال جديد
-                        </button>
                     </div>
-                    
-                    <div class="flex justify-end gap-4">
-                        <button class="button-primary">
-                            <i class="fas fa-paper-plane"></i> نشر الامتحان
-                        </button>
-                        <button class="button-gray">
-                            <i class="fas fa-times"></i> إلغاء
-                        </button>
+                    <div class="published-list" id="published-exams-list">
+                        <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
+                        <!-- Published exams will be listed here -->
+                        <p class="text-gray-600">جاري تحميل الامتحانات...</p>
                     </div>
                 </div>
-            </div>
-            
-            <!-- قسم إدارة الإشعارات -->
-            <div id="notifications" class="section">
-                <h2 class="text-2xl font-bold mb-4">إدارة الإشعارات</h2>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h3 class="text-xl font-bold mb-4">إضافة إشعار جديد</h3>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">نص الإشعار:</label>
-                        <textarea class="w-full p-3 border border-gray-300 rounded-lg" rows="4" placeholder="اكتب نص الإشعار هنا..."></textarea>
+
+                <!-- Notification Management Section -->
+                <div id="tab-notifications" class="tab-content">
+                    <h2 class="text-2xl font-bold mb-4">إدارة الإشعارات</h2>
+                    <div id="notification-form-section" class="text-right mb-6 published-list">
+                        <h3 class="text-xl font-bold mb-4">إضافة إشعار جديد</h3>
+                        <div class="form-group">
+                            <label for="notification-message">نص الإشعار:</label>
+                            <textarea id="notification-message" rows="4" placeholder="اكتب نص الإشعار هنا..."></textarea>
+                        </div>
+                        <button id="publish-notification-button" class="button-info">
+                            <i class="fas fa-bell"></i> نشر الإشعار
+                        </button>
                     </div>
-                    <button class="button-info">
-                        <i class="fas fa-bell"></i> نشر الإشعار
-                    </button>
-                </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th class="py-3 px-4 text-right border-b">نص الإشعار</th>
-                                    <th class="py-3 px-4 text-right border-b">تاريخ النشر</th>
-                                    <th class="py-3 px-4 text-right border-b">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">تم تحديد مواعيد الامتحانات النهائية للفصل الدراسي الأول</td>
-                                    <td class="py-3 px-4 border-b">2023-12-15</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">سيتم إغلاق النظام يوم الجمعة للصيانة الدورية</td>
-                                    <td class="py-3 px-4 border-b">2023-12-10</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 border-b">تم إضافة امتحانات جديدة في مواد الرياضيات والعلوم</td>
-                                    <td class="py-3 px-4 border-b">2023-12-05</td>
-                                    <td class="py-3 px-4 border-b">
-                                        <button class="button-danger text-sm p-2">
-                                            <i class="fas fa-trash-alt"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="published-list" id="published-notifications-list">
+                        <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
+                        <!-- Published notifications will be listed here -->
+                        <p class="text-gray-600">جاري تحميل الإشعارات...</p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- قسم الرفض -->
-        <div id="access-denied-section" class="hidden text-center">
+
+        <div id="access-denied-section" class="hidden">
             <p class="text-red-600 font-semibold text-lg mb-4">ليس لديك صلاحية الوصول إلى لوحة التحكم هذه.</p>
             <p class="text-gray-700">الرجاء تسجيل الدخول بحساب مسؤول مصرح به.</p>
             <button id="sign-out-denied-button" class="button-danger mt-4">
@@ -696,74 +489,671 @@
             </button>
         </div>
     </div>
+    
+    <!-- Message Box -->
+    <div id="message-box" class="message-box"></div>
 
-    <script>
-        // معالجة التنقل بين الأقسام
-        document.querySelectorAll('.navigation a').forEach(link => {
-            if (link.id !== 'sign-out-button') {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        
+        // Use global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        if (Object.keys(firebaseConfig).length === 0) {
+            console.error("Firebase config is not available.");
+        }
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // UI Elements
+        const authSection = document.getElementById('auth-section');
+        const adminContentSection = document.getElementById('admin-content-section');
+        const accessDeniedSection = document.getElementById('access-denied-section');
+        const signInButton = document.getElementById('sign-in-button');
+        const signOutButton = document.getElementById('sign-out-button');
+        const signOutDeniedButton = document.getElementById('sign-out-denied-button');
+        const messageBox = document.getElementById('message-box');
+
+        // Supervisor management elements
+        const supervisorUidInput = document.getElementById('supervisor-uid');
+        const supervisorAliasInput = document.getElementById('supervisor-alias');
+        const addSupervisorButton = document.getElementById('add-supervisor-button');
+        const supervisorsList = document.getElementById('supervisors-list');
+        const adminManagementFormSection = document.getElementById('admin-management-form-section');
+        const adminManagementFormOverlay = document.getElementById('admin-management-form-overlay');
+        const adminManagementFormOverlayText = document.getElementById('admin-management-form-overlay-text');
+        const supervisorsListContainer = document.getElementById('supervisors-list-container');
+        const supervisorsListOverlay = document.getElementById('supervisors-list-overlay');
+        const supervisorsListOverlayText = document.getElementById('supervisors-list-overlay-text');
+
+        // Exam management elements
+        const addExamButton = document.getElementById('add-exam-button');
+        const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
+        const imageUploadInput = document.getElementById('image-upload-input');
+        const imageUploadControls = document.getElementById('image-upload-controls');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const generateQuestionsButton = document.getElementById('generate-questions-button');
+        const imageProcessingSpinner = document.getElementById('image-processing-spinner');
+        const imageProcessingMessage = document.getElementById('image-processing-message');
+        const examFormSection = document.getElementById('exam-form-section');
+        const examNameInput = document.getElementById('exam-name');
+        const examDurationInput = document.getElementById('exam-duration');
+        const examNumQuestionsInput = document.getElementById('exam-num-questions');
+        const questionsContainer = document.getElementById('questions-container');
+        const addQuestionButton = document.getElementById('add-question-button');
+        const publishExamButton = document.getElementById('publish-exam-button');
+        const cancelExamButton = document.getElementById('cancel-exam-button');
+        const publishedExamsList = document.getElementById('published-exams-list');
+
+        // Notification management elements
+        const notificationMessageInput = document.getElementById('notification-message');
+        const publishNotificationButton = document.getElementById('publish-notification-button');
+        const publishedNotificationsList = document.getElementById('published-notifications-list');
+
+        // Navigation elements
+        const navSupervisorsBtn = document.getElementById('nav-supervisors');
+        const navExamsBtn = document.getElementById('nav-exams');
+        const navNotificationsBtn = document.getElementById('nav-notifications');
+        const tabSupervisors = document.getElementById('tab-supervisors');
+        const tabExams = document.getElementById('tab-exams');
+        const tabNotifications = document.getElementById('tab-notifications');
+
+        // Global state
+        let isMainAdmin = false;
+        let isSupervisor = false;
+        let uploadedImages = [];
+
+        // Function to show a message box
+        const showMessage = (message, type) => {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000);
+        };
+
+        // Function to update the UI based on user's role
+        const updateUI = () => {
+            const user = auth.currentUser;
+            if (user) {
+                authSection.classList.add('hidden');
+                if (isMainAdmin || isSupervisor) {
+                    adminContentSection.classList.remove('hidden');
+                    accessDeniedSection.classList.add('hidden');
+                } else {
+                    adminContentSection.classList.add('hidden');
+                    accessDeniedSection.classList.remove('hidden');
+                }
+            } else {
+                authSection.classList.remove('hidden');
+                adminContentSection.classList.add('hidden');
+                accessDeniedSection.classList.add('hidden');
+            }
+
+            // Hide/show overlays based on user role
+            if (isMainAdmin) {
+                adminManagementFormOverlay.classList.add('hidden');
+                adminManagementFormOverlayText.classList.add('hidden');
+                supervisorsListOverlay.classList.add('hidden');
+                supervisorsListOverlayText.classList.add('hidden');
+            } else {
+                adminManagementFormOverlay.classList.remove('hidden');
+                adminManagementFormOverlayText.classList.remove('hidden');
+                supervisorsListOverlay.classList.remove('hidden');
+                supervisorsListOverlayText.classList.remove('hidden');
+            }
+        };
+
+        // Function to switch tabs
+        const switchTab = (tabId, buttonId) => {
+            // Hide all tabs and remove active class from buttons
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.sidebar-button').forEach(btn => btn.classList.remove('active'));
+
+            // Show the selected tab and add active class to the button
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById(buttonId).classList.add('active');
+        };
+
+        // Add navigation event listeners
+        navSupervisorsBtn.addEventListener('click', () => switchTab('tab-supervisors', 'nav-supervisors'));
+        navExamsBtn.addEventListener('click', () => switchTab('tab-exams', 'nav-exams'));
+        navNotificationsBtn.addEventListener('click', () => switchTab('tab-notifications', 'nav-notifications'));
+
+        // Sign In
+        signInButton.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Error during sign-in:", error);
+                showMessage('فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.', 'error');
+            }
+        });
+
+        // Sign Out
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage('تم تسجيل الخروج بنجاح.', 'success');
+            } catch (error) {
+                console.error("Error during sign-out:", error);
+                showMessage('فشل تسجيل الخروج. يرجى المحاولة مرة أخرى.', 'error');
+            }
+        });
+
+        signOutDeniedButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage('تم تسجيل الخروج بنجاح.', 'success');
+            } catch (error) {
+                console.error("Error during sign-out:", error);
+                showMessage('فشل تسجيل الخروج. يرجى المحاولة مرة أخرى.', 'error');
+            }
+        });
+
+        // Add Supervisor
+        addSupervisorButton.addEventListener('click', async () => {
+            if (!isMainAdmin) {
+                showMessage('ليس لديك الصلاحية لإضافة مشرفين.', 'error');
+                return;
+            }
+            const supervisorUid = supervisorUidInput.value.trim();
+            const supervisorAlias = supervisorAliasInput.value.trim();
+
+            if (!supervisorUid) {
+                showMessage('الرجاء إدخال UID المشرف.', 'error');
+                return;
+            }
+
+            try {
+                const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, supervisorUid);
+                await setDoc(supervisorDocRef, {
+                    alias: supervisorAlias || 'مشرف جديد',
+                    addedAt: serverTimestamp()
+                });
+                showMessage('تمت إضافة المشرف بنجاح.', 'success');
+                supervisorUidInput.value = '';
+                supervisorAliasInput.value = '';
+            } catch (e) {
+                console.error("Error adding supervisor: ", e);
+                showMessage('حدث خطأ أثناء إضافة المشرف.', 'error');
+            }
+        });
+
+        // Function to remove a supervisor
+        const removeSupervisor = async (uid) => {
+            if (!isMainAdmin) {
+                showMessage('ليس لديك الصلاحية لحذف مشرفين.', 'error');
+                return;
+            }
+            if (confirm('هل أنت متأكد من أنك تريد حذف هذا المشرف؟')) {
+                try {
+                    const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, uid);
+                    await deleteDoc(supervisorDocRef);
+                    showMessage('تم حذف المشرف بنجاح.', 'success');
+                } catch (e) {
+                    console.error("Error removing supervisor: ", e);
+                    showMessage('حدث خطأ أثناء حذف المشرف.', 'error');
+                }
+            }
+        };
+
+        // Function to render the supervisors list
+        const renderSupervisors = (supervisors) => {
+            if (supervisors.length === 0) {
+                supervisorsList.innerHTML = '<p class="text-gray-600">لا يوجد مشرفون حاليًا.</p>';
+                return;
+            }
+            supervisorsList.innerHTML = '';
+            supervisors.forEach(sup => {
+                const item = document.createElement('div');
+                item.className = 'published-item';
+                item.innerHTML = `
+                    <span>
+                        <strong>الاسم:</strong> ${sup.alias || 'لا يوجد اسم'} <br>
+                        <strong>UID:</strong> ${sup.uid}
+                    </span>
+                    <button class="remove-button" data-uid="${sup.uid}">
+                        <i class="fas fa-trash-alt"></i> إزالة
+                    </button>
+                `;
+                supervisorsList.appendChild(item);
+            });
+
+            supervisorsList.querySelectorAll('.remove-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const uid = e.currentTarget.dataset.uid;
+                    removeSupervisor(uid);
+                });
+            });
+        };
+
+        // Add exam question
+        const addQuestion = (questionData = null) => {
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block';
+            questionBlock.innerHTML = `
+                <div class="flex justify-end mb-4">
+                    <button class="remove-button remove-question-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="form-group">
+                    <label>نص السؤال:</label>
+                    <textarea class="question-text" rows="2" placeholder="اكتب نص السؤال هنا...">${questionData ? questionData.questionText : ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>الخيارات (اكتب كل خيار في سطر جديد):</label>
+                    <textarea class="question-options" rows="4" placeholder="الخيار الأول&#10;الخيار الثاني&#10;الخيار الثالث">${questionData ? questionData.options.join('\\n') : ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>الخيار الصحيح (اكتب النص بالضبط):</label>
+                    <input type="text" class="correct-option" placeholder="مثال: الخيار الأول" value="${questionData ? questionData.correctOption : ''}">
+                </div>
+            `;
+            questionsContainer.appendChild(questionBlock);
+            examNumQuestionsInput.value = questionsContainer.children.length;
+
+            questionBlock.querySelector('.remove-question-btn').addEventListener('click', () => {
+                questionBlock.remove();
+                examNumQuestionsInput.value = questionsContainer.children.length;
+            });
+        };
+
+        addQuestionButton.addEventListener('click', () => addQuestion());
+
+        // Publish Exam
+        publishExamButton.addEventListener('click', async () => {
+            const examName = examNameInput.value.trim();
+            const examDuration = examDurationInput.value.trim();
+
+            if (!examName || !examDuration || questionsContainer.children.length === 0) {
+                showMessage('الرجاء إدخال اسم ومدة الامتحان وإضافة سؤال واحد على الأقل.', 'error');
+                return;
+            }
+
+            const questions = [];
+            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+            let hasError = false;
+
+            questionBlocks.forEach(block => {
+                const questionText = block.querySelector('.question-text').value.trim();
+                const optionsText = block.querySelector('.question-options').value.trim();
+                const correctOption = block.querySelector('.correct-option').value.trim();
+                
+                if (!questionText || !optionsText || !correctOption) {
+                    hasError = true;
+                }
+                
+                const options = optionsText.split('\\n').map(opt => opt.trim()).filter(opt => opt);
+                if (!options.includes(correctOption)) {
+                    showMessage('يجب أن يكون الخيار الصحيح موجودًا ضمن الخيارات المتاحة.', 'error');
+                    hasError = true;
+                }
+                
+                questions.push({ questionText, options, correctOption });
+            });
+
+            if (hasError) {
+                showMessage('يرجى ملء جميع حقول الأسئلة بشكل صحيح.', 'error');
+                return;
+            }
+
+            try {
+                const examCollection = collection(db, `artifacts/${appId}/public/data/exams`);
+                await addDoc(examCollection, {
+                    name: examName,
+                    duration: parseInt(examDuration),
+                    questions: questions,
+                    createdAt: serverTimestamp(),
+                    publishedBy: auth.currentUser.uid
+                });
+
+                showMessage('تم نشر الامتحان بنجاح!', 'success');
+                // Reset form
+                examNameInput.value = '';
+                examDurationInput.value = '';
+                questionsContainer.innerHTML = '';
+                examNumQuestionsInput.value = '0';
+                examFormSection.classList.add('hidden');
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage('حدث خطأ أثناء نشر الامتحان.', 'error');
+            }
+        });
+
+        // Cancel Exam
+        cancelExamButton.addEventListener('click', () => {
+            if (confirm('هل أنت متأكد من أنك تريد إلغاء الامتحان؟ ستفقد جميع البيانات غير المحفوظة.')) {
+                examFormSection.classList.add('hidden');
+                imageUploadControls.classList.add('hidden');
+                imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
+                uploadedImages = [];
+            }
+        });
+
+        // Function to render published exams
+        const renderPublishedExams = (exams) => {
+            if (exams.length === 0) {
+                publishedExamsList.innerHTML = `
+                    <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
+                    <p class="text-gray-600">لا توجد امتحانات منشورة حاليًا.</p>`;
+                return;
+            }
+            const examsListHtml = exams.map(exam => `
+                <div class="published-item" id="exam-${exam.id}">
+                    <span>${exam.name} - ${exam.questions.length} أسئلة</span>
+                    <button class="remove-button" data-id="${exam.id}">
+                        <i class="fas fa-trash-alt"></i> حذف
+                    </button>
+                </div>
+            `).join('');
+
+            publishedExamsList.innerHTML = `
+                <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
+                ${examsListHtml}`;
+
+            publishedExamsList.querySelectorAll('.remove-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const examId = e.currentTarget.dataset.id;
+                    if (confirm('هل أنت متأكد من أنك تريد حذف هذا الامتحان؟')) {
+                        try {
+                            await deleteDoc(doc(db, `artifacts/${appId}/public/data/exams`, examId));
+                            showMessage('تم حذف الامتحان بنجاح.', 'success');
+                        } catch (error) {
+                            console.error("Error removing exam: ", error);
+                            showMessage('حدث خطأ أثناء حذف الامتحان.', 'error');
+                        }
+                    }
+                });
+            });
+        };
+
+        // Publish Notification
+        publishNotificationButton.addEventListener('click', async () => {
+            const notificationMessage = notificationMessageInput.value.trim();
+
+            if (!notificationMessage) {
+                showMessage('الرجاء كتابة نص الإشعار.', 'error');
+                return;
+            }
+
+            try {
+                const notificationsCollection = collection(db, `artifacts/${appId}/public/data/notifications`);
+                await addDoc(notificationsCollection, {
+                    message: notificationMessage,
+                    createdAt: serverTimestamp(),
+                    publishedBy: auth.currentUser.uid
+                });
+                showMessage('تم نشر الإشعار بنجاح!', 'success');
+                notificationMessageInput.value = '';
+            } catch (e) {
+                console.error("Error adding notification: ", e);
+                showMessage('حدث خطأ أثناء نشر الإشعار.', 'error');
+            }
+        });
+
+        // Function to render published notifications
+        const renderPublishedNotifications = (notifications) => {
+            if (notifications.length === 0) {
+                publishedNotificationsList.innerHTML = `
+                    <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
+                    <p class="text-gray-600">لا توجد إشعارات منشورة حاليًا.</p>`;
+                return;
+            }
+            const notificationsListHtml = notifications.map(notif => `
+                <div class="published-item" id="notif-${notif.id}">
+                    <span>${notif.message.substring(0, 50)}...</span>
+                    <button class="remove-button" data-id="${notif.id}">
+                        <i class="fas fa-trash-alt"></i> حذف
+                    </button>
+                </div>
+            `).join('');
+
+            publishedNotificationsList.innerHTML = `
+                <h3 class="text-xl font-bold mb-4">الإشعارات المنشورة</h3>
+                ${notificationsListHtml}`;
+
+            publishedNotificationsList.querySelectorAll('.remove-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const notifId = e.currentTarget.dataset.id;
+                    if (confirm('هل أنت متأكد من أنك تريد حذف هذا الإشعار؟')) {
+                        try {
+                            await deleteDoc(doc(db, `artifacts/${appId}/public/data/notifications`, notifId));
+                            showMessage('تم حذف الإشعار بنجاح.', 'success');
+                        } catch (error) {
+                            console.error("Error removing notification: ", error);
+                            showMessage('حدث خطأ أثناء حذف الإشعار.', 'error');
+                        }
+                    }
+                });
+            });
+        };
+        
+        // Image Upload Logic
+        uploadExamImagesButton.addEventListener('click', () => {
+            imageUploadInput.click();
+        });
+
+        imageUploadInput.addEventListener('change', (event) => {
+            imagePreviewContainer.innerHTML = '<p class="text-gray-600">جاري تحميل الصور...</p>';
+            uploadedImages = [];
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                imageUploadControls.classList.remove('hidden');
+                imagePreviewContainer.innerHTML = '';
+                for (const file of files) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'image-thumbnail';
+                        imagePreviewContainer.appendChild(img);
+                        uploadedImages.push(e.target.result.split(',')[1]); // Store Base64 data
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                imageUploadControls.classList.add('hidden');
+            }
+        });
+
+        // API Call for Image-based Question Generation (This is a mock implementation)
+        generateQuestionsButton.addEventListener('click', async () => {
+            if (uploadedImages.length === 0) {
+                showMessage('الرجاء رفع صورة واحدة على الأقل.', 'error');
+                return;
+            }
+
+            // Show loading state
+            imageProcessingSpinner.classList.remove('hidden');
+            imageProcessingMessage.classList.remove('hidden');
+            generateQuestionsButton.disabled = true;
+
+            const prompt = "Extract the questions and their multiple-choice options from these images and return them as a structured JSON object. Each question should have 'questionText', 'options' (an array of strings), and 'correctOption' (the exact text of the correct option). Provide a correct answer for each. If you cannot determine the correct answer, leave it blank.";
+
+            const parts = [{ text: prompt }];
+            uploadedImages.forEach(base64Data => {
+                parts.push({
+                    inlineData: {
+                        mimeType: "image/png", // Assuming all images are PNG
+                        data: base64Data
+                    }
+                });
+            });
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: parts });
+
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "questionText": { "type": "STRING" },
+                                    "options": {
+                                        "type": "ARRAY",
+                                        "items": { "type": "STRING" }
+                                    },
+                                    "correctOption": { "type": "STRING" }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const fetchWithRetry = async (url, options, retries = 3) => {
+                    for (let i = 0; i < retries; i++) {
+                        try {
+                            const response = await fetch(url, options);
+                            if (response.status === 429) { // Too many requests
+                                const delay = Math.pow(2, i) * 1000;
+                                await new Promise(res => setTimeout(res, delay));
+                                continue;
+                            }
+                            return await response.json();
+                        } catch (error) {
+                            console.error(`Fetch attempt ${i + 1} failed:`, error);
+                            if (i < retries - 1) {
+                                const delay = Math.pow(2, i) * 1000;
+                                await new Promise(res => setTimeout(res, delay));
+                            } else {
+                                throw error;
+                            }
+                        }
+                    }
+                    throw new Error('All fetch retries failed.');
+                };
+
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const json = result.candidates[0].content.parts[0].text;
+                    const questions = JSON.parse(json);
                     
-                    // إزالة النشط من جميع الروابط
-                    document.querySelectorAll('.navigation a').forEach(a => {
-                        a.classList.remove('active');
+                    if (questions.length > 0) {
+                        questionsContainer.innerHTML = ''; // Clear previous questions
+                        questions.forEach(q => {
+                            const optionsText = q.options ? q.options.join('\\n') : '';
+                            addQuestion({ ...q, options: optionsText });
+                        });
+                        examFormSection.classList.remove('hidden');
+                        showMessage('تم استخراج الأسئلة بنجاح!', 'success');
+                    } else {
+                        showMessage('لم يتم العثور على أي أسئلة في الصور.', 'error');
+                    }
+                } else {
+                    showMessage('فشل في استخراج الأسئلة من الصور. يرجى المحاولة مرة أخرى.', 'error');
+                }
+
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                showMessage('حدث خطأ أثناء استخراج الأسئلة. يرجى التأكد من أن الصور واضحة.', 'error');
+            } finally {
+                // Hide loading state
+                imageProcessingSpinner.classList.add('hidden');
+                imageProcessingMessage.classList.add('hidden');
+                generateQuestionsButton.disabled = false;
+            }
+        });
+
+        // onAuthStateChanged listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const mainAdminUID = '109670086558223631976'; // Replace with the actual main admin UID
+                isMainAdmin = (user.uid === mainAdminUID);
+
+                if (isMainAdmin) {
+                    isSupervisor = true; // Main admin is also a supervisor
+                } else {
+                    try {
+                        const supervisorDocRef = doc(db, `artifacts/${appId}/public/data/supervisors`, user.uid);
+                        const docSnap = await getDoc(supervisorDocRef);
+                        isSupervisor = docSnap.exists();
+                    } catch (e) {
+                        console.error('Error checking supervisor status:', e);
+                        isSupervisor = false;
+                    }
+                }
+            } else {
+                isMainAdmin = false;
+                isSupervisor = false;
+            }
+
+            // Handle initial custom token sign-in for Canvas environment
+            if (initialAuthToken && !user) {
+                try {
+                    await setPersistence(auth, browserLocalPersistence);
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log('Signed in with custom token (Canvas environment).');
+                } catch (error) {
+                    console.error('Firebase authentication error during initial setup:', error);
+                    await signInAnonymously(auth);
+                    console.log('Signed in anonymously after custom token failure.');
+                }
+            } else if (!user && !initialAuthToken) {
+                await signInAnonymously(auth);
+                console.log('Signed in anonymously (deployed environment fallback).');
+            }
+
+            updateUI(); // Update UI after auth state is determined
+            if (isMainAdmin || isSupervisor) {
+                // Set up real-time listeners for data
+                const supervisorsQuery = query(collection(db, `artifacts/${appId}/public/data/supervisors`));
+                onSnapshot(supervisorsQuery, (querySnapshot) => {
+                    const supervisors = [];
+                    querySnapshot.forEach((doc) => {
+                        supervisors.push({ ...doc.data(), uid: doc.id });
                     });
-                    
-                    // إضافة النشط للرابط الحالي
-                    this.classList.add('active');
-                    
-                    // إخفاء جميع الأقسام
-                    document.querySelectorAll('.section').forEach(section => {
-                        section.classList.remove('active');
+                    renderSupervisors(supervisors);
+                });
+
+                const examsQuery = query(collection(db, `artifacts/${appId}/public/data/exams`));
+                onSnapshot(examsQuery, (querySnapshot) => {
+                    const exams = [];
+                    querySnapshot.forEach((doc) => {
+                        exams.push({ ...doc.data(), id: doc.id });
                     });
-                    
-                    // إظهار القسم المطلوب
-                    const sectionId = this.getAttribute('data-section');
-                    document.getElementById(sectionId).classList.add('active');
+                    renderPublishedExams(exams);
+                });
+
+                const notificationsQuery = query(collection(db, `artifacts/${appId}/public/data/notifications`));
+                onSnapshot(notificationsQuery, (querySnapshot) => {
+                    const notifications = [];
+                    querySnapshot.forEach((doc) => {
+                        notifications.push({ ...doc.data(), id: doc.id });
+                    });
+                    renderPublishedNotifications(notifications);
                 });
             }
         });
         
-        // معالجة الروابط في لوحة التحكم
-        document.querySelectorAll('.dashboard-card a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // إزالة النشط من جميع روابط التنقل
-                document.querySelectorAll('.navigation a').forEach(a => {
-                    a.classList.remove('active');
-                });
-                
-                // إخفاء جميع الأقسام
-                document.querySelectorAll('.section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                // إظهار القسم المطلوب
-                const sectionId = this.getAttribute('data-section');
-                document.getElementById(sectionId).classList.add('active');
-                
-                // تعيين الرابط النشط في القائمة
-                document.querySelector(`.navigation a[data-section="${sectionId}"]`).classList.add('active');
-            });
-        });
-        
-        // محاكاة تسجيل الدخول (لأغراض العرض)
-        document.getElementById('sign-in-button').addEventListener('click', function() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('admin-content-section').classList.remove('hidden');
-        });
-        
-        // محاكاة تسجيل الخروج
-        document.getElementById('sign-out-button').addEventListener('click', function() {
-            document.getElementById('admin-content-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-        });
-        
-        document.getElementById('sign-out-denied-button').addEventListener('click', function() {
-            document.getElementById('access-denied-section').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-        });
+        // Initial UI update on page load
+        updateUI();
+
     </script>
 </body>
 </html>
