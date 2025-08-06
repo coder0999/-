@@ -18,7 +18,7 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            min-height: 100vh;
+            min-height: 150vh; /* Increased min-height to allow more scrolling */
         }
         .container {
             background-color: transparent; /* No background */
@@ -48,6 +48,7 @@
             transition: all 0.2s ease-in-out;
             text-align: right;
         }
+        /* Removed :focus hover effect for input fields */
         textarea:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: #3498db;
@@ -86,6 +87,13 @@
             position: relative;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
+        /* Specific rule to remove background from published exams list container */
+        #published-exams-list-container {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0; /* Remove padding as well to make it truly transparent */
+        }
         .published-item {
             display: flex;
             justify-content: space-between;
@@ -96,7 +104,6 @@
             color: #34495e;
         }
         .published-item:last-child { border-bottom: none; }
-        .published-item span { flex-grow: 1; padding-left: 1rem; }
         .published-item .remove-button { margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 0.5rem; }
         #image-preview-container {
             display: flex; flex-wrap: wrap; gap: 15px; margin-top: 1.5rem; justify-content: center;
@@ -172,13 +179,15 @@
             padding: 1.5rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             cursor: pointer;
+            /* Removed hover effects for review-card and exam-card */
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             position: relative;
         }
-        .review-card:hover, .exam-card:hover {
+        /* Removed :hover rule for review-card and exam-card */
+        /* .review-card:hover, .exam-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
+        } */
         .review-card h4, .exam-card h4 {
             font-size: 1.2rem;
             font-weight: 700;
@@ -209,13 +218,15 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            /* Removed hover effect for delete-card-button */
             transition: background-color 0.2s ease;
             opacity: 0.8;
         }
-        .delete-card-button:hover {
+        /* Removed :hover rule for delete-card-button */
+        /* .delete-card-button:hover {
             background-color: #c0392b;
             opacity: 1;
-        }
+        } */
         
         /* Updated styles for the exam form and individual question blocks */
         .exam-form-card {
@@ -235,12 +246,14 @@
             padding: 1.5rem;
             margin: 1.5rem -1rem;
             position: relative;
+            /* Removed hover effect for question-block */
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: box-shadow 0.2s ease-in-out;
         }
-        .question-block:hover {
+        /* Removed :hover rule for question-block */
+        /* .question-block:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+        } */
         /* Remove the old border from the main container */
         #questions-container {
             border-bottom: none;
@@ -273,14 +286,16 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            /* Removed hover effect for remove-question-button */
             transition: background-color 0.2s ease;
             opacity: 0.8;
             z-index: 10;
         }
-        .remove-question-button:hover {
+        /* Removed :hover rule for remove-question-button */
+        /* .remove-question-button:hover {
             background-color: #c0392b;
             opacity: 1;
-        }
+        } */
         /* Styling for the floating message box */
         .message-box {
             position: fixed;
@@ -315,9 +330,10 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-        .drag-drop-area:hover, .drag-drop-area.drag-over {
+        /* Removed :hover and .drag-over hover effects for drag-drop-area */
+        /* .drag-drop-area:hover, .drag-drop-area.drag-over {
             background-color: #ecf0f1;
-        }
+        } */
         /* Updated styles for the "difficult" button */
         .difficult-button {
             background: transparent;
@@ -328,6 +344,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            /* Removed hover effect for difficult-button */
             transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
             position: absolute;
             top: 0.5rem;
@@ -336,9 +353,10 @@
             padding: 0;
             filter: grayscale(100%); /* Grayscale when inactive */
         }
-        .difficult-button:hover {
+        /* Removed :hover rule for difficult-button */
+        /* .difficult-button:hover {
             transform: scale(1.1);
-        }
+        } */
         .difficult-button.active {
             filter: grayscale(0%); /* Remove grayscale when active */
         }
@@ -390,7 +408,7 @@
                         <div id="image-preview-container" class="mt-4">
                             <!-- Image thumbnails will be inserted here dynamically -->
                         </div>
-                        <button id="generate-questions-button" class="button-primary mt-4 hidden"><i class="fas fa-magic"></i> استخراج الأسئلة</button>
+                        <button id="generate-questions-button" class="button-primary mt-4"><i class="fas fa-magic"></i> استخراج الأسئلة</button>
                         <div id="image-processing-spinner" class="loading-spinner"></div>
                         <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
                         <button id="cancel-upload-button" class="button-gray mt-4"><i class="fas fa-times-circle"></i> إلغاء</button>
@@ -585,6 +603,8 @@
         const imagePreviewContainer = document.getElementById('image-preview-container');
         const generateQuestionsButton = document.getElementById('generate-questions-button');
         const cancelUploadButton = document.getElementById('cancel-upload-button');
+        const imageProcessingSpinner = document.getElementById('image-processing-spinner');
+        const imageProcessingMessage = document.getElementById('image-processing-message');
 
         // عناصر قسم المشرفين
         const supervisorNameInput = document.getElementById('supervisor-name');
@@ -595,6 +615,7 @@
 
         let selectedSubject = ''; 
         let selectedWeekNumber = ''; 
+        let uploadedImageBase64 = null; // To store the base64 of the first uploaded image
 
         // دالة لإظهار رسالة عائمة
         const showMessage = (message, isSuccess = true) => {
@@ -942,27 +963,32 @@
 
         const handleFiles = (files) => {
             imagePreviewContainer.innerHTML = ''; // مسح المعاينات الموجودة
+            uploadedImageBase64 = null; // إعادة تعيين بيانات الصورة المشفرة
+
             if (files.length === 0) {
                 // إذا لم يتم تحديد ملفات، عرض الرسالة المبدئية
                 imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
-                generateQuestionsButton.classList.add('hidden');
+                generateQuestionsButton.classList.add('hidden'); // إخفاء الزر إذا لم تكن هناك ملفات
                 return;
             }
 
-            generateQuestionsButton.classList.remove('hidden');
+            generateQuestionsButton.classList.remove('hidden'); // إظهار الزر إذا كانت هناك ملفات
             
-            // معالجة كل ملف
-            for (const file of files) {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'image-thumbnail';
-                        imagePreviewContainer.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                }
+            // معالجة أول ملف فقط للتبسيط
+            const file = files[0]; 
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImageBase64 = e.target.result.split(',')[1]; // تخزين بيانات الصورة المشفرة Base64
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-thumbnail';
+                    imagePreviewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreviewContainer.innerHTML = '<p class="text-gray-600">الرجاء رفع ملف صورة صالح.</p>';
+                generateQuestionsButton.classList.add('hidden');
             }
         };
 
@@ -983,8 +1009,160 @@
         });
 
         // مستمع حدث لزر "استخراج الأسئلة"
-        generateQuestionsButton.addEventListener('click', () => {
-            showMessage('هذه الميزة تتطلب ربطًا بالباك إند لاستخراج الأسئلة من الصور. يمكننا إضافتها لاحقًا.', false);
+        generateQuestionsButton.addEventListener('click', async () => {
+            if (!uploadedImageBase64) {
+                showMessage('الرجاء رفع صورة أولاً.', false);
+                return;
+            }
+
+            // إظهار مؤشر التحميل والرسالة
+            imageUploadControls.classList.add('hidden'); // إخفاء قسم رفع الصور
+            imageProcessingSpinner.style.display = 'block';
+            imageProcessingMessage.classList.remove('hidden');
+            imageProcessingMessage.textContent = 'جاري معالجة الصور واستخراج الأسئلة... قد يستغرق هذا بعض الوقت.';
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({
+                    role: "user",
+                    parts: [
+                        { text: "استخرج أسئلة الاختيار من متعدد من هذه الصورة. لكل سؤال، قم بتوفير نص السؤال، ومصفوفة من الخيارات، وفهرس الإجابة الصحيحة (صفرية الأساس)، والنقاط المخصصة للسؤال (القيمة الافتراضية 10)، وما إذا كان سؤالًا صعبًا (قيمة منطقية، القيمة الافتراضية خاطئة). استجب بتنسيق JSON كمصفوفة من الكائنات." },
+                        {
+                            inlineData: {
+                                mimeType: "image/png", // افتراض PNG، يمكن تعديله حسب الحاجة
+                                data: uploadedImageBase64
+                            }
+                        }
+                    ]
+                });
+
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "questionText": { "type": "STRING" },
+                                    "options": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                    "correctAnswerIndex": { "type": "NUMBER" },
+                                    "points": { "type": "NUMBER" },
+                                    "isDifficult": { "type": "BOOLEAN" }
+                                },
+                                "required": ["questionText", "options", "correctAnswerIndex"],
+                                "propertyOrdering": ["questionText", "options", "correctAnswerIndex", "points", "isDifficult"]
+                            }
+                        }
+                    }
+                };
+
+                const apiKey = ""; // سيتم توفيره تلقائياً من قبل Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                let response;
+                let result;
+                let retries = 0;
+                const maxRetries = 5;
+                const baseDelay = 1000; // 1 ثانية
+
+                while (retries < maxRetries) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.status === 429) { // عدد كبير جداً من الطلبات
+                            retries++;
+                            const delay = baseDelay * Math.pow(2, retries - 1);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue; // إعادة المحاولة
+                        }
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(`خطأ في API: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                        }
+
+                        result = await response.json();
+                        break; // نجاح، خروج من الحلقة
+
+                    } catch (error) {
+                        console.error("خطأ في جلب البيانات أو استجابة API غير موافق:", error);
+                        retries++;
+                        const delay = baseDelay * Math.pow(2, retries - 1);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        if (retries >= maxRetries) {
+                            throw error; // إعادة رمي الخطأ إذا تم الوصول إلى أقصى عدد من المحاولات
+                        }
+                    }
+                }
+
+                if (!result || !result.candidates || result.candidates.length === 0 ||
+                    !result.candidates[0].content || !result.candidates[0].content.parts ||
+                    result.candidates[0].content.parts.length === 0) {
+                    throw new Error("هيكل استجابة API غير صالح.");
+                }
+
+                const jsonString = result.candidates[0].content.parts[0].text;
+                const extractedQuestions = JSON.parse(jsonString);
+
+                if (!Array.isArray(extractedQuestions) || extractedQuestions.length === 0) {
+                    showMessage('لم يتم العثور على أسئلة في الصورة، أو أن التنسيق غير صحيح.', false);
+                    return;
+                }
+
+                // مسح الأسئلة الموجودة وملء النموذج بالأسئلة المستخرجة
+                questionsContainer.innerHTML = '';
+                extractedQuestions.forEach((q, qIndex) => {
+                    const questionBlock = createQuestionElement();
+                    questionBlock.querySelector('textarea').value = q.questionText || '';
+                    questionBlock.querySelector('input[type="number"]').value = q.points || 10;
+
+                    const optionsContainer = questionBlock.querySelector('.options-container');
+                    optionsContainer.innerHTML = ''; // مسح الخيارات الافتراضية
+
+                    q.options.forEach((optionText, optionIndex) => {
+                        const optionItem = document.createElement('div');
+                        optionItem.className = 'form-group flex items-center gap-2 option-item';
+                        optionItem.innerHTML = `
+                            <input type="radio" name="correct-answer-q${qIndex + 1}" class="form-radio text-blue-500" ${optionIndex === q.correctAnswerIndex ? 'checked' : ''}>
+                            <input type="text" class="option-input" value="${optionText}" placeholder="خيار ${optionIndex + 1}">
+                        `;
+                        optionsContainer.appendChild(optionItem);
+                    });
+
+                    // التعامل مع خاصية "سؤال صعب"
+                    const difficultButton = questionBlock.querySelector('.difficult-button');
+                    if (q.isDifficult) {
+                        difficultButton.dataset.isDifficult = 'true';
+                        difficultButton.classList.add('active');
+                    } else {
+                        difficultButton.dataset.isDifficult = 'false';
+                        difficultButton.classList.remove('active');
+                    }
+
+                    questionsContainer.appendChild(questionBlock);
+                });
+
+                showMessage('تم استخراج الأسئلة بنجاح!', true);
+                examFormSection.classList.remove('hidden'); // إظهار نموذج الامتحان
+                imageUploadControls.classList.add('hidden'); // إخفاء عناصر التحكم في رفع الصور
+                examCreationButtons.classList.add('hidden'); // إبقاء الأزرار الرئيسية مخفية
+                
+            } catch (error) {
+                console.error('خطأ أثناء استخراج الأسئلة:', error);
+                showMessage(`حدث خطأ أثناء استخراج الأسئلة: ${error.message}`, false);
+                // إعادة إظهار عناصر التحكم في رفع الصور إذا حدث خطأ
+                imageUploadControls.classList.remove('hidden');
+            } finally {
+                // إخفاء مؤشر التحميل بغض النظر عن النجاح أو الفشل
+                imageProcessingSpinner.style.display = 'none';
+                imageProcessingMessage.classList.add('hidden');
+            }
         });
 
         // مستمع حدث للنقر على منطقة السحب والإفلات
