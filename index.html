@@ -74,6 +74,10 @@
             gap: 0.5rem;
             border: none;
         }
+        .button-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
         .button-primary { background-color: #3498db; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2); }
         .button-secondary { background-color: #2ecc71; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2); }
         .button-danger { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
@@ -260,7 +264,7 @@
             border: 1px solid #e0e0e0;
             border-radius: 2rem; /* Increased border-radius for more rounded corners */
             padding: 3.5rem 1.5rem 1.5rem 1.5rem; /* Increased top padding to make space for buttons */
-            margin: 1.5rem 1rem; /* Adjusted margin to have a slight margin on edges */
+            margin: 1.5rem 0.25rem; /* Adjusted margin to increase width */
             position: relative;
             /* Removed hover effect for question-block */
             box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Added subtle shadow */
@@ -288,12 +292,13 @@
         .option-input {
             width: 100%;
         }
-        .question-actions { /* New style for the container of action buttons */
+        .question-actions { /* New container for action buttons */
             position: absolute;
-            top: 0.75rem; /* Aligned to the top, slightly more margin */
-            right: 0.75rem; /* Aligned to the right, slightly more margin */
+            top: 0.75rem;
+            left: 0.75rem;
+            right: 0.75rem;
             display: flex;
-            gap: 0.5rem; /* Space between buttons */
+            justify-content: space-between;
             z-index: 10;
         }
         .remove-question-button {
@@ -301,15 +306,15 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 45px; /* Changed to match difficult-button */
-            height: 45px; /* Changed to match difficult-button */
+            width: 45px;
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: background-color 0.2s ease;
             opacity: 0.8;
-            /* Removed absolute positioning, now handled by parent .question-actions */
+            padding: 0;
         }
         /* Removed :hover rule for remove-question-button */
         /* .remove-question-button:hover {
@@ -364,7 +369,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            /* Removed absolute positioning, now handled by parent .question-actions */
             padding: 0;
             filter: grayscale(100%); /* Grayscale when inactive */
         }
@@ -887,7 +891,7 @@
                     </div>
                 </div>
                 <div class="flex justify-between items-center mt-4">
-                    <button class="button-teal add-option-button"><i class="fas fa-plus"></i> إضافة خيار آخر</button>
+                    <button class="button-teal add-option-button button-small"><i class="fas fa-plus"></i> إضافة خيار آخر</button>
                     <div class="form-group mb-0" style="width: 150px;">
                         <!-- Removed label for question points -->
                         <input type="number" id="question-points-${questionIndex}" value="${defaultPoints}" class="w-full" min="0">
@@ -900,8 +904,9 @@
                 const optionsContainer = questionBlock.querySelector('.options-container');
                 const newOption = document.createElement('div');
                 newOption.className = 'form-group flex items-center gap-2 option-item';
+                // Ensure unique name for radio buttons across all questions
                 newOption.innerHTML = `
-                    <input type="radio" name="correct-answer-q${questionIndex}" class="form-radio text-blue-500">
+                    <input type="radio" name="correct-answer-q${questionsContainer.children.length + 1}" class="form-radio text-blue-500">
                     <input type="text" class="option-input" placeholder="خيار جديد">
                 `;
                 optionsContainer.appendChild(newOption);
