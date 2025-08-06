@@ -165,28 +165,32 @@
     </style>
 </head>
 <body class="flex flex-col md:flex-row p-4 min-h-screen bg-gray-100 text-gray-800">
-
-    <!-- Firebase Configuration Variables -->
-    <!-- The following variables are provided by the canvas environment -->
-    <script>
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    </script>
     
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, collection, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- Firebase Configuration ---
+        // الرجاء استبدال هذه القيم ببيانات مشروع Firebase الخاص بك
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const appId = "YOUR_APP_ID"; // يجب أن يكون نفس القيمة في firebaseConfig
+        const authorizedUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
+        
         // Firebase Initialization
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        const authorizedUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
         let userId = null;
 
         const loginScreen = document.getElementById('login-screen');
@@ -297,13 +301,6 @@
             }
         });
         
-        // This is a special custom auth token for canvas.
-        if (initialAuthToken) {
-            signInWithCustomToken(auth, initialAuthToken).catch(error => {
-                console.error("Error signing in with custom token:", error);
-            });
-        }
-
         // --- Firestore Listeners and Functions ---
         
         // Function to listen for real-time updates to published exams
@@ -491,6 +488,7 @@
         // Initial setup for UI
         document.getElementById('sign-in-btn').addEventListener('click', signInWithGoogle);
         document.getElementById('sign-out-btn').addEventListener('click', handleSignOut);
+        document.getElementById('dashboard-sign-out-btn').addEventListener('click', handleSignOut);
         
         // Show the first section by default
         showSection('exam-section');
@@ -538,7 +536,7 @@
                 </ul>
             </nav>
             <div class="mt-8 flex justify-center">
-                <button id="dashboard-sign-out-btn" class="button-danger w-full" onclick="handleSignOut()">
+                <button id="dashboard-sign-out-btn" class="button-danger w-full">
                     <i class="fas fa-sign-out-alt ml-2"></i> تسجيل الخروج
                 </button>
             </div>
