@@ -16,9 +16,10 @@
             background-color: #f4f4f4; /* Subtle gray background */
             direction: rtl;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 150vh; /* Increased min-height to allow more scrolling */
+            flex-direction: column; /* Make body a flex container, column direction */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            justify-content: flex-start; /* Align content to the top */
+            align-items: center; /* Center horizontally */
         }
         .container {
             background-color: transparent; /* No background */
@@ -30,6 +31,9 @@
             max-width: 1400px; /* Increased max-width for wider content */
             margin: 2rem auto;
             text-align: center;
+            display: flex; /* Make container a flex container */
+            flex-direction: column; /* Column direction */
+            flex-grow: 1; /* Allow container to grow and fill space */
         }
         h1, h2, h3 { color: #2c3e50; text-align: center; }
         h1 { font-size: 2.5rem; margin-bottom: 1.5rem; color: #3498db; }
@@ -42,7 +46,7 @@
             border-radius: 0.75rem;
             font-family: 'Cairo', sans-serif;
             color: #495057;
-            background-color: #ffffff;
+            background-color: transparent; /* Changed to transparent */
             width: 100%;
             box-sizing: border-box;
             transition: all 0.2s ease-in-out;
@@ -53,7 +57,7 @@
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
-            background-color: #ffffff;
+            background-color: transparent; /* Changed to transparent */
         }
         .form-group { margin-bottom: 1.5rem; text-align: right; }
         .form-group label { display: block; margin-bottom: 0.75rem; font-weight: 700; color: #34495e; font-size: 1.05rem; }
@@ -154,12 +158,24 @@
         .nav-item.active {
             color: #3498db;
         }
+        /* New style for the content wrapper */
+        #content-wrapper {
+            flex-grow: 1; /* Allow content wrapper to grow */
+            display: flex; /* Make it a flex container */
+            flex-direction: column; /* Column direction */
+            overflow: hidden; /* Hide overflow of children, they will scroll individually */
+        }
+
         /* Style for main content sections */
         .main-content-section {
             display: none;
+            flex-grow: 1; /* Allow each section to grow to fill content-wrapper */
+            overflow-y: auto; /* Make each section independently scrollable */
+            padding-bottom: 2rem; /* Add some padding at the bottom for better scrolling experience */
         }
         .main-content-section.active {
-            display: block;
+            display: flex; /* Use flex to make it fill the height */
+            flex-direction: column; /* Content inside section flows as column */
         }
         .content-padding {
             padding: 0 1rem; /* Reduced padding for more width */
@@ -172,7 +188,7 @@
             margin-top: 1.5rem;
             text-align: right;
         }
-        .review-card, .exam-card {
+        .review-card, .exam-card, .supervisor-card { /* Added .supervisor-card */
             background-color: #ffffff; /* Keep background for cards */
             border: 1px solid #e0e0e0;
             border-radius: 1rem;
@@ -188,13 +204,13 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         } */
-        .review-card h4, .exam-card h4 {
+        .review-card h4, .exam-card h4, .supervisor-card h4 { /* Added .supervisor-card h4 */
             font-size: 1.2rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
             color: #3498db;
         }
-        .review-card p, .exam-card p {
+        .review-card p, .exam-card p, .supervisor-card p { /* Added .supervisor-card p */
             margin-bottom: 1rem;
             color: #555;
         }
@@ -372,8 +388,30 @@
             align-items: flex-start;
             margin-bottom: 1rem;
         }
-        .question-text-textarea {
-            margin-top: 1.5rem; /* Push the textarea down to make space for the icon */
+        .question-block .form-group textarea { /* Specific targeting for the question text area */
+            margin-top: 2rem; /* Increased margin to push it down further */
+        }
+
+        /* Progress Bar Styling */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            overflow: hidden;
+            height: 20px;
+            display: none; /* Hidden by default */
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #3498db;
+            border-radius: 0.5rem;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            line-height: 20px; /* Center text vertically */
+            transition: width 0.1s ease-out; /* Smooth animation for width changes */
         }
     </style>
 </head>
@@ -385,8 +423,8 @@
             <h1 class="text-3xl font-bold text-center flex-grow">لوحة تحكم الإدارة</h1>
         </div>
 
-        <!-- Admin Content Section (Main View) -->
-        <div>
+        <!-- New wrapper for main content sections -->
+        <div id="content-wrapper" class="flex-grow flex flex-col">
             <!-- Exams Management Section -->
             <div id="exam-section" class="main-content-section active">
                 <h2 class="text-2xl font-bold mb-4 content-padding">إدارة الامتحانات</h2>
@@ -409,6 +447,7 @@
                             <!-- Image thumbnails will be inserted here dynamically -->
                         </div>
                         <button id="generate-questions-button" class="button-primary mt-4"><i class="fas fa-magic"></i> استخراج الأسئلة</button>
+                        
                         <div id="image-processing-spinner" class="loading-spinner"></div>
                         <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
                         <button id="cancel-upload-button" class="button-gray mt-4"><i class="fas fa-times-circle"></i> إلغاء</button>
@@ -431,6 +470,10 @@
                         
                         <hr class="my-6 border-gray-200">
                         <h3 class="text-xl font-bold mb-4">الأسئلة</h3>
+                        <!-- Progress Bar for Question Extraction - NEW LOCATION -->
+                        <div id="progress-container" class="progress-container">
+                            <div id="progress-bar" class="progress-bar">0%</div>
+                        </div>
                         <div id="questions-container" class="space-y-4"></div>
                         <button id="add-question-button" class="button-secondary mt-4"><i class="fas fa-question-circle"></i> إضافة سؤال</button>
                         <div class="flex justify-end gap-4 mt-6">
@@ -518,16 +561,22 @@
             <div id="supervisors-section" class="main-content-section content-padding">
                 <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
                 <div class="published-list">
-                    <div class="form-group flex items-end gap-2">
-                        <input type="text" id="supervisor-name" class="flex-grow" placeholder="اسم المشرف">
-                        <input type="password" id="supervisor-password" class="flex-grow" placeholder="كلمة المرور">
-                        <button id="add-supervisor-button" class="button-secondary"><i class="fas fa-plus"></i> إضافة مشرف</button>
+                    <div class="flex items-end gap-2 mb-4">
+                        <div class="form-group flex-grow mb-0">
+                            <label for="supervisor-name">اسم المشرف:</label>
+                            <input type="text" id="supervisor-name" class="w-full" placeholder="اسم المشرف">
+                        </div>
+                        <div class="form-group flex-grow mb-0">
+                            <label for="supervisor-uid">UID:</label>
+                            <input type="text" id="supervisor-uid" class="w-full" placeholder="أدخل الـ UID هنا">
+                        </div>
+                        <button id="add-supervisor-button" class="button-secondary self-end"><i class="fas fa-plus"></i> إضافة مشرف</button>
                     </div>
                     <hr class="my-4 border-gray-200">
                     <h3 class="text-xl font-bold mb-4">قائمة المشرفين الحاليين</h3>
                     <p id="supervisors-placeholder" class="text-gray-600">لا توجد مشرفون مضافون بعد.</p>
-                    <div id="supervisors-list" class="flex flex-col gap-2">
-                        <!-- Supervisor list items will be added dynamically -->
+                    <div id="supervisors-list" class="card-container">
+                        <!-- Supervisor cards will be added dynamically -->
                     </div>
                 </div>
             </div>
@@ -558,12 +607,12 @@
     </nav>
     
     <script>
-        // العناصر الرئيسية للواجهة
+        // Main UI elements
         const navItems = document.querySelectorAll('.nav-item');
         const contentSections = document.querySelectorAll('.main-content-section');
         const messageBox = document.getElementById('message-box');
         
-        // عناصر قسم التقييمات
+        // Review section elements
         const addReviewButton = document.getElementById('add-review-button');
         const subjectSelectionContainer = document.getElementById('subject-selection-container');
         const subjectButtons = document.querySelectorAll('.subject-button');
@@ -581,7 +630,7 @@
         const reviewsPlaceholder = document.getElementById('reviews-placeholder');
         const reviewsHr = document.getElementById('reviews-hr');
 
-        // عناصر قسم الامتحانات
+        // Exam section elements
         const addExamButton = document.getElementById('add-exam-button');
         const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
         const examCreationButtons = document.getElementById('exam-creation-buttons');
@@ -597,7 +646,7 @@
         const publishedExamsCards = document.getElementById('published-exams-cards');
         const examsPlaceholder = document.getElementById('exams-placeholder');
 
-        // عناصر رفع الصور
+        // Image upload elements
         const imageUploadInput = document.getElementById('image-upload-input');
         const dragDropArea = document.getElementById('drag-drop-area');
         const imagePreviewContainer = document.getElementById('image-preview-container');
@@ -605,22 +654,25 @@
         const cancelUploadButton = document.getElementById('cancel-upload-button');
         const imageProcessingSpinner = document.getElementById('image-processing-spinner');
         const imageProcessingMessage = document.getElementById('image-processing-message');
+        const progressBarContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
 
-        // عناصر قسم المشرفين
+        // Supervisors section elements
         const supervisorNameInput = document.getElementById('supervisor-name');
-        const supervisorPasswordInput = document.getElementById('supervisor-password');
+        const supervisorUidInput = document.getElementById('supervisor-uid'); // Changed from supervisorPasswordInput
         const addSupervisorButton = document.getElementById('add-supervisor-button');
         const supervisorsList = document.getElementById('supervisors-list');
         const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
 
         let selectedSubject = ''; 
         let selectedWeekNumber = ''; 
-        let uploadedImageBase64 = null; // To store the base64 of the first uploaded image
+        let allUploadedImagesBase64 = []; // Array to store all images
+        let progressInterval;
 
-        // دالة لإظهار رسالة عائمة
+        // Function to show a floating message
         const showMessage = (message, isSuccess = true) => {
             messageBox.textContent = message;
-            messageBox.className = 'message-box'; // إعادة تعيين الكلاسات
+            messageBox.className = 'message-box'; // Reset classes
             if (isSuccess) {
                 messageBox.classList.add('success');
             } else {
@@ -629,15 +681,21 @@
             messageBox.style.display = 'block';
             setTimeout(() => {
                 messageBox.style.display = 'none';
-            }, 5000); // إخفاء بعد 5 ثوان
+            }, 5000); // Hide after 5 seconds
         };
 
-        // دالة للتبديل بين الأقسام
+        // Function to switch between sections
         const showSection = (sectionId) => {
             contentSections.forEach(section => {
                 section.classList.remove('active');
+                // Reset scroll position for previously active sections (optional but good practice)
+                section.scrollTop = 0;
             });
-            document.getElementById(sectionId).classList.add('active');
+            const activeSection = document.getElementById(sectionId);
+            activeSection.classList.add('active');
+            // Scroll the newly active section to the top
+            activeSection.scrollTop = 0;
+
             navItems.forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.section === sectionId) {
@@ -646,7 +704,7 @@
             });
         };
         
-        // إضافة مستمعي الأحداث لشريط التنقل
+        // Add event listeners for navigation bar
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 const sectionId = item.dataset.section;
@@ -655,10 +713,10 @@
         });
 
         // ======================
-        // منطق قسم التقييمات
+        // Reviews Section Logic
         // ======================
 
-        // التحقق مما إذا كانت هناك تقييمات وتحديث الواجهة
+        // Check if there are reviews and update UI
         const checkReviewsList = () => {
             if (reviewsListContainer.children.length === 0) {
                 reviewsPlaceholder.classList.remove('hidden');
@@ -671,14 +729,14 @@
             }
         };
 
-        // مستمع حدث لزر "إضافة تقييم"
+        // Event listener for "Add Review" button
         addReviewButton.addEventListener('click', () => {
             addReviewButton.classList.add('hidden');
             reviewsPlaceholder.classList.add('hidden');
             subjectSelectionContainer.classList.remove('hidden');
         });
 
-        // مستمعي الأحداث لأزرار المواد
+        // Event listeners for subject buttons
         subjectButtons.forEach(button => {
             button.addEventListener('click', () => {
                 selectedSubject = button.dataset.subject;
@@ -689,7 +747,7 @@
             });
         });
 
-        // مستمع حدث لزر "تأكيد الأسبوع"
+        // Event listener for "Confirm Week" button
         confirmWeekButton.addEventListener('click', () => {
             const weekNumber = reviewWeekNumberInput.value.trim();
             if (weekNumber === '') {
@@ -702,7 +760,7 @@
             reviewText.value = `تقييم ${selectedSubject} الأسبوع ${selectedWeekNumber}`;
         });
         
-        // مستمع حدث لزر "إلغاء الأسبوع"
+        // Event listener for "Cancel Week" button
         cancelWeekButton.addEventListener('click', () => {
             reviewWeekContainer.classList.add('hidden');
             subjectSelectionContainer.classList.remove('hidden');
@@ -711,7 +769,7 @@
             selectedWeekNumber = '';
         });
 
-        // مستمع حدث لزر "حفظ التقييم"
+        // Event listener for "Save Review" button
         saveReviewButton.addEventListener('click', () => {
             const text = reviewText.value.trim();
             const link = reviewLink.value.trim();
@@ -755,7 +813,7 @@
             showMessage('تم حفظ التقييم بنجاح.', true);
         });
 
-        // مستمع حدث لزر "إلغاء التقييم"
+        // Event listener for "Cancel Review" button
         cancelReviewButton.addEventListener('click', () => {
             reviewFormContainer.classList.add('hidden');
             addReviewButton.classList.remove('hidden');
@@ -768,10 +826,10 @@
         });
 
         // ======================
-        // منطق قسم الامتحانات
+        // Exams Section Logic
         // ======================
 
-        // دالة لإنشاء عنصر سؤال جديد
+        // Function to create a new question element
         const createQuestionElement = () => {
             const questionIndex = questionsContainer.children.length + 1;
             const defaultPoints = defaultPointsInput.value || 10;
@@ -833,7 +891,7 @@
                 <button class="button-teal mt-4 add-option-button"><i class="fas fa-plus"></i> إضافة خيار آخر</button>
             `;
 
-            // إضافة مستمع حدث لزر "إضافة خيار آخر"
+            // Add event listener for "Add another option" button
             questionBlock.querySelector('.add-option-button').addEventListener('click', () => {
                 const optionsContainer = questionBlock.querySelector('.options-container');
                 const newOption = document.createElement('div');
@@ -845,13 +903,13 @@
                 optionsContainer.appendChild(newOption);
             });
 
-            // إضافة مستمع حدث لزر حذف السؤال
+            // Add event listener for remove question button
             questionBlock.querySelector('.remove-question-button').addEventListener('click', () => {
                 questionBlock.remove();
                 checkPublishedExamsList();
             });
 
-            // إضافة مستمع حدث لزر "سؤال صعب" الجديد
+            // Add event listener for the "difficult" button
             const difficultButton = questionBlock.querySelector('.difficult-button');
             difficultButton.addEventListener('click', () => {
                 const isDifficult = difficultButton.dataset.isDifficult === 'true';
@@ -869,7 +927,7 @@
             return questionBlock;
         };
         
-        // التحقق مما إذا كانت هناك امتحانات منشورة وتحديث الواجهة
+        // Check if there are published exams and update UI
         const checkPublishedExamsList = () => {
             if (publishedExamsCards.children.length === 0) {
                 examsPlaceholder.classList.remove('hidden');
@@ -880,20 +938,20 @@
             }
         };
 
-        // مستمع حدث لزر "إضافة امتحان جديد (يدوي)"
+        // Event listener for "Add New Exam (Manual)" button
         addExamButton.addEventListener('click', () => {
             examCreationButtons.classList.add('hidden');
             examFormSection.classList.remove('hidden');
-            questionsContainer.innerHTML = ''; // مسح أي أسئلة سابقة
-            questionsContainer.appendChild(createQuestionElement()); // إضافة أول سؤال تلقائيًا
+            questionsContainer.innerHTML = ''; // Clear any previous questions
+            questionsContainer.appendChild(createQuestionElement()); // Add first question automatically
         });
 
-        // مستمع حدث لزر "إضافة سؤال" داخل النموذج
+        // Event listener for "Add Question" button inside the form
         addQuestionButton.addEventListener('click', () => {
             questionsContainer.appendChild(createQuestionElement());
         });
 
-        // مستمع حدث لزر "نشر الامتحان"
+        // Event listener for "Publish Exam" button
         publishExamButton.addEventListener('click', () => {
             const examName = examNameInput.value.trim();
             const examDuration = examDurationInput.value.trim();
@@ -904,7 +962,7 @@
                 return;
             }
             
-            // حساب إجمالي النقاط
+            // Calculate total points
             let totalPoints = 0;
             let difficultQuestionsCount = 0;
             questions.forEach(questionBlock => {
@@ -928,7 +986,7 @@
             `;
             
             examCard.querySelector('.delete-card-button').addEventListener('click', (e) => {
-                e.stopPropagation(); // منع حدث النقر على البطاقة من العمل
+                e.stopPropagation(); // Prevent card click event from firing
                 examCard.remove();
                 checkPublishedExamsList();
                 showMessage('تم حذف الامتحان بنجاح.', true);
@@ -937,7 +995,7 @@
             publishedExamsCards.appendChild(examCard);
             checkPublishedExamsList();
             
-            // إعادة تعيين النموذج
+            // Reset form
             examNameInput.value = '';
             examDurationInput.value = '';
             defaultPointsInput.value = '10';
@@ -947,7 +1005,7 @@
             showMessage('تم نشر الامتحان بنجاح!', true);
         });
 
-        // مستمع حدث لزر "إلغاء الامتحان"
+        // Event listener for "Cancel Exam" button
         cancelExamButton.addEventListener('click', () => {
             examFormSection.classList.add('hidden');
             examCreationButtons.classList.remove('hidden');
@@ -958,114 +1016,132 @@
         });
 
         // ======================================
-        // منطق قسم رفع الصور
+        // Image Upload Section Logic
         // ======================================
 
         const handleFiles = (files) => {
-            imagePreviewContainer.innerHTML = ''; // مسح المعاينات الموجودة
-            uploadedImageBase64 = null; // إعادة تعيين بيانات الصورة المشفرة
+            // Check if there's a placeholder message and remove it if files are being added
+            if (allUploadedImagesBase64.length === 0 && imagePreviewContainer.querySelector('p.text-gray-600')) {
+                imagePreviewContainer.innerHTML = ''; // Clear the "No images uploaded yet." message
+            }
 
             if (files.length === 0) {
-                // إذا لم يتم تحديد ملفات، عرض الرسالة المبدئية
-                imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
-                generateQuestionsButton.classList.add('hidden'); // إخفاء الزر إذا لم تكن هناك ملفات
+                if (allUploadedImagesBase64.length === 0) { // If no files were selected and no images are currently loaded
+                    imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
+                }
+                generateQuestionsButton.classList.add('hidden');
                 return;
             }
 
-            generateQuestionsButton.classList.remove('hidden'); // إظهار الزر إذا كانت هناك ملفات
-            
-            // معالجة أول ملف فقط للتبسيط
-            const file = files[0]; 
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    uploadedImageBase64 = e.target.result.split(',')[1]; // تخزين بيانات الصورة المشفرة Base64
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'image-thumbnail';
-                    imagePreviewContainer.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                imagePreviewContainer.innerHTML = '<p class="text-gray-600">الرجاء رفع ملف صورة صالح.</p>';
-                generateQuestionsButton.classList.add('hidden');
-            }
+            generateQuestionsButton.classList.remove('hidden');
+
+            Array.from(files).forEach(file => {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        allUploadedImagesBase64.push(e.target.result.split(',')[1]); // Store Base64
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'image-thumbnail';
+                        imagePreviewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    showMessage(`الملف ${file.name} ليس صورة صالحة وسيتم تجاهله.`, false);
+                }
+            });
         };
 
-        // مستمع حدث لزر "رفع الامتحان بالصور"
+        // Event listener for "Upload Exam by Images" button
         uploadExamImagesButton.addEventListener('click', () => {
             examCreationButtons.classList.add('hidden');
             imageUploadControls.classList.remove('hidden');
         });
 
-        // مستمع حدث لزر "إلغاء الرفع"
+        // Event listener for "Cancel Upload" button
         cancelUploadButton.addEventListener('click', () => {
             imageUploadControls.classList.add('hidden');
             examCreationButtons.classList.remove('hidden');
-            // مسح جميع الملفات والمعاينات
+            // Clear all files and previews
             imageUploadInput.value = null;
             imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
             generateQuestionsButton.classList.add('hidden');
+            allUploadedImagesBase64 = []; // Clear the array on cancel
         });
 
-        // مستمع حدث لزر "استخراج الأسئلة"
+        // Event listener for "Extract Questions" button
         generateQuestionsButton.addEventListener('click', async () => {
-            if (!uploadedImageBase64) {
-                showMessage('الرجاء رفع صورة أولاً.', false);
+            if (allUploadedImagesBase64.length === 0) {
+                showMessage('الرجاء رفع صورة واحدة على الأقل أولاً.', false);
                 return;
             }
 
-            // إظهار مؤشر التحميل والرسالة
-            imageUploadControls.classList.add('hidden'); // إخفاء قسم رفع الصور
+            // Show loading spinner and message
+            imageUploadControls.classList.add('hidden'); // Hide image upload section
             imageProcessingSpinner.style.display = 'block';
             imageProcessingMessage.classList.remove('hidden');
             imageProcessingMessage.textContent = 'جاري معالجة الصور واستخراج الأسئلة... قد يستغرق هذا بعض الوقت.';
+            
+            // Show progress bar and start updating
+            progressBarContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            
+            // Always show the exam form section when attempting to generate questions
+            examFormSection.classList.remove('hidden'); // Ensure exam form is visible
+            examCreationButtons.classList.add('hidden'); // Hide the initial exam creation buttons
+            questionsContainer.innerHTML = ''; // Clear existing questions before populating
 
-            try {
-                let chatHistory = [];
-                chatHistory.push({
-                    role: "user",
-                    parts: [
-                        { text: "استخرج أسئلة الاختيار من متعدد من هذه الصورة. لكل سؤال، قم بتوفير نص السؤال، ومصفوفة من الخيارات، وفهرس الإجابة الصحيحة (صفرية الأساس)، والنقاط المخصصة للسؤال (القيمة الافتراضية 10)، وما إذا كان سؤالًا صعبًا (قيمة منطقية، القيمة الافتراضية خاطئة). استجب بتنسيق JSON كمصفوفة من الكائنات." },
-                        {
-                            inlineData: {
-                                mimeType: "image/png", // افتراض PNG، يمكن تعديله حسب الحاجة
-                                data: uploadedImageBase64
+            let processedImagesCount = 0;
+            let allExtractedQuestions = [];
+            let hasErrors = false;
+
+            for (const imageData of allUploadedImagesBase64) {
+                try {
+                    let chatHistory = [];
+                    chatHistory.push({
+                        role: "user",
+                        parts: [
+                            { text: "استخرج أسئلة الاختيار من متعدد من هذه الصورة. لكل سؤال، قم بتوفير نص السؤال، ومصفوفة من الخيارات، وفهرس الإجابة الصحيحة (صفرية الأساس)، والنقاط المخصصة للسؤال (القيمة الافتراضية 10)، وما إذا كان سؤالًا صعبًا (قيمة منطقية، القيمة الافتراضية خاطئة). استجب بتنسيق JSON كمصفوفة من الكائنات." },
+                            {
+                                inlineData: {
+                                    mimeType: "image/png", // Assuming PNG, but could be dynamic if needed
+                                    data: imageData
+                                }
+                            }
+                        ]
+                    });
+
+                    const payload = {
+                        contents: chatHistory,
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        "questionText": { "type": "STRING" },
+                                        "options": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "correctAnswerIndex": { "type": "NUMBER" },
+                                        "points": { "type": "NUMBER" },
+                                        "isDifficult": { "type": "BOOLEAN" }
+                                    },
+                                    "required": ["questionText", "options", "correctAnswerIndex"],
+                                    "propertyOrdering": ["questionText", "options", "correctAnswerIndex", "points", "isDifficult"]
+                                }
                             }
                         }
-                    ]
-                });
+                    };
 
-                const payload = {
-                    contents: chatHistory,
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    "questionText": { "type": "STRING" },
-                                    "options": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                    "correctAnswerIndex": { "type": "NUMBER" },
-                                    "points": { "type": "NUMBER" },
-                                    "isDifficult": { "type": "BOOLEAN" }
-                                },
-                                "required": ["questionText", "options", "correctAnswerIndex"],
-                                "propertyOrdering": ["questionText", "options", "correctAnswerIndex", "points", "isDifficult"]
-                            }
-                        }
-                    }
-                };
-
-                const apiKey = ""; // سيتم توفيره تلقائياً من قبل Canvas
+                const apiKey = ""; // Leave as-is, Canvas will provide it
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
                 let response;
                 let result;
                 let retries = 0;
                 const maxRetries = 5;
-                const baseDelay = 1000; // 1 ثانية
+                const baseDelay = 1000;
 
                 while (retries < maxRetries) {
                     try {
@@ -1075,67 +1151,75 @@
                             body: JSON.stringify(payload)
                         });
 
-                        if (response.status === 429) { // عدد كبير جداً من الطلبات
+                        if (response.status === 429) { // Too many requests
                             retries++;
                             const delay = baseDelay * Math.pow(2, retries - 1);
                             await new Promise(resolve => setTimeout(resolve, delay));
-                            continue; // إعادة المحاولة
+                            continue; // Retry
                         }
 
                         if (!response.ok) {
                             const errorData = await response.json();
-                            throw new Error(`خطأ في API: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                            throw new Error(`API Error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
                         }
 
                         result = await response.json();
-                        break; // نجاح، خروج من الحلقة
+                        break; // Success, exit loop
 
                     } catch (error) {
-                        console.error("خطأ في جلب البيانات أو استجابة API غير موافق:", error);
+                        console.error("Error fetching data or API response not OK:", error);
                         retries++;
                         const delay = baseDelay * Math.pow(2, retries - 1);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         if (retries >= maxRetries) {
-                            throw error; // إعادة رمي الخطأ إذا تم الوصول إلى أقصى عدد من المحاولات
+                            throw error; // Re-throw error if max retries reached
                         }
                     }
                 }
 
-                if (!result || !result.candidates || result.candidates.length === 0 ||
-                    !result.candidates[0].content || !result.candidates[0].content.parts ||
-                    result.candidates[0].content.parts.length === 0) {
-                    throw new Error("هيكل استجابة API غير صالح.");
-                }
-
                 const jsonString = result.candidates[0].content.parts[0].text;
-                const extractedQuestions = JSON.parse(jsonString);
+                const extracted = JSON.parse(jsonString);
 
-                if (!Array.isArray(extractedQuestions) || extractedQuestions.length === 0) {
-                    showMessage('لم يتم العثور على أسئلة في الصورة، أو أن التنسيق غير صحيح.', false);
-                    return;
+                if (Array.isArray(extracted) && extracted.length > 0) {
+                    allExtractedQuestions = allExtractedQuestions.concat(extracted);
+                } else {
+                    showMessage('لم يتم العثور على أسئلة في إحدى الصور.', true);
                 }
 
-                // مسح الأسئلة الموجودة وملء النموذج بالأسئلة المستخرجة
-                questionsContainer.innerHTML = '';
-                extractedQuestions.forEach((q, qIndex) => {
+                } catch (error) {
+                    console.error('خطأ أثناء استخراج الأسئلة من صورة:', error);
+                    showMessage(`حدث خطأ أثناء استخراج الأسئلة من إحدى الصور: ${error.message}.`, false);
+                    hasErrors = true;
+                } finally {
+                    processedImagesCount++;
+                    const progress = (processedImagesCount / allUploadedImagesBase64.length) * 100; // Single phase progress
+                    progressBar.style.width = `${progress}%`;
+                    progressBar.textContent = `${Math.round(progress)}%`;
+                }
+            }
+
+            // After processing all images, populate the form
+            if (allExtractedQuestions.length > 0) {
+                allExtractedQuestions.forEach((q, qIndex) => {
                     const questionBlock = createQuestionElement();
                     questionBlock.querySelector('textarea').value = q.questionText || '';
-                    questionBlock.querySelector('input[type="number"]').value = q.points || 10;
+                    questionBlock.querySelector('input[type="number"]').value = q.points || defaultPointsInput.value || 10;
 
                     const optionsContainer = questionBlock.querySelector('.options-container');
-                    optionsContainer.innerHTML = ''; // مسح الخيارات الافتراضية
+                    optionsContainer.innerHTML = ''; // Clear default options
 
                     q.options.forEach((optionText, optionIndex) => {
                         const optionItem = document.createElement('div');
                         optionItem.className = 'form-group flex items-center gap-2 option-item';
+                        // Ensure unique name for radio buttons across all questions
                         optionItem.innerHTML = `
-                            <input type="radio" name="correct-answer-q${qIndex + 1}" class="form-radio text-blue-500" ${optionIndex === q.correctAnswerIndex ? 'checked' : ''}>
+                            <input type="radio" name="correct-answer-q${questionsContainer.children.length + 1}" class="form-radio text-blue-500" ${optionIndex === q.correctAnswerIndex ? 'checked' : ''}>
                             <input type="text" class="option-input" value="${optionText}" placeholder="خيار ${optionIndex + 1}">
                         `;
                         optionsContainer.appendChild(optionItem);
                     });
 
-                    // التعامل مع خاصية "سؤال صعب"
+                    // Handle "difficult" property
                     const difficultButton = questionBlock.querySelector('.difficult-button');
                     if (q.isDifficult) {
                         difficultButton.dataset.isDifficult = 'true';
@@ -1147,30 +1231,27 @@
 
                     questionsContainer.appendChild(questionBlock);
                 });
-
                 showMessage('تم استخراج الأسئلة بنجاح!', true);
-                examFormSection.classList.remove('hidden'); // إظهار نموذج الامتحان
-                imageUploadControls.classList.add('hidden'); // إخفاء عناصر التحكم في رفع الصور
-                examCreationButtons.classList.add('hidden'); // إبقاء الأزرار الرئيسية مخفية
-                
-            } catch (error) {
-                console.error('خطأ أثناء استخراج الأسئلة:', error);
-                showMessage(`حدث خطأ أثناء استخراج الأسئلة: ${error.message}`, false);
-                // إعادة إظهار عناصر التحكم في رفع الصور إذا حدث خطأ
-                imageUploadControls.classList.remove('hidden');
-            } finally {
-                // إخفاء مؤشر التحميل بغض النظر عن النجاح أو الفشل
-                imageProcessingSpinner.style.display = 'none';
-                imageProcessingMessage.classList.add('hidden');
+            } else {
+                showMessage('لم يتم العثور على أي أسئلة من الصور المرفوعة. يمكنك إضافة الأسئلة يدويًا.', true);
+                questionsContainer.innerHTML = ''; // Clear any partial questions
+                questionsContainer.appendChild(createQuestionElement()); // Add one empty question for manual input
             }
+            
+            // Final cleanup
+            imageProcessingSpinner.style.display = 'none';
+            imageProcessingMessage.classList.add('hidden');
+            progressBarContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
         });
 
-        // مستمع حدث للنقر على منطقة السحب والإفلات
+        // Event listener for click on drag-and-drop area
         dragDropArea.addEventListener('click', () => {
             imageUploadInput.click();
         });
 
-        // مستمعي أحداث السحب والإفلات
+        // Drag and drop event listeners
         dragDropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             dragDropArea.classList.add('drag-over');
@@ -1188,17 +1269,17 @@
             handleFiles(files);
         });
 
-        // مستمع حدث لمربع إدخال الملفات المخفي
+        // Event listener for hidden file input
         imageUploadInput.addEventListener('change', (e) => {
             const files = e.target.files;
             handleFiles(files);
         });
 
         // ======================================
-        // منطق قسم إدارة المشرفين
+        // Supervisors Management Section Logic
         // ======================================
         
-        // التحقق مما إذا كانت هناك مشرفين وتحديث الواجهة
+        // Check if there are supervisors and update UI
         const checkSupervisorsList = () => {
             if (supervisorsList.children.length === 0) {
                 supervisorsPlaceholder.classList.remove('hidden');
@@ -1207,40 +1288,51 @@
             }
         };
         
-        // مستمع حدث لزر إضافة مشرف
+        // Event listener for add supervisor button
         addSupervisorButton.addEventListener('click', () => {
             const name = supervisorNameInput.value.trim();
-            const password = supervisorPasswordInput.value.trim();
+            const uid = supervisorUidInput.value.trim(); // Changed from password
 
-            if (name === '' || password === '') {
-                showMessage('الرجاء إدخال اسم المشرف وكلمة المرور.', false);
+            if (name === '' || uid === '') {
+                showMessage('الرجاء إدخال اسم المشرف و UID.', false); // Updated message
                 return;
             }
 
-            // بما أن هذا front-end فقط، سنضيف عنصر وهمي
-            const supervisorItem = document.createElement('div');
-            supervisorItem.className = 'published-item';
-            supervisorItem.innerHTML = `
-                <span>${name}</span>
-                <button class="button-danger remove-button"><i class="fas fa-trash-alt"></i> إزالة</button>
+            // Create a supervisor card
+            const supervisorCard = document.createElement('div');
+            supervisorCard.className = 'supervisor-card'; // New class for supervisor cards
+            supervisorCard.innerHTML = `
+                <h4>${name}</h4>
+                <p>UID: ${uid}</p>
+                <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
             `;
             
-            supervisorItem.querySelector('.remove-button').addEventListener('click', () => {
-                supervisorItem.remove();
+            supervisorCard.querySelector('.delete-card-button').addEventListener('click', () => {
+                supervisorCard.remove();
                 checkSupervisorsList();
                 showMessage('تم حذف المشرف بنجاح (وهمي).', true);
             });
             
-            supervisorsList.appendChild(supervisorItem);
+            supervisorsList.appendChild(supervisorCard); // Append to the card container
             checkSupervisorsList();
             
             supervisorNameInput.value = '';
-            supervisorPasswordInput.value = '';
+            supervisorUidInput.value = ''; // Changed from supervisorPasswordInput
             
             showMessage('تمت إضافة المشرف بنجاح. هذه العملية تحتاج إلى ربط بالباك إند للحفظ الفعلي.', true);
         });
 
-        // إظهار القسم الأولي عند تحميل الصفحة
+        // Add event listener for default points input
+        defaultPointsInput.addEventListener('input', () => {
+            const newDefaultPoints = defaultPointsInput.value;
+            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+            questionBlocks.forEach(block => {
+                const pointsInput = block.querySelector('input[type="number"]');
+                pointsInput.value = newDefaultPoints;
+            });
+        });
+
+        // Show initial section on page load
         showSection('exam-section');
         checkPublishedExamsList();
         checkReviewsList();
