@@ -28,7 +28,7 @@
             box-shadow: none;
             border: none;
             width: 100%;
-            max-width: 1400px; /* Increased max-width for wider content */
+            /* Removed max-width for mobile-only design */
             margin: 2rem auto;
             text-align: center;
             display: flex; /* Make container a flex container */
@@ -178,7 +178,7 @@
             flex-direction: column; /* Content inside section flows as column */
         }
         .content-padding {
-            padding: 0 1rem; /* Reduced padding for more width */
+            padding: 0 1.5rem; /* Increased padding for better mobile spacing */
         }
         /* New card styles for reviews and exams */
         .card-container {
@@ -561,7 +561,7 @@
             <div id="supervisors-section" class="main-content-section content-padding">
                 <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
                 <div class="published-list">
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 mb-4">
+                    <div class="flex flex-col items-stretch gap-2 mb-4">
                         <div class="form-group flex-grow mb-0">
                             <label for="supervisor-name">اسم المشرف:</label>
                             <input type="text" id="supervisor-name" class="w-full" placeholder="اسم المشرف">
