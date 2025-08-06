@@ -258,12 +258,12 @@
         .question-block {
             background-color: #ffffff;
             border: 1px solid #e0e0e0;
-            border-radius: 1.5rem; /* Increased border-radius for more rounded corners */
-            padding: 2.5rem 1.5rem 1.5rem 1.5rem; /* Increased top padding */
-            margin: 1.5rem -1.5rem; /* Adjusted margin to match content-padding */
+            border-radius: 2rem; /* Increased border-radius for more rounded corners */
+            padding: 3.5rem 1.5rem 1.5rem 1.5rem; /* Increased top padding to make space for buttons */
+            margin: 1.5rem -2.5rem; /* Adjusted margin to extend to screen edges */
             position: relative;
             /* Removed hover effect for question-block */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Added subtle shadow */
             transition: box-shadow 0.2s ease-in-out;
         }
         /* Removed :hover rule for question-block */
@@ -290,8 +290,8 @@
         }
         .question-actions { /* New style for the container of action buttons */
             position: absolute;
-            top: 0.5rem; /* Aligned to the top */
-            right: 0.5rem; /* Aligned to the right */
+            top: 0.75rem; /* Aligned to the top, slightly more margin */
+            right: 0.75rem; /* Aligned to the right, slightly more margin */
             display: flex;
             gap: 0.5rem; /* Space between buttons */
             z-index: 10;
@@ -301,8 +301,8 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 45px; /* Changed to match difficult-button */
+            height: 45px; /* Changed to match difficult-button */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -837,7 +837,6 @@
             questionBlock.className = 'question-block';
             questionBlock.innerHTML = `
                 <div class="question-actions"> <!-- New container for action buttons -->
-                    <button class="remove-question-button" title="إزالة السؤال"><i class="fas fa-trash-alt"></i></button>
                     <button class="difficult-button" title="سؤال صعب" data-is-difficult="false">
                         <svg width="800px" height="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet">
                             <ellipse cx="64" cy="116.87" rx="12.09" ry="7.13" fill="#424242"></ellipse>
@@ -862,6 +861,7 @@
                             <path d="M50.01 84.2c.91.09 1.87.01 2.64-.48s1.26-1.49.95-2.35c-.16-.45-.51-.81-.85-1.15c-.75-.74-1.5-1.48-2.24-2.22c-.83-.83-1.66-1.65-2.56-2.4c-1.39-1.16-3.26-2.25-5.09-1.4c-1.56.72-1.93 2.14-1.24 3.63c1.47 3.13 4.89 6.01 8.39 6.37z" fill="#ffff8d"></path>
                         </svg>
                     </button>
+                    <button class="remove-question-button" title="إزالة السؤال"><i class="fas fa-trash-alt"></i></button>
                 </div>
                 <div class="form-group mb-4">
                     <!-- Removed label for question text -->
