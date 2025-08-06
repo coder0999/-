@@ -13,1339 +13,615 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f4f4f4; /* Subtle gray background */
+            background-color: #f4f4f4;
             direction: rtl;
             display: flex;
-            flex-direction: column; /* Make body a flex container, column direction */
-            min-height: 100vh; /* Ensure body takes full viewport height */
-            justify-content: flex-start; /* Align content to the top */
-            align-items: center; /* Center horizontally */
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
         }
         .container {
-            background-color: transparent; /* No background */
+            background-color: transparent;
             padding: 1rem;
             border-radius: 1.25rem;
             box-shadow: none;
             border: none;
             width: 100%;
-            /* Removed max-width for mobile-only design */
-            margin: 2rem auto;
-            text-align: center;
-            display: flex; /* Make container a flex container */
-            flex-direction: column; /* Column direction */
-            flex-grow: 1; /* Allow container to grow and fill space */
+            max-width: 1400px;
         }
-        h1, h2, h3 { color: #2c3e50; text-align: center; }
-        h1 { font-size: 2.5rem; margin-bottom: 1.5rem; color: #3498db; }
-        h2 { font-size: 2rem; margin-top: 2.5rem; margin-bottom: 1.5rem; color: #3498db; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.75rem; }
-        h3 { font-size: 1.6rem; margin-bottom: 1.25rem; color: #34495e; }
-        textarea, input[type="text"], input[type="number"], input[type="password"] {
-            resize: vertical;
-            padding: 1rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.75rem;
-            font-family: 'Cairo', sans-serif;
-            color: #495057;
-            background-color: transparent; /* Changed to transparent */
-            width: 100%;
-            box-sizing: border-box;
-            transition: all 0.2s ease-in-out;
-            text-align: right;
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 1.25rem;
         }
-        /* Removed :focus hover effect for input fields */
-        textarea:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
-            background-color: transparent; /* Changed to transparent */
-        }
-        .form-group { margin-bottom: 1.5rem; text-align: right; }
-        .form-group label { display: block; margin-bottom: 0.75rem; font-weight: 700; color: #34495e; font-size: 1.05rem; }
-        .button-primary, .button-secondary, .button-danger, .button-info, .button-teal, .button-gray, .button-ai {
-            color: white;
-            padding: 0.85rem 1.75rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            border: none;
-        }
-        .button-small {
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-        }
-        .button-primary { background-color: #3498db; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2); }
-        .button-secondary { background-color: #2ecc71; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2); }
-        .button-danger { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
-        .button-info { background-color: #9b59b6; box-shadow: 0 4px 10px rgba(155, 89, 182, 0.2); }
-        .button-teal { background-color: #1abc9c; box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2); }
-        .button-gray { background-color: #95a5a6; box-shadow: 0 4px 10px rgba(149, 165, 166, 0.2); }
-        .button-ai { background: linear-gradient(45deg, #f3ec78, #af4261); box-shadow: 0 4px 10px rgba(175, 66, 97, 0.3); }
-        .published-list {
-            background-color: #ffffff; /* Keep background for list container card */
-            border: 1px solid #e0e0e0;
-            border-radius: 1rem;
-            padding: 1.5rem; /* Reduced padding for more space */
-            margin-top: 2.5rem;
-            text-align: right;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        /* Specific rule to remove background from published exams list container */
-        #published-exams-list-container {
-            background-color: transparent;
-            border: none;
-            box-shadow: none;
-            padding: 0; /* Remove padding as well to make it truly transparent */
-        }
-        .published-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px dashed #e9ecef;
-            font-size: 1.05rem;
-            color: #34495e;
-        }
-        .published-item:last-child { border-bottom: none; }
-        .published-item .remove-button { margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 0.5rem; }
-        #image-preview-container {
-            display: flex; flex-wrap: wrap; gap: 15px; margin-top: 1.5rem; justify-content: center;
-            padding: 1rem; border: 1px dashed #ced4da; border-radius: 0.75rem; min-height: 120px; align-items: center;
-            background-color: #ffffff; /* Keep background for this card-like element */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .image-thumbnail { width: 110px; height: 110px; object-fit: contain; border: 1px solid #d1d5db; border-radius: 0.6rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .loading-spinner {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 1.5rem auto;
-            display: none;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Navigation Bar Styling */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #fafafa; /* Lighter background for nav */
-            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
-            padding: 0.5rem 1rem;
-            z-index: 999;
-            border-top: 1px solid #e0e0e0;
+        .main-content {
+            flex-grow: 1;
+            margin-right: 20px;
+            max-width: 1150px;
         }
         .nav-item {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #95a5a6;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
+            padding: 1rem;
             border-radius: 0.75rem;
-            transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .nav-item.active {
-            color: #3498db;
+        .nav-item:hover, .nav-item.active {
+            background-color: #e2e8f0;
+            color: #3b82f6;
         }
-        /* New style for the content wrapper */
-        #content-wrapper {
-            flex-grow: 1; /* Allow content wrapper to grow */
-            display: flex; /* Make it a flex container */
-            flex-direction: column; /* Column direction */
-            overflow: hidden; /* Hide overflow of children, they will scroll individually */
+        .nav-item i {
+            margin-left: 1rem;
         }
-
-        /* Style for main content sections */
-        .main-content-section {
+        .nav-item.active .nav-icon {
+            color: #3b82f6;
+        }
+        .section-content {
             display: none;
-            flex-grow: 1; /* Allow each section to grow to fill content-wrapper */
-            overflow-y: auto; /* Make each section independently scrollable */
-            padding-bottom: 2rem; /* Add some padding at the bottom for better scrolling experience */
-        }
-        .main-content-section.active {
-            display: flex; /* Use flex to make it fill the height */
-            flex-direction: column; /* Content inside section flows as column */
-        }
-        .content-padding {
-            padding: 0 1.5rem; /* Increased padding for better mobile spacing */
-        }
-        /* New card styles for reviews and exams */
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-            text-align: right;
-        }
-        .review-card, .exam-card, .supervisor-card { /* Added .supervisor-card */
-            background-color: #ffffff; /* Keep background for cards */
-            border: 1px solid #e0e0e0;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            cursor: pointer;
-            /* Removed hover effects for review-card and exam-card */
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            position: relative;
-        }
-        /* Removed :hover rule for review-card and exam-card */
-        /* .review-card:hover, .exam-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        } */
-        .review-card h4, .exam-card h4, .supervisor-card h4 { /* Added .supervisor-card h4 */
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: #3498db;
-        }
-        .review-card p, .exam-card p, .supervisor-card p { /* Added .supervisor-card p */
-            margin-bottom: 1rem;
-            color: #555;
-        }
-        /* Custom CSS to hide number input arrows */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-        .delete-card-button {
-            position: absolute;
-            top: 0.5rem;
-            left: 0.5rem;
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            /* Removed hover effect for delete-card-button */
-            transition: background-color 0.2s ease;
-            opacity: 0.8;
-        }
-        /* Removed :hover rule for delete-card-button */
-        /* .delete-card-button:hover {
-            background-color: #c0392b;
-            opacity: 1;
-        } */
-        
-        /* Updated styles for the exam form and individual question blocks */
-        .exam-form-card {
-            background-color: transparent;
-            border: none;
-            border-radius: 1.25rem;
-            padding: 0;
-            margin-top: 2.5rem;
-            box-shadow: none;
-            text-align: right;
-        }
-        /* Styling the individual question blocks as cards */
-        .question-block {
             background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 2rem; /* Increased border-radius for more rounded corners */
-            padding: 3.5rem 1.5rem 1.5rem 1.5rem; /* Increased top padding to make space for buttons */
-            margin: 1.5rem 0.25rem; /* Adjusted margin to increase width */
-            position: relative;
-            /* Removed hover effect for question-block */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Added subtle shadow */
-            transition: box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 1.25rem;
+            padding: 2rem;
         }
-        /* Removed :hover rule for question-block */
-        /* .question-block:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        } */
-        /* Remove the old border from the main container */
-        #questions-container {
-            border-bottom: none;
+        .section-content.active {
+            display: block;
         }
-        .question-block .options-container {
-            margin-top: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+        .card {
+            background-color: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
         }
-        .option-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .option-input {
-            width: 100%;
-        }
-        .question-actions { /* New container for action buttons */
-            position: absolute;
-            top: 0.75rem;
-            left: 0.75rem;
-            right: 0.75rem;
+        .published-item {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
             display: flex;
             justify-content: space-between;
-            z-index: 10;
-        }
-        .remove-question-button {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            opacity: 0.8;
-            padding: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        /* Removed :hover rule for remove-question-button */
-        /* .remove-question-button:hover {
-            background-color: #c0392b;
-            opacity: 1;
-        } */
-        /* Styling for the floating message box */
+        .button-primary {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-primary:hover {
+            background-color: #2563eb;
+        }
+        .button-danger {
+            background-color: #ef4444;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-danger:hover {
+            background-color: #dc2626;
+        }
+        .list-placeholder {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+            background-color: #f3f4f6;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        /* Message Box Styling */
         .message-box {
             position: fixed;
-            top: 1rem;
-            right: 1rem;
-            left: auto;
-            transform: none;
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            font-weight: 600;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.3s ease-in-out;
-            text-align: center;
-            display: none; /* Initially hidden */
-            min-width: 300px;
+            opacity: 0;
+            visibility: hidden;
         }
-        .message-box.success {
-            background-color: #2ecc71;
-            color: white;
+        .message-box.success { background-color: #10b981; }
+        .message-box.error { background-color: #ef4444; }
+        .message-box.visible {
+            opacity: 1;
+            visibility: visible;
+            top: 40px;
         }
-        .message-box.error {
-            background-color: #e74c3c;
-            color: white;
-        }
-        /* New styles for drag and drop area */
-        .drag-drop-area {
-            border: 2px dashed #95a5a6;
-            border-radius: 1rem;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        /* Removed :hover and .drag-over hover effects for drag-drop-area */
-        /* .drag-drop-area:hover, .drag-drop-area.drag-over {
-            background-color: #ecf0f1;
-        } */
-        /* Updated styles for the "difficult" button */
-        .difficult-button {
-            background: transparent;
-            border: none;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            padding: 0;
-            filter: grayscale(100%); /* Grayscale when inactive */
-        }
-        /* Removed :hover rule for difficult-button */
-        /* .difficult-button:hover {
-            transform: scale(1.1);
-        } */
-        .difficult-button.active {
-            filter: grayscale(0%); /* Remove grayscale when active */
-        }
-        .difficult-button svg {
-            width: 30px;
-            height: 30px;
-            pointer-events: none;
-        }
-        /* Adjustments for question block header */
-        .question-block-header {
-            display: flex;
-            flex-direction: column; /* Stack elements */
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-        /* Removed margin-top from textarea as it's now inside its own form-group */
-        /* .question-block .form-group textarea {
-            margin-top: 2rem;
-        } */
 
-        /* Progress Bar Styling */
-        .progress-container {
+        /* Modal for Confirmation */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 0.5rem;
-            margin-top: 1.5rem;
-            overflow: hidden;
-            height: 20px;
-            display: none; /* Hidden by default */
-        }
-        .progress-bar {
             height: 100%;
-            width: 0%;
-            background-color: #3498db;
-            border-radius: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
             text-align: center;
-            color: white;
-            font-weight: bold;
-            line-height: 20px; /* Center text vertically */
-            transition: width 0.1s ease-out; /* Smooth animation for width changes */
+            width: 90%;
+            max-width: 400px;
         }
     </style>
 </head>
-<body>
-    <!-- The main container for the admin panel -->
-    <div class="container">
-        <!-- Main title and sign-out button -->
-        <div class="flex justify-between items-center mb-6 content-padding">
-            <h1 class="text-3xl font-bold text-center flex-grow">لوحة تحكم الإدارة</h1>
-        </div>
+<body class="flex flex-col md:flex-row p-4 min-h-screen bg-gray-100 text-gray-800">
 
-        <!-- New wrapper for main content sections -->
-        <div id="content-wrapper" class="flex-grow flex flex-col">
-            <!-- Exams Management Section -->
-            <div id="exam-section" class="main-content-section active">
-                <h2 class="text-2xl font-bold mb-4 content-padding">إدارة الامتحانات</h2>
-                <div id="exam-creation-buttons" class="mb-6 flex justify-center gap-4 content-padding">
-                    <button id="add-exam-button" class="button-info"><i class="fas fa-plus-circle"></i> إضافة امتحان جديد (يدوي)</button>
-                    <button id="upload-exam-images-button" class="button-teal"><i class="fas fa-upload"></i> رفع الامتحان بالصور</button>
-                    <!-- This input is now handled by the button click and drag-drop -->
-                    <input type="file" id="image-upload-input" accept="image/*" multiple class="hidden">
-                </div>
-                
-                <!-- Exam Form and Image Upload Sections (Initially hidden) -->
-                <div id="exam-forms-container">
-                    <div id="image-upload-controls" class="hidden published-list content-padding">
-                        <div id="drag-drop-area" class="drag-drop-area cursor-pointer">
-                            <i class="fas fa-image fa-3x text-gray-400 mb-3"></i>
-                            <p class="text-gray-600 font-bold text-lg">اسحب الصور هنا أو انقر للتحميل</p>
-                            <p class="text-gray-500 text-sm mt-1">يمكنك رفع عدة صور في نفس الوقت.</p>
-                        </div>
-                        <div id="image-preview-container" class="mt-4">
-                            <!-- Image thumbnails will be inserted here dynamically -->
-                        </div>
-                        <button id="generate-questions-button" class="button-primary mt-4"><i class="fas fa-magic"></i> استخراج الأسئلة</button>
-                        
-                        <div id="image-processing-spinner" class="loading-spinner"></div>
-                        <p id="image-processing-message" class="text-gray-600 text-sm mt-2 hidden">جاري معالجة الصور واستخراج الأسئلة...</p>
-                        <button id="cancel-upload-button" class="button-gray mt-4"><i class="fas fa-times-circle"></i> إلغاء</button>
-                    </div>
-
-                    <div id="exam-form-section" class="hidden text-right exam-form-card">
-                        <h3 class="text-xl font-bold mb-4">تفاصيل الامتحان الجديد</h3>
-                        <div class="form-group">
-                            <label for="exam-name">اسم الامتحان:</label>
-                            <input type="text" id="exam-name" class="w-full" placeholder="مثال: امتحان اللغة العربية - الفصل الأول">
-                        </div>
-                        <div class="form-group">
-                            <label for="exam-duration">المدة بالدقائق:</label>
-                            <input type="number" id="exam-duration" class="w-full" placeholder="مثال: 60">
-                        </div>
-                        <div class="form-group">
-                            <label for="default-points">النقاط الافتراضية لكل سؤال:</label>
-                            <input type="number" id="default-points" class="w-full" value="10" placeholder="مثال: 10">
-                        </div>
-                        
-                        <hr class="my-6 border-gray-200">
-                        <h3 class="text-xl font-bold mb-4">الأسئلة</h3>
-                        <!-- Progress Bar for Question Extraction - NEW LOCATION -->
-                        <div id="progress-container" class="progress-container">
-                            <div id="progress-bar" class="progress-bar">0%</div>
-                        </div>
-                        <div id="questions-container" class="space-y-4"></div>
-                        <button id="add-question-button" class="button-secondary mt-4"><i class="fas fa-question-circle"></i> إضافة سؤال</button>
-                        <div class="flex justify-end gap-4 mt-6">
-                            <button id="publish-exam-button" class="button-primary"><i class="fas fa-paper-plane"></i> نشر الامتحان</button>
-                            <button id="cancel-exam-button" class="button-gray"><i class="fas fa-times-circle"></i> إلغاء</button>
-                        </div>
-                    </div>
-                </div>
-                <!-- List of Published Exams -->
-                <div class="published-list content-padding" id="published-exams-list-container">
-                    <h3 class="text-xl font-bold mb-4">الامتحانات المنشورة</h3>
-                    <p id="exams-placeholder" class="text-gray-600">لا توجد امتحانات منشورة بعد.</p>
-                    <div id="published-exams-cards" class="card-container hidden">
-                        <!-- Exam cards will be inserted here dynamically -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reviews Section -->
-            <div id="reviews-section" class="main-content-section content-padding">
-                <h2 class="text-2xl font-bold mb-4">أهلا في التقييمات</h2>
-                <p id="reviews-placeholder" class="text-gray-600">هنا سيتم عرض التقييمات.</p>
-                
-                <!-- زرار اضافة تقييم -->
-                <div class="flex justify-center">
-                    <button id="add-review-button" class="button-secondary mt-4"><i class="fas fa-comment-dots"></i> إضافة تقييم</button>
-                </div>
-                
-                <!-- قسم اختيار المادة، مخفي افتراضياً -->
-                <div id="subject-selection-container" class="published-list mt-6 hidden">
-                    <h3 class="text-xl font-bold mb-4">اختر المادة:</h3>
-                    <div class="flex flex-wrap justify-center gap-4">
-                        <button class="subject-button button-teal" data-subject="عربي">عربي</button>
-                        <button class="subject-button button-teal" data-subject="انجليزي">انجليزي</button>
-                        <button class="subject-button button-teal" data-subject="فيزيا">فيزيا</button>
-                        <button class="subject-button button-teal" data-subject="كيميا">كيميا</button>
-                    </div>
-                </div>
-
-                <!-- قسم إدخال رقم الأسبوع، مخفي افتراضياً -->
-                <div id="review-week-container" class="published-list mt-6 hidden">
-                    <h3 id="review-week-title" class="text-xl font-bold mb-4">أدخل رقم الأسبوع لمادة ...</h3>
-                    <div class="form-group">
-                        <label for="review-week-number">رقم الأسبوع:</label>
-                        <input type="number" id="review-week-number" placeholder="أدخل رقم الأسبوع هنا">
-                    </div>
-                    <div class="flex justify-center gap-4 mt-6">
-                        <button id="confirm-week-button" class="button-primary"><i class="fas fa-check-circle"></i> تأكيد</button>
-                        <button id="cancel-week-button" class="button-gray"><i class="fas fa-times-circle"></i> إلغاء</button>
-                    </div>
-                </div>
-
-                <!-- نموذج إضافة تقييم، مخفي افتراضياً -->
-                <div id="review-form-container" class="published-list mt-6 hidden">
-                    <h3 class="text-xl font-bold mb-4">أدخل تفاصيل التقييم</h3>
-                    <div class="form-group">
-                        <label for="review-text">النص الذي يظهر:</label>
-                        <input type="text" id="review-text" placeholder="يتم إنشاء النص تلقائياً..." readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="review-link">الرابط:</label>
-                        <input type="text" id="review-link" placeholder="أدخل الرابط هنا">
-                    </div>
-                    <div class="flex justify-center gap-4 mt-6">
-                        <button id="save-review-button" class="button-primary"><i class="fas fa-save"></i> حفظ التقييم</button>
-                        <button id="cancel-review-button" class="button-gray"><i class="fas fa-times-circle"></i> إلغاء</button>
-                    </div>
-                </div>
-                
-                <hr id="reviews-hr" class="my-6 border-gray-200 hidden">
-
-                <!-- قسم عرض التقييمات، مخفي افتراضياً حتى تتم الإضافة -->
-                <div id="reviews-list-container" class="card-container hidden">
-                    <!-- سيتم إضافة كروت التقييمات هنا ديناميكياً -->
-                </div>
-            </div>
-            
-            <!-- Store Section -->
-            <div id="store-section" class="main-content-section content-padding">
-                <h2 class="text-2xl font-bold mb-4">أهلاً في المتجر</h2>
-                <p class="text-gray-600">هذه صفحة المتجر، يمكنك إضافة المحتوى هنا.</p>
-            </div>
-            
-            <!-- Supervisors Management Section -->
-            <div id="supervisors-section" class="main-content-section content-padding">
-                <h2 class="text-2xl font-bold mb-4">إدارة المشرفين</h2>
-                <div class="published-list">
-                    <div class="flex flex-col items-stretch gap-2 mb-4">
-                        <div class="form-group flex-grow mb-0">
-                            <label for="supervisor-name">اسم المشرف:</label>
-                            <input type="text" id="supervisor-name" class="w-full" placeholder="اسم المشرف">
-                        </div>
-                        <div class="form-group flex-grow mb-0">
-                            <label for="supervisor-uid">UID:</label>
-                            <input type="text" id="supervisor-uid" class="w-full" placeholder="أدخل الـ UID هنا">
-                        </div>
-                        <button id="add-supervisor-button" class="button-secondary self-end"><i class="fas fa-plus"></i> إضافة مشرف</button>
-                    </div>
-                    <hr class="my-4 border-gray-200">
-                    <h3 class="text-xl font-bold mb-4">قائمة المشرفين الحاليين</h3>
-                    <p id="supervisors-placeholder" class="text-gray-600">لا توجد مشرفون مضافون بعد.</p>
-                    <div id="supervisors-list" class="card-container">
-                        <!-- Supervisor cards will be added dynamically -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> <!-- .container -->
-
-    <!-- Floating message box for notifications -->
-    <div id="message-box" class="message-box"></div>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav" id="main-nav">
-        <div class="nav-item active" id="nav-exams" data-section="exam-section">
-            <i class="fas fa-clipboard-list"></i>
-            <span>الامتحانات</span>
-        </div>
-        <div class="nav-item" id="nav-reviews" data-section="reviews-section">
-            <i class="fas fa-star"></i>
-            <span>التقييمات</span>
-        </div>
-        <div class="nav-item" id="nav-store" data-section="store-section">
-            <i class="fas fa-store"></i>
-            <span>المتجر</span>
-        </div>
-        <div class="nav-item" id="nav-supervisors" data-section="supervisors-section">
-            <i class="fas fa-users-cog"></i>
-            <span>المشرفون</span>
-        </div>
-    </nav>
-    
+    <!-- Firebase Configuration Variables -->
+    <!-- The following variables are provided by the canvas environment -->
     <script>
-        // Main UI elements
-        const navItems = document.querySelectorAll('.nav-item');
-        const contentSections = document.querySelectorAll('.main-content-section');
-        const messageBox = document.getElementById('message-box');
-        
-        // Review section elements
-        const addReviewButton = document.getElementById('add-review-button');
-        const subjectSelectionContainer = document.getElementById('subject-selection-container');
-        const subjectButtons = document.querySelectorAll('.subject-button');
-        const reviewWeekContainer = document.getElementById('review-week-container');
-        const reviewWeekTitle = document.getElementById('review-week-title');
-        const reviewWeekNumberInput = document.getElementById('review-week-number');
-        const confirmWeekButton = document.getElementById('confirm-week-button');
-        const cancelWeekButton = document.getElementById('cancel-week-button');
-        const reviewFormContainer = document.getElementById('review-form-container');
-        const reviewText = document.getElementById('review-text');
-        const reviewLink = document.getElementById('review-link');
-        const saveReviewButton = document.getElementById('save-review-button');
-        const cancelReviewButton = document.getElementById('cancel-review-button');
-        const reviewsListContainer = document.getElementById('reviews-list-container');
-        const reviewsPlaceholder = document.getElementById('reviews-placeholder');
-        const reviewsHr = document.getElementById('reviews-hr');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    </script>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Exam section elements
-        const addExamButton = document.getElementById('add-exam-button');
-        const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
-        const examCreationButtons = document.getElementById('exam-creation-buttons');
-        const examFormSection = document.getElementById('exam-form-section');
-        const imageUploadControls = document.getElementById('image-upload-controls');
-        const cancelExamButton = document.getElementById('cancel-exam-button');
-        const publishExamButton = document.getElementById('publish-exam-button');
-        const questionsContainer = document.getElementById('questions-container');
-        const addQuestionButton = document.getElementById('add-question-button');
-        const examNameInput = document.getElementById('exam-name');
-        const examDurationInput = document.getElementById('exam-duration');
-        const defaultPointsInput = document.getElementById('default-points');
-        const publishedExamsCards = document.getElementById('published-exams-cards');
-        const examsPlaceholder = document.getElementById('exams-placeholder');
+        // Firebase Initialization
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        // Image upload elements
-        const imageUploadInput = document.getElementById('image-upload-input');
-        const dragDropArea = document.getElementById('drag-drop-area');
-        const imagePreviewContainer = document = document.getElementById('image-preview-container');
-        const generateQuestionsButton = document.getElementById('generate-questions-button');
-        const cancelUploadButton = document.getElementById('cancel-upload-button');
-        const imageProcessingSpinner = document.getElementById('image-processing-spinner');
-        const imageProcessingMessage = document.getElementById('image-processing-message');
-        const progressBarContainer = document.getElementById('progress-container');
-        const progressBar = document.getElementById('progress-bar');
+        const authorizedUid = 's8DYGc2HDNQG2oZu0uFByjTRxA12';
+        let userId = null;
 
-        // Supervisors section elements
-        const supervisorNameInput = document.getElementById('supervisor-name');
-        const supervisorUidInput = document.getElementById('supervisor-uid'); // Changed from supervisorPasswordInput
-        const addSupervisorButton = document.getElementById('add-supervisor-button');
+        const loginScreen = document.getElementById('login-screen');
+        const dashboard = document.getElementById('dashboard');
+        const authMessage = document.getElementById('auth-message');
+        const examsList = document.getElementById('exams-list');
+        const reviewsList = document.getElementById('reviews-list');
         const supervisorsList = document.getElementById('supervisors-list');
+
+        const examsPlaceholder = document.getElementById('exams-placeholder');
+        const reviewsPlaceholder = document.getElementById('reviews-placeholder');
         const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
-
-        let selectedSubject = ''; 
-        let selectedWeekNumber = ''; 
-        let allUploadedImagesBase64 = []; // Array to store all images
-        let progressInterval;
-
-        // Function to show a floating message
-        const showMessage = (message, isSuccess = true) => {
+        
+        // Show a message in a custom modal
+        function showMessage(message, isSuccess) {
+            const messageBox = document.createElement('div');
+            messageBox.className = `message-box ${isSuccess ? 'success' : 'error'}`;
             messageBox.textContent = message;
-            messageBox.className = 'message-box'; // Reset classes
-            if (isSuccess) {
-                messageBox.classList.add('success');
-            } else {
-                messageBox.classList.add('error');
-            }
-            messageBox.style.display = 'block';
+            document.body.appendChild(messageBox);
+
             setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, 5000); // Hide after 5 seconds
-        };
+                messageBox.classList.add('visible');
+            }, 10);
 
-        // Function to switch between sections
-        const showSection = (sectionId) => {
-            contentSections.forEach(section => {
-                section.classList.remove('active');
-                // Reset scroll position for previously active sections (optional but good practice)
-                section.scrollTop = 0;
+            setTimeout(() => {
+                messageBox.classList.remove('visible');
+                setTimeout(() => {
+                    messageBox.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Display confirmation modal
+        function showConfirmationModal(message, onConfirm) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.style.display = 'flex';
+            
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
+                    <p class="mb-4 text-lg font-semibold">${message}</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="confirm-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">تأكيد</button>
+                        <button id="cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition">إلغاء</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('confirm-btn').addEventListener('click', () => {
+                onConfirm();
+                modalOverlay.remove();
             });
-            const activeSection = document.getElementById(sectionId);
-            activeSection.classList.add('active');
-            // Scroll the newly active section to the top
-            activeSection.scrollTop = 0;
 
-            navItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.section === sectionId) {
-                    item.classList.add('active');
+            document.getElementById('cancel-btn').addEventListener('click', () => {
+                modalOverlay.remove();
+            });
+        }
+
+        // Google Sign-in function
+        async function signInWithGoogle() {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Error during Google sign-in:", error);
+                showMessage('فشل تسجيل الدخول باستخدام جوجل. الرجاء المحاولة مرة أخرى.', false);
+            }
+        }
+
+        // Sign-out function
+        async function handleSignOut() {
+            try {
+                await signOut(auth);
+                // The onAuthStateChanged listener will handle UI changes
+            } catch (error) {
+                console.error("Error during sign-out:", error);
+                showMessage('فشل تسجيل الخروج.', false);
+            }
+        }
+
+        // Authentication state listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                if (userId === authorizedUid) {
+                    loginScreen.classList.add('hidden');
+                    dashboard.classList.remove('hidden');
+                    console.log("Authorized user logged in:", userId);
+                    // Start listening to Firestore data once authenticated
+                    listenToPublishedExams();
+                    listenToReviews();
+                } else {
+                    loginScreen.classList.remove('hidden');
+                    dashboard.classList.add('hidden');
+                    authMessage.innerHTML = 'معرف المستخدم غير مصرح له. <br> معرف المستخدم الخاص بك هو: ' + userId;
+                    document.getElementById('sign-out-btn').classList.remove('hidden');
+                    console.warn("Unauthorized user attempted login:", userId);
+                    await handleSignOut(); // Sign out unauthorized users immediately
+                }
+            } else {
+                userId = null;
+                loginScreen.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+                authMessage.textContent = 'الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.';
+                document.getElementById('sign-out-btn').classList.add('hidden');
+                console.log("No user is logged in.");
+            }
+        });
+        
+        // This is a special custom auth token for canvas.
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken).catch(error => {
+                console.error("Error signing in with custom token:", error);
+            });
+        }
+
+        // --- Firestore Listeners and Functions ---
+        
+        // Function to listen for real-time updates to published exams
+        function listenToPublishedExams() {
+            const publicExamsColRef = collection(db, `artifacts/${appId}/public/data/publishedExams`);
+            onSnapshot(publicExamsColRef, (snapshot) => {
+                examsList.innerHTML = '';
+                if (snapshot.empty) {
+                    examsPlaceholder.classList.remove('hidden');
+                } else {
+                    examsPlaceholder.classList.add('hidden');
+                    snapshot.forEach(doc => {
+                        const exam = doc.data();
+                        const examItem = document.createElement('div');
+                        examItem.className = 'published-item';
+                        examItem.innerHTML = `
+                            <span>${exam.title} - ${exam.subject}</span>
+                            <button class="button-danger remove-button" data-id="${doc.id}"><i class="fas fa-trash-alt"></i> إزالة</button>
+                        `;
+                        examItem.querySelector('.remove-button').addEventListener('click', () => {
+                            showConfirmationModal('هل أنت متأكد أنك تريد حذف هذا الامتحان؟', () => deleteItem('publishedExams', doc.id));
+                        });
+                        examsList.appendChild(examItem);
+                    });
                 }
             });
-        };
+        }
+
+        // Function to listen for real-time updates to reviews
+        function listenToReviews() {
+            const publicReviewsColRef = collection(db, `artifacts/${appId}/public/data/publishedReviews`);
+            onSnapshot(publicReviewsColRef, (snapshot) => {
+                reviewsList.innerHTML = '';
+                if (snapshot.empty) {
+                    reviewsPlaceholder.classList.remove('hidden');
+                } else {
+                    reviewsPlaceholder.classList.add('hidden');
+                    snapshot.forEach(doc => {
+                        const review = doc.data();
+                        const reviewItem = document.createElement('div');
+                        reviewItem.className = 'published-item';
+                        reviewItem.innerHTML = `
+                            <span>"${review.text}" - ${review.author}</span>
+                            <button class="button-danger remove-button" data-id="${doc.id}"><i class="fas fa-trash-alt"></i> إزالة</button>
+                        `;
+                        reviewItem.querySelector('.remove-button').addEventListener('click', () => {
+                             showConfirmationModal('هل أنت متأكد أنك تريد حذف هذا التقييم؟', () => deleteItem('publishedReviews', doc.id));
+                        });
+                        reviewsList.appendChild(reviewItem);
+                    });
+                }
+            });
+        }
+
+        // Function to add a document to a collection
+        async function addItem(collectionName, data) {
+            try {
+                const colRef = collection(db, `artifacts/${appId}/public/data/${collectionName}`);
+                await addDoc(colRef, data);
+                showMessage('تمت إضافة العنصر بنجاح.', true);
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage('فشل إضافة العنصر. الرجاء المحاولة مرة أخرى.', false);
+            }
+        }
         
-        // Add event listeners for navigation bar
+        // Function to delete a document from a collection
+        async function deleteItem(collectionName, docId) {
+            try {
+                const docRef = doc(db, `artifacts/${appId}/public/data/${collectionName}`, docId);
+                await deleteDoc(docRef);
+                showMessage('تم حذف العنصر بنجاح.', true);
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+                showMessage('فشل حذف العنصر. الرجاء المحاولة مرة أخرى.', false);
+            }
+        }
+
+
+        // --- Event Listeners and UI Logic ---
+
+        // Handle navigation clicks
+        const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', () => {
-                const sectionId = item.dataset.section;
-                showSection(sectionId);
+                // Remove active class from all items
+                navItems.forEach(nav => nav.classList.remove('active'));
+                // Add active class to the clicked item
+                item.classList.add('active');
+                
+                // Get the target section from data-target attribute
+                const targetId = item.getAttribute('data-target');
+                showSection(targetId);
             });
         });
 
-        // ======================
-        // Reviews Section Logic
-        // ======================
-
-        // Check if there are reviews and update UI
-        const checkReviewsList = () => {
-            if (reviewsListContainer.children.length === 0) {
-                reviewsPlaceholder.classList.remove('hidden');
-                reviewsListContainer.classList.add('hidden');
-                reviewsHr.classList.add('hidden');
-            } else {
-                reviewsPlaceholder.classList.add('hidden');
-                reviewsListContainer.classList.remove('hidden');
-                reviewsHr.classList.remove('hidden');
-            }
-        };
-
-        // Event listener for "Add Review" button
-        addReviewButton.addEventListener('click', () => {
-            addReviewButton.classList.add('hidden');
-            reviewsPlaceholder.classList.add('hidden');
-            subjectSelectionContainer.classList.remove('hidden');
-        });
-
-        // Event listeners for subject buttons
-        subjectButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                selectedSubject = button.dataset.subject;
-                subjectSelectionContainer.classList.add('hidden');
-                reviewWeekTitle.textContent = `أدخل رقم الأسبوع لمادة ${selectedSubject}`;
-                reviewWeekContainer.classList.remove('hidden');
-                reviewWeekNumberInput.focus();
-            });
-        });
-
-        // Event listener for "Confirm Week" button
-        confirmWeekButton.addEventListener('click', () => {
-            const weekNumber = reviewWeekNumberInput.value.trim();
-            if (weekNumber === '') {
-                showMessage('الرجاء إدخال رقم الأسبوع.', false);
-                return;
-            }
-            selectedWeekNumber = weekNumber;
-            reviewWeekContainer.classList.add('hidden');
-            reviewFormContainer.classList.remove('hidden');
-            reviewText.value = `تقييم ${selectedSubject} الأسبوع ${selectedWeekNumber}`;
-        });
-        
-        // Event listener for "Cancel Week" button
-        cancelWeekButton.addEventListener('click', () => {
-            reviewWeekContainer.classList.add('hidden');
-            subjectSelectionContainer.classList.remove('hidden');
-            reviewWeekNumberInput.value = '';
-            selectedSubject = '';
-            selectedWeekNumber = '';
-        });
-
-        // Event listener for "Save Review" button
-        saveReviewButton.addEventListener('click', () => {
-            const text = reviewText.value.trim();
-            const link = reviewLink.value.trim();
-
-            if (text === '' || link === '') {
-                showMessage('الرجاء تعبئة جميع الحقول.', false);
-                return;
-            }
-
-            const reviewCard = document.createElement('div');
-            reviewCard.className = 'review-card';
-            reviewCard.innerHTML = `
-                <h4>${text}</h4>
-                <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
-            `;
-            
-            reviewCard.addEventListener('click', (e) => {
-                if (!e.target.closest('.delete-card-button')) {
-                    window.open(link, '_blank');
-                }
-            });
-
-            reviewCard.querySelector('.delete-card-button').addEventListener('click', () => {
-                reviewCard.remove();
-                checkReviewsList();
-                showMessage('تم حذف التقييم بنجاح.', true);
-            });
-
-            reviewsListContainer.appendChild(reviewCard);
-            reviewsHr.classList.remove('hidden');
-            reviewsListContainer.classList.remove('hidden');
-            
-            reviewWeekNumberInput.value = '';
-            reviewText.value = '';
-            reviewLink.value = '';
-            selectedSubject = '';
-            selectedWeekNumber = '';
-            reviewFormContainer.classList.add('hidden');
-            addReviewButton.classList.remove('hidden');
-            checkReviewsList();
-            showMessage('تم حفظ التقييم بنجاح.', true);
-        });
-
-        // Event listener for "Cancel Review" button
-        cancelReviewButton.addEventListener('click', () => {
-            reviewFormContainer.classList.add('hidden');
-            addReviewButton.classList.remove('hidden');
-            checkReviewsList();
-            reviewWeekNumberInput.value = '';
-            reviewText.value = '';
-            reviewLink.value = '';
-            selectedSubject = '';
-            selectedWeekNumber = '';
-        });
-
-        // ======================
-        // Exams Section Logic
-        // ======================
-
-        // Function to create a new question element
-        const createQuestionElement = () => {
-            const questionIndex = questionsContainer.children.length + 1;
-            const defaultPoints = defaultPointsInput.value || 10;
-            const questionBlock = document.createElement('div');
-            questionBlock.className = 'question-block';
-            questionBlock.innerHTML = `
-                <div class="question-actions"> <!-- New container for action buttons -->
-                    <button class="difficult-button" title="سؤال صعب" data-is-difficult="false">
-                        <svg width="800px" height="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet">
-                            <ellipse cx="64" cy="116.87" rx="12.09" ry="7.13" fill="#424242"></ellipse>
-                            <path d="M64 4C42.92 4 25.82 19.67 25.82 38.99c0 5.04 1.52 10.43 3.75 15.18c3.13 6.68 6.54 11.62 7.54 13.44c2.78 5.06 2.38 10.39 3.15 13.73c1.45 6.24 5.79 8.5 23.73 8.5s21.8-2.15 23.41-7.9c1.1-3.91.03-8.18 2.8-13.23c1-1.82 5.07-7.85 8.21-14.54c2.23-4.75 3.75-10.14 3.75-15.18C102.18 19.67 85.08 4 64 4z" fill="#ffd600"></path>
-                            <ellipse cx="64" cy="86.13" rx="21.94" ry="4.46" fill="#b26500"></ellipse>
-                            <ellipse cx="64" cy="86.13" rx="21.94" ry="4.46" fill="#b26500"></ellipse>
-                            <ellipse cx="64" cy="86.13" rx="15.99" ry="2.06" fill="#ffa000"></ellipse>
-                            <g fill="none" stroke-width="2" stroke-miterlimit="10">
-                                <path d="M53.3 56.77c-.62 1.56-2.23 4.77-1.39 6.21c1.95 3.35 6.6 4.55 6.6 7.63c0 4.7-3.42 19.93-3.42 19.93" stroke="#b26500"></path>
-                                <path d="M74.03 56.21s2.24 4.8 1.29 6.95c-.71 1.6-4.98 4.18-5.53 4.61c-2.55 2 .84 22.78.84 22.78" stroke="#b26500"></path>
-                                <path d="M53.3 56.77c3.44-6.8 5.21-22.32.84-21.53c-7.37 1.33 1.71 26.83 6.18 23.9s10.01-23.85 3.21-23.93c-6.8-.08.46 26.66 5.08 23.69c3.65-2.35 12.56-23.66 5.24-23.66c-6.23 0 .19 20.97.19 20.97" stroke="#ffffff"></path>
-                            </g>
-                            <path d="M85.89 87.06S80.13 89.84 64 89.84s-21.89-2.78-21.89-2.78s-.36 5.14.83 7.47c1.43 2.8 2.53 3.77 2.53 3.77l.6 2.85l-.24.75c-.31.98-.09 2.06.6 2.83l.52.58l.58 2.74l-.2.55c-.38 1.05-.12 2.22.66 3.02l.38.39l.47 2.24s2.38 5.08 15.16 5.08s15.16-5.08 15.16-5.08l.04-.19l.26-.26c.52-.51.69-1.27.44-1.95l-.15-.39l.62-2.96l1.09-1.15c.54-.57.66-1.41.31-2.11l-.5-.99l.63-2.97l.4-.31c.59-.65.6-1.63.34-2.3c-.2-.53-.04-1.13.37-1.52c.63-.6 1.44-1.51 2.04-2.64c1.23-2.29.84-7.45.84-7.45z" fill="#82aec0"></path>
-                            <path d="M45.47 98.3l.54 2.87c5.82-.03 13.59.26 28.5-2.11c2.69-.61 5.92-1.82 2.35-1.32c0-.01-13.69 1.3-31.39.56z" fill="#2f7889"></path>
-                            <path d="M47.47 108.07c6.44-.11 19.6-.75 33.74-3.82l.63-2.97c-14.79 3.36-28.7 3.96-34.95 4.04l.58 2.75z" fill="#2f7889"></path>
-                            <path d="M80.31 108.49c-13.09 2.84-25.34 3.57-31.97 3.73l.43 2.04s.21 6.33 15.16 6.33s15.16-6.33 15.16-6.33s-6.38 1.82-14.23.93a.63.63 0 0 1-.01-1.26c4.69-.62 10.29-1.54 14.84-2.48l.62-2.96z" fill="#2f7889"></path>
-                            <path d="M42.18 87.06s6.46 2.78 21.76 2.78s21.88-2.78 21.88-2.78" fill="none" stroke="#82aec0" stroke-width="3.997" stroke-linecap="round" stroke-miterlimit="10"></path>
-                            <path d="M49.88 10.32c3.91-.96 8-.48 10.8 2.92c.79.96 1.4 2.1 1.54 3.34c.28 2.39-1.2 4.65-2.96 6.31c-5.02 4.74-12.15 7.04-15.39 13.58c-.76 1.53-1.36 3.18-2.52 4.43c-1.16 1.25-3.09 2.01-4.6 1.21c-.8-.42-1.35-1.21-1.8-2c-2.84-5.06-2.63-11.51-.13-16.75c2.75-5.74 8.78-11.5 15.06-13.04z" fill="#ffff8d"></path>
-                            <path d="M46.45 91.93c-.88-.4-.53-1.72.43-1.65c3.22.25 8.7.56 15.95.56c7.64 0 14.36-.57 18.28-.99c.97-.1 1.34 1.23.45 1.64c-3.02 1.42-8.55 3.04-18.03 3.04c-9.25 0-14.35-1.37-17.08-2.6z" fill="#ffd600"></path>
-                            <path d="M51.94 102.03c-.67.24-1.36.57-1.7 1.19c-.12.23-.19.49-.14.75c.08.38.43.65.78.82c.7.34 1.49.43 2.26.44c1.59.02 3.17-.28 4.74-.58c.47-.09.95-.18 1.37-.41c.42-.23.78-.62.85-1.09c.1-.63-.35-1.24-.9-1.54c-1.9-1.05-5.34-.27-7.26.42z" fill="#94d1e0"></path>
-                            <path d="M53.43 108.62c-.67.24-1.36.57-1.7 1.19c-.12.23-.19.49-.14.75c.08.38.43.65.78.82c.7.34 1.49.43 2.26.44c1.59.02 3.17-.28 4.74-.58c.47-.09.95-.18 1.37-.41c.42-.23.78-.62.85-1.09c.1-.63-.35-1.24-.9-1.54c-1.9-1.04-5.35-.26-7.26.42z" fill="#94d1e0"></path>
-                            <path d="M50.01 84.2c.91.09 1.87.01 2.64-.48s1.26-1.49.95-2.35c-.16-.45-.51-.81-.85-1.15c-.75-.74-1.5-1.48-2.24-2.22c-.83-.83-1.66-1.65-2.56-2.4c-1.39-1.16-3.26-2.25-5.09-1.4c-1.56.72-1.93 2.14-1.24 3.63c1.47 3.13 4.89 6.01 8.39 6.37z" fill="#ffff8d"></path>
-                        </svg>
-                    </button>
-                    <button class="remove-question-button" title="إزالة السؤال"><i class="fas fa-trash-alt"></i></button>
-                </div>
-                <div class="form-group mb-4">
-                    <!-- Removed label for question text -->
-                    <textarea id="question-text-${questionIndex}" class="w-full" rows="3" placeholder="اكتب نص السؤال هنا..."></textarea>
-                </div>
-
-                <div class="options-container">
-                    <div class="form-group flex items-center gap-2 option-item">
-                        <input type="radio" name="correct-answer-q${questionIndex}" class="form-radio text-blue-500">
-                        <input type="text" class="option-input" placeholder="خيار 1">
-                    </div>
-                    <div class="form-group flex items-center gap-2 option-item">
-                        <input type="radio" name="correct-answer-q${questionIndex}" class="form-radio text-blue-500">
-                        <input type="text" class="option-input" placeholder="خيار 2">
-                    </div>
-                    <div class="form-group flex items-center gap-2 option-item">
-                        <input type="radio" name="correct-answer-q${questionIndex}" class="form-radio text-blue-500">
-                        <input type="text" class="option-input" placeholder="خيار 3">
-                    </div>
-                    <div class="form-group flex items-center gap-2 option-item">
-                        <input type="radio" name="correct-answer-q${questionIndex}" class="form-radio text-blue-500">
-                        <input type="text" class="option-input" placeholder="خيار 4">
-                    </div>
-                </div>
-                <div class="flex justify-between items-center mt-4">
-                    <button class="button-teal add-option-button button-small"><i class="fas fa-plus"></i> إضافة خيار آخر</button>
-                    <div class="form-group mb-0" style="width: 150px;">
-                        <!-- Removed label for question points -->
-                        <input type="number" id="question-points-${questionIndex}" value="${defaultPoints}" class="w-full" min="0">
-                    </div>
-                </div>
-            `;
-
-            // Add event listener for "Add another option" button
-            questionBlock.querySelector('.add-option-button').addEventListener('click', () => {
-                const optionsContainer = questionBlock.querySelector('.options-container');
-                const newOption = document.createElement('div');
-                newOption.className = 'form-group flex items-center gap-2 option-item';
-                // Ensure unique name for radio buttons across all questions
-                newOption.innerHTML = `
-                    <input type="radio" name="correct-answer-q${questionsContainer.children.length + 1}" class="form-radio text-blue-500">
-                    <input type="text" class="option-input" placeholder="خيار جديد">
-                `;
-                optionsContainer.appendChild(newOption);
-            });
-
-            // Add event listener for remove question button
-            questionBlock.querySelector('.remove-question-button').addEventListener('click', () => {
-                questionBlock.remove();
-                checkPublishedExamsList();
-            });
-
-            // Add event listener for the "difficult" button
-            const difficultButton = questionBlock.querySelector('.difficult-button');
-            difficultButton.addEventListener('click', () => {
-                const isDifficult = difficultButton.dataset.isDifficult === 'true';
-                if (isDifficult) {
-                    difficultButton.dataset.isDifficult = 'false';
-                    difficultButton.classList.remove('active');
-                    showMessage('تم إلغاء تحديد السؤال كسؤال صعب.', true);
+        // Function to show/hide sections
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
                 } else {
-                    difficultButton.dataset.isDifficult = 'true';
-                    difficultButton.classList.add('active');
-                    showMessage('تم تحديد السؤال كسؤال صعب.', true);
+                    section.classList.remove('active');
                 }
             });
-
-            return questionBlock;
-        };
+        }
         
-        // Check if there are published exams and update UI
-        const checkPublishedExamsList = () => {
-            if (publishedExamsCards.children.length === 0) {
-                examsPlaceholder.classList.remove('hidden');
-                publishedExamsCards.classList.add('hidden');
+        // Add Exam button
+        const addExamForm = document.getElementById('add-exam-form');
+        addExamForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('exam-title-input').value.trim();
+            const subject = document.getElementById('exam-subject-input').value.trim();
+            const description = document.getElementById('exam-description-input').value.trim();
+            const link = document.getElementById('exam-link-input').value.trim();
+
+            if (title && subject && description && link) {
+                const examData = { title, subject, description, link, timestamp: Date.now() };
+                addItem('publishedExams', examData);
+
+                // Clear form
+                addExamForm.reset();
             } else {
-                examsPlaceholder.classList.add('hidden');
-                publishedExamsCards.classList.remove('hidden');
+                showMessage('الرجاء تعبئة جميع حقول الامتحان.', false);
             }
-        };
-
-        // Event listener for "Add New Exam (Manual)" button
-        addExamButton.addEventListener('click', () => {
-            examCreationButtons.classList.add('hidden');
-            examFormSection.classList.remove('hidden');
-            questionsContainer.innerHTML = ''; // Clear any previous questions
-            questionsContainer.appendChild(createQuestionElement()); // Add first question automatically
         });
+        
+        // Add Review button
+        const addReviewForm = document.getElementById('add-review-form');
+        addReviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = document.getElementById('review-text-input').value.trim();
+            const author = document.getElementById('review-author-input').value.trim();
+            const rating = document.getElementById('review-rating-input').value;
 
-        // Event listener for "Add Question" button inside the form
-        addQuestionButton.addEventListener('click', () => {
-            questionsContainer.appendChild(createQuestionElement());
+            if (text && author && rating) {
+                const reviewData = { text, author, rating, timestamp: Date.now() };
+                addItem('publishedReviews', reviewData);
+                
+                // Clear form
+                addReviewForm.reset();
+            } else {
+                showMessage('الرجاء تعبئة جميع حقول التقييم.', false);
+            }
         });
+        
+        // Add Supervisor (currently still a mock function)
+        const addSupervisorForm = document.getElementById('add-supervisor-form');
+        addSupervisorForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('supervisor-name-input').value.trim();
+            const password = document.getElementById('supervisor-password-input').value.trim();
 
-        // Event listener for "Publish Exam" button
-        publishExamButton.addEventListener('click', () => {
-            const examName = examNameInput.value.trim();
-            const examDuration = examDurationInput.value.trim();
-            const questions = questionsContainer.querySelectorAll('.question-block');
-
-            if (examName === '' || examDuration === '' || questions.length === 0) {
-                showMessage('الرجاء إدخال اسم الامتحان والمدة وإضافة سؤال واحد على الأقل.', false);
+            if (name === '' || password === '') {
+                showMessage('الرجاء إدخال اسم المشرف وكلمة المرور.', false);
                 return;
             }
-            
-            // Calculate total points
-            let totalPoints = 0;
-            let difficultQuestionsCount = 0;
-            questions.forEach(questionBlock => {
-                const pointsInput = questionBlock.querySelector('input[type="number"]');
-                const isDifficult = questionBlock.querySelector('.difficult-button').dataset.isDifficult === 'true';
-                totalPoints += parseInt(pointsInput.value, 10) || 0;
-                if (isDifficult) {
-                    difficultQuestionsCount++;
-                }
-            });
-            console.log(`عدد الأسئلة الصعبة: ${difficultQuestionsCount}`);
 
-            const examCard = document.createElement('div');
-            examCard.className = 'exam-card';
-            examCard.innerHTML = `
-                <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
-                <h4>${examName}</h4>
-                <p>المدة: ${examDuration} دقيقة</p>
-                <p>عدد الأسئلة: ${questions.length}</p>
-                <p>إجمالي النقاط: ${totalPoints}</p>
+            // Since this is front-end only, we will add a dummy item
+            const supervisorItem = document.createElement('div');
+            supervisorItem.className = 'published-item';
+            supervisorItem.innerHTML = `
+                <span>${name}</span>
+                <button class="button-danger remove-button"><i class="fas fa-trash-alt"></i> إزالة</button>
             `;
             
-            examCard.querySelector('.delete-card-button').addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent card click event from firing
-                examCard.remove();
-                checkPublishedExamsList();
-                showMessage('تم حذف الامتحان بنجاح.', true);
-            });
-
-            publishedExamsCards.appendChild(examCard);
-            checkPublishedExamsList();
-            
-            // Reset form
-            examNameInput.value = '';
-            examDurationInput.value = '';
-            defaultPointsInput.value = '10';
-            questionsContainer.innerHTML = '';
-            examFormSection.classList.add('hidden');
-            examCreationButtons.classList.remove('hidden');
-            showMessage('تم نشر الامتحان بنجاح!', true);
-        });
-
-        // Event listener for "Cancel Exam" button
-        cancelExamButton.addEventListener('click', () => {
-            examFormSection.classList.add('hidden');
-            examCreationButtons.classList.remove('hidden');
-            examNameInput.value = '';
-            examDurationInput.value = '';
-            defaultPointsInput.value = '10';
-            questionsContainer.innerHTML = '';
-        });
-
-        // ======================================
-        // Image Upload Section Logic
-        // ======================================
-
-        const handleFiles = (files) => {
-            // Check if there's a placeholder message and remove it if files are being added
-            if (allUploadedImagesBase64.length === 0 && imagePreviewContainer.querySelector('p.text-gray-600')) {
-                imagePreviewContainer.innerHTML = ''; // Clear the "No images uploaded yet." message
-            }
-
-            if (files.length === 0) {
-                if (allUploadedImagesBase64.length === 0) { // If no files were selected and no images are currently loaded
-                    imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
-                }
-                generateQuestionsButton.classList.add('hidden');
-                return;
-            }
-
-            generateQuestionsButton.classList.remove('hidden');
-
-            Array.from(files).forEach(file => {
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        allUploadedImagesBase64.push(e.target.result.split(',')[1]); // Store Base64
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'image-thumbnail';
-                        imagePreviewContainer.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    showMessage(`الملف ${file.name} ليس صورة صالحة وسيتم تجاهله.`, false);
-                }
-            });
-        };
-
-        // Event listener for "Upload Exam by Images" button
-        uploadExamImagesButton.addEventListener('click', () => {
-            examCreationButtons.classList.add('hidden');
-            imageUploadControls.classList.remove('hidden');
-        });
-
-        // Event listener for "Cancel Upload" button
-        cancelUploadButton.addEventListener('click', () => {
-            imageUploadControls.classList.add('hidden');
-            examCreationButtons.classList.remove('hidden');
-            // Clear all files and previews
-            imageUploadInput.value = null;
-            imagePreviewContainer.innerHTML = '<p class="text-gray-600">لا توجد صور مرفوعة بعد.</p>';
-            generateQuestionsButton.classList.add('hidden');
-            allUploadedImagesBase64 = []; // Clear the array on cancel
-        });
-
-        // Event listener for "Extract Questions" button
-        generateQuestionsButton.addEventListener('click', async () => {
-            if (allUploadedImagesBase64.length === 0) {
-                showMessage('الرجاء رفع صورة واحدة على الأقل أولاً.', false);
-                return;
-            }
-
-            // Show loading spinner and message
-            imageUploadControls.classList.add('hidden'); // Hide image upload section
-            imageProcessingSpinner.style.display = 'block';
-            imageProcessingMessage.classList.remove('hidden');
-            imageProcessingMessage.textContent = 'جاري معالجة الصور واستخراج الأسئلة... قد يستغرق هذا بعض الوقت.';
-            
-            // Show progress bar and start updating
-            progressBarContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-            
-            // Always show the exam form section when attempting to generate questions
-            examFormSection.classList.remove('hidden'); // Ensure exam form is visible
-            examCreationButtons.classList.add('hidden'); // Hide the initial exam creation buttons
-            questionsContainer.innerHTML = ''; // Clear existing questions before populating
-
-            let processedImagesCount = 0;
-            let allExtractedQuestions = [];
-            let hasErrors = false;
-
-            for (const imageData of allUploadedImagesBase64) {
-                try {
-                    let chatHistory = [];
-                    chatHistory.push({
-                        role: "user",
-                        parts: [
-                            { text: "استخرج أسئلة الاختيار من متعدد من هذه الصورة. لكل سؤال، قم بتوفير نص السؤال، ومصفوفة من الخيارات، وفهرس الإجابة الصحيحة (صفرية الأساس)، والنقاط المخصصة للسؤال (القيمة الافتراضية 10)، وما إذا كان سؤالًا صعبًا (قيمة منطقية، القيمة الافتراضية خاطئة). استجب بتنسيق JSON كمصفوفة من الكائنات." },
-                            {
-                                inlineData: {
-                                    mimeType: "image/png", // Assuming PNG, but could be dynamic if needed
-                                    data: imageData
-                                }
-                            }
-                        ]
-                    });
-
-                    const payload = {
-                        contents: chatHistory,
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "questionText": { "type": "STRING" },
-                                        "options": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                        "correctAnswerIndex": { "type": "NUMBER" },
-                                        "points": { "type": "NUMBER" },
-                                        "isDifficult": { "type": "BOOLEAN" }
-                                    },
-                                    "required": ["questionText", "options", "correctAnswerIndex"],
-                                    "propertyOrdering": ["questionText", "options", "correctAnswerIndex", "points", "isDifficult"]
-                                }
-                            }
-                        }
-                    };
-
-                const apiKey = ""; // Leave as-is, Canvas will provide it
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                let response;
-                let result;
-                let retries = 0;
-                const maxRetries = 5;
-                const baseDelay = 1000;
-
-                while (retries < maxRetries) {
-                    try {
-                        response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (response.status === 429) { // Too many requests
-                            retries++;
-                            const delay = baseDelay * Math.pow(2, retries - 1);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            continue; // Retry
-                        }
-
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(`API Error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
-                        }
-
-                        result = await response.json();
-                        break; // Success, exit loop
-
-                    } catch (error) {
-                        console.error("Error fetching data or API response not OK:", error);
-                        retries++;
-                        const delay = baseDelay * Math.pow(2, retries - 1);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        if (retries >= maxRetries) {
-                            throw error; // Re-throw error if max retries reached
-                        }
-                    }
-                }
-
-                const jsonString = result.candidates[0].content.parts[0].text;
-                const extracted = JSON.parse(jsonString);
-
-                if (Array.isArray(extracted) && extracted.length > 0) {
-                    allExtractedQuestions = allExtractedQuestions.concat(extracted);
-                } else {
-                    showMessage('لم يتم العثور على أسئلة في إحدى الصور.', true);
-                }
-
-                } catch (error) {
-                    console.error('خطأ أثناء استخراج الأسئلة من صورة:', error);
-                    showMessage(`حدث خطأ أثناء استخراج الأسئلة من إحدى الصور: ${error.message}.`, false);
-                    hasErrors = true;
-                } finally {
-                    processedImagesCount++;
-                    const progress = (processedImagesCount / allUploadedImagesBase64.length) * 100; // Single phase progress
-                    progressBar.style.width = `${progress}%`;
-                    progressBar.textContent = `${Math.round(progress)}%`;
-                }
-            }
-
-            // After processing all images, populate the form
-            if (allExtractedQuestions.length > 0) {
-                allExtractedQuestions.forEach((q, qIndex) => {
-                    const questionBlock = createQuestionElement();
-                    questionBlock.querySelector('textarea').value = q.questionText || '';
-                    // The points input is now directly accessible without a label
-                    questionBlock.querySelector('input[type="number"]').value = q.points || defaultPointsInput.value || 10;
-
-                    const optionsContainer = questionBlock.querySelector('.options-container');
-                    optionsContainer.innerHTML = ''; // Clear default options
-
-                    q.options.forEach((optionText, optionIndex) => {
-                        const optionItem = document.createElement('div');
-                        optionItem.className = 'form-group flex items-center gap-2 option-item';
-                        // Ensure unique name for radio buttons across all questions
-                        optionItem.innerHTML = `
-                            <input type="radio" name="correct-answer-q${questionsContainer.children.length + 1}" class="form-radio text-blue-500" ${optionIndex === q.correctAnswerIndex ? 'checked' : ''}>
-                            <input type="text" class="option-input" value="${optionText}" placeholder="خيار ${optionIndex + 1}">
-                        `;
-                        optionsContainer.appendChild(optionItem);
-                    });
-
-                    // Handle "difficult" property
-                    const difficultButton = questionBlock.querySelector('.difficult-button');
-                    if (q.isDifficult) {
-                        difficultButton.dataset.isDifficult = 'true';
-                        difficultButton.classList.add('active');
-                    } else {
-                        difficultButton.dataset.isDifficult = 'false';
-                        difficultButton.classList.remove('active');
-                    }
-
-                    questionsContainer.appendChild(questionBlock);
-                });
-                showMessage('تم استخراج الأسئلة بنجاح!', true);
-            } else {
-                showMessage('لم يتم العثور على أي أسئلة من الصور المرفوعة. يمكنك إضافة الأسئلة يدويًا.', true);
-                questionsContainer.innerHTML = ''; // Clear any partial questions
-                questionsContainer.appendChild(createQuestionElement()); // Add one empty question for manual input
-            }
-            
-            // Final cleanup
-            imageProcessingSpinner.style.display = 'none';
-            imageProcessingMessage.classList.add('hidden');
-            progressBarContainer.style.display = 'none';
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-        });
-
-        // Event listener for click on drag-and-drop area
-        dragDropArea.addEventListener('click', () => {
-            imageUploadInput.click();
-        });
-
-        // Drag and drop event listeners
-        dragDropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dragDropArea.classList.add('drag-over');
-        });
-
-        dragDropArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dragDropArea.classList.remove('drag-over');
-        });
-
-        dragDropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dragDropArea.classList.remove('drag-over');
-            const files = e.dataTransfer.files;
-            handleFiles(files);
-        });
-
-        // Event listener for hidden file input
-        imageUploadInput.addEventListener('change', (e) => {
-            const files = e.target.files;
-            handleFiles(files);
-        });
-
-        // ======================================
-        // Supervisors Management Section Logic
-        // ======================================
-        
-        // Check if there are supervisors and update UI
-        const checkSupervisorsList = () => {
-            if (supervisorsList.children.length === 0) {
-                supervisorsPlaceholder.classList.remove('hidden');
-            } else {
-                supervisorsPlaceholder.classList.add('hidden');
-            }
-        };
-        
-        // Event listener for add supervisor button
-        addSupervisorButton.addEventListener('click', () => {
-            const name = supervisorNameInput.value.trim();
-            const uid = supervisorUidInput.value.trim(); // Changed from password
-
-            if (name === '' || uid === '') {
-                showMessage('الرجاء إدخال اسم المشرف و UID.', false); // Updated message
-                return;
-            }
-
-            // Create a supervisor card
-            const supervisorCard = document.createElement('div');
-            supervisorCard.className = 'supervisor-card'; // New class for supervisor cards
-            supervisorCard.innerHTML = `
-                <h4>${name}</h4>
-                <p>UID: ${uid}</p>
-                <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
-            `;
-            
-            supervisorCard.querySelector('.delete-card-button').addEventListener('click', () => {
-                supervisorCard.remove();
-                checkSupervisorsList();
+            supervisorItem.querySelector('.remove-button').addEventListener('click', () => {
+                supervisorItem.remove();
                 showMessage('تم حذف المشرف بنجاح (وهمي).', true);
+                if (supervisorsList.children.length === 0) {
+                    supervisorsPlaceholder.classList.remove('hidden');
+                }
             });
             
-            supervisorsList.appendChild(supervisorCard); // Append to the card container
-            checkSupervisorsList();
+            supervisorsList.appendChild(supervisorItem);
+            supervisorsPlaceholder.classList.add('hidden');
             
-            supervisorNameInput.value = '';
-            supervisorUidInput.value = ''; // Changed from supervisorPasswordInput
+            document.getElementById('supervisor-name-input').value = '';
+            document.getElementById('supervisor-password-input').value = '';
             
             showMessage('تمت إضافة المشرف بنجاح. هذه العملية تحتاج إلى ربط بالباك إند للحفظ الفعلي.', true);
         });
 
-        // Add event listener for default points input
-        defaultPointsInput.addEventListener('input', () => {
-            const newDefaultPoints = defaultPointsInput.value;
-            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
-            questionBlocks.forEach(block => {
-                const pointsInput = block.querySelector('input[type="number"]');
-                pointsInput.value = newDefaultPoints;
-            });
-        });
-
-        // Show initial section on page load
+        // Initial setup for UI
+        document.getElementById('sign-in-btn').addEventListener('click', signInWithGoogle);
+        document.getElementById('sign-out-btn').addEventListener('click', handleSignOut);
+        
+        // Show the first section by default
         showSection('exam-section');
-        checkPublishedExamsList();
-        checkReviewsList();
-        checkSupervisorsList();
     </script>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="absolute inset-0 flex flex-col justify-center items-center bg-gray-100 z-50">
+        <div class="bg-white p-8 rounded-xl shadow-lg text-center w-80">
+            <h2 class="text-2xl font-bold mb-4">تسجيل الدخول للإدارة</h2>
+            <p id="auth-message" class="text-red-500 mb-4">الرجاء تسجيل الدخول للوصول إلى لوحة التحكم.</p>
+            <button id="sign-in-btn" class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition-colors duration-300 w-full mb-2">
+                <i class="fab fa-google ml-2"></i> تسجيل الدخول بحساب Google
+            </button>
+            <button id="sign-out-btn" class="bg-red-500 text-white px-6 py-3 rounded-lg shadow hover:bg-red-600 transition-colors duration-300 w-full hidden">
+                تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden w-full flex flex-col md:flex-row p-4 min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar p-4 md:p-6 mb-4 md:mb-0 md:mr-4">
+            <h1 class="text-3xl font-extrabold text-center mb-6 text-gray-800">لوحة التحكم</h1>
+            <nav>
+                <ul>
+                    <li>
+                        <a href="#" class="nav-item active" data-target="exam-section">
+                            <i class="fas fa-file-alt nav-icon text-gray-500"></i>
+                            <span class="font-semibold">إدارة الامتحانات</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-target="review-section">
+                            <i class="fas fa-star nav-icon text-gray-500"></i>
+                            <span class="font-semibold">إدارة التقييمات</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-target="supervisor-section">
+                            <i class="fas fa-users nav-icon text-gray-500"></i>
+                            <span class="font-semibold">إدارة المشرفين</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="mt-8 flex justify-center">
+                <button id="dashboard-sign-out-btn" class="button-danger w-full" onclick="handleSignOut()">
+                    <i class="fas fa-sign-out-alt ml-2"></i> تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content flex-grow">
+            <!-- Exams Section -->
+            <section id="exam-section" class="section-content active">
+                <h2 class="text-3xl font-bold mb-6 text-gray-700">إدارة الامتحانات</h2>
+                <div class="card p-6 bg-white rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold mb-4 text-gray-600">نشر امتحان جديد</h3>
+                    <form id="add-exam-form" class="space-y-4">
+                        <input type="text" id="exam-title-input" placeholder="عنوان الامتحان" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="exam-subject-input" placeholder="المادة" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <textarea id="exam-description-input" placeholder="وصف قصير للامتحان" required rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <input type="url" id="exam-link-input" placeholder="رابط الامتحان" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="button-primary w-full">نشر الامتحان</button>
+                    </form>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-600">الامتحانات المنشورة</h3>
+                    <div id="exams-list">
+                        <!-- Exams will be loaded here from Firestore -->
+                    </div>
+                    <div id="exams-placeholder" class="list-placeholder hidden">
+                        <p>لا توجد امتحانات منشورة حاليًا.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reviews Section -->
+            <section id="review-section" class="section-content">
+                <h2 class="text-3xl font-bold mb-6 text-gray-700">إدارة التقييمات</h2>
+                <div class="card p-6 bg-white rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold mb-4 text-gray-600">إضافة كرت تقييم</h3>
+                    <form id="add-review-form" class="space-y-4">
+                        <textarea id="review-text-input" placeholder="نص التقييم" required rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <input type="text" id="review-author-input" placeholder="اسم المقيم" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="review-rating-input" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">اختر التقييم</option>
+                            <option value="5">5 نجوم</option>
+                            <option value="4">4 نجوم</option>
+                            <option value="3">3 نجوم</option>
+                            <option value="2">2 نجوم</option>
+                            <option value="1">1 نجمة</option>
+                        </select>
+                        <button type="submit" class="button-primary w-full">إضافة التقييم</button>
+                    </form>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-600">التقييمات المنشورة</h3>
+                    <div id="reviews-list">
+                        <!-- Reviews will be loaded here from Firestore -->
+                    </div>
+                    <div id="reviews-placeholder" class="list-placeholder hidden">
+                        <p>لا توجد تقييمات منشورة حاليًا.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Supervisors Section -->
+            <section id="supervisor-section" class="section-content">
+                <h2 class="text-3xl font-bold mb-6 text-gray-700">إدارة المشرفين</h2>
+                <div class="card p-6 bg-white rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold mb-4 text-gray-600">إضافة مشرف جديد</h3>
+                    <form id="add-supervisor-form" class="space-y-4">
+                        <input type="text" id="supervisor-name-input" placeholder="اسم المشرف" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="password" id="supervisor-password-input" placeholder="كلمة المرور" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="button-primary w-full">إضافة المشرف</button>
+                    </form>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-600">قائمة المشرفين</h3>
+                    <div id="supervisors-list">
+                        <!-- Supervisors are currently added as mock data -->
+                    </div>
+                    <div id="supervisors-placeholder" class="list-placeholder hidden">
+                        <p>لا توجد مشرفون حاليًا.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 </body>
 </html>
