@@ -609,520 +609,764 @@
         </div>
     </nav>
     
-    <script type="module">
-        // Import Firestore functions from the external file
-        import { saveExamToFirestore, saveReviewToFirestore } from './firebase-config.js';
+  <script type="module">
+    // Global variables for Firebase
+    let db;
+    let auth;
+    let userId;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    
+    // Import Firebase functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, addDoc, collection, onSnapshot, deleteDoc, getDoc, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Main UI elements
-        const navItems = document.querySelectorAll('.nav-item');
-        const contentSections = document.querySelectorAll('.main-content-section');
-        const messageBox = document.getElementById('message-box');
-        
-        // Review section elements
-        const addReviewButton = document.getElementById('add-review-button');
-        const subjectSelectionContainer = document.getElementById('subject-selection-container');
-        const subjectButtons = document.querySelectorAll('.subject-button');
-        const reviewWeekContainer = document.getElementById('review-week-container');
-        const reviewWeekTitle = document.getElementById('review-week-title');
-        const reviewWeekNumberInput = document.getElementById('review-week-number');
-        const confirmWeekButton = document.getElementById('confirm-week-button');
-        const cancelWeekButton = document.getElementById('cancel-week-button');
-        const reviewFormContainer = document.getElementById('review-form-container');
-        const reviewText = document.getElementById('review-text');
-        const reviewLink = document.getElementById('review-link');
-        const saveReviewButton = document.getElementById('save-review-button');
-        const cancelReviewButton = document.getElementById('cancel-review-button');
-        const reviewsListContainer = document.getElementById('reviews-list-container');
-        const reviewsPlaceholder = document.getElementById('reviews-placeholder');
-        const reviewsHr = document.getElementById('reviews-hr');
+    // Main UI elements
+    const navItems = document.querySelectorAll('.nav-item');
+    const contentSections = document.querySelectorAll('.main-content-section');
+    const messageBox = document.getElementById('message-box');
+    const logoutButton = document.getElementById('logout-button');
 
-        // Exam section elements
-        const addExamButton = document.getElementById('add-exam-button');
-        const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
-        const examCreationButtons = document.getElementById('exam-creation-buttons');
-        const examFormSection = document.getElementById('exam-form-section');
-        const imageUploadControls = document.getElementById('image-upload-controls');
-        const cancelExamButton = document.getElementById('cancel-exam-button');
-        const publishExamButton = document.getElementById('publish-exam-button');
-        const questionsContainer = document.getElementById('questions-container');
-        const addQuestionButton = document.getElementById('add-question-button');
-        const examNameInput = document.getElementById('exam-name');
-        const examDurationInput = document.getElementById('exam-duration');
-        const defaultPointsInput = document.getElementById('default-points');
-        const publishedExamsCards = document.getElementById('published-exams-cards');
-        const examsPlaceholder = document.getElementById('exams-placeholder');
+    // Review section elements
+    const addReviewButton = document.getElementById('add-review-button');
+    const subjectSelectionContainer = document.getElementById('subject-selection-container');
+    const subjectButtons = document.querySelectorAll('.subject-button');
+    const reviewWeekContainer = document.getElementById('review-week-container');
+    const reviewWeekTitle = document.getElementById('review-week-title');
+    const reviewWeekNumberInput = document.getElementById('review-week-number');
+    const confirmWeekButton = document.getElementById('confirm-week-button');
+    const cancelWeekButton = document.getElementById('cancel-week-button');
+    const reviewFormContainer = document.getElementById('review-form-container');
+    const reviewText = document.getElementById('review-text');
+    const reviewLink = document.getElementById('review-link');
+    const saveReviewButton = document.getElementById('save-review-button');
+    const cancelReviewButton = document.getElementById('cancel-review-button');
+    const reviewsListContainer = document.getElementById('reviews-list-container');
+    const reviewsPlaceholder = document.getElementById('reviews-placeholder');
+    
+    let currentSubject = '';
+    let currentWeek = 0;
+    let editingReviewId = null;
 
-        // Image upload elements
-        const imageUploadInput = document.getElementById('image-upload-input');
-        const dragDropArea = document.getElementById('drag-drop-area');
-        const imagePreviewContainer = document = document.getElementById('image-preview-container');
-        const generateQuestionsButton = document.getElementById('generate-questions-button');
-        const cancelUploadButton = document.getElementById('cancel-upload-button');
-        const imageProcessingSpinner = document.getElementById('image-processing-spinner');
-        const imageProcessingMessage = document.getElementById('image-processing-message');
-        const progressBarContainer = document.getElementById('progress-container');
-        const progressBar = document.getElementById('progress-bar');
+    // Exam section elements
+    const addQuestionButton = document.getElementById('add-question-button');
+    const examSubjectInput = document.getElementById('exam-subject');
+    const examNameInput = document.getElementById('exam-name');
+    const examTimeInput = document.getElementById('exam-time');
+    const examPointsInput = document.getElementById('exam-points');
+    const defaultPointsInput = document.getElementById('default-points');
+    const questionsContainer = document.getElementById('questions-container');
+    const saveExamButton = document.getElementById('save-exam-button');
+    const examPublishedList = document.getElementById('exams-published-list');
+    const examsPlaceholder = document.getElementById('exams-placeholder');
 
-        // Supervisors section elements
-        const supervisorNameInput = document.getElementById('supervisor-name');
-        const supervisorUidInput = document.getElementById('supervisor-uid'); // Changed from supervisorPasswordInput
-        const addSupervisorButton = document.getElementById('add-supervisor-button');
-        const supervisorsList = document.getElementById('supervisors-list');
-        const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
+    let questionCounter = 0;
 
-        let selectedSubject = ''; 
-        let selectedWeekNumber = ''; 
-        let allUploadedImagesBase64 = []; // Array to store all images
-        let progressInterval;
+    // Image section elements
+    const dragDropArea = document.getElementById('drag-drop-area');
+    const fileInput = document.getElementById('file-input');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imageUploadButton = document.getElementById('image-upload-button');
+    const imagesPlaceholder = document.getElementById('images-placeholder');
+    const imagesListContainer = document.getElementById('images-list-container');
+    
+    let files = [];
 
-        // Function to show a floating message
-        const showMessage = (message, isSuccess = true) => {
-            messageBox.textContent = message;
-            messageBox.className = 'message-box'; // Reset classes
-            if (isSuccess) {
-                messageBox.classList.add('success');
+    // Supervisors section elements
+    const supervisorNameInput = document.getElementById('supervisor-name');
+    const supervisorUidInput = document.getElementById('supervisor-uid');
+    const addSupervisorButton = document.getElementById('add-supervisor-button');
+    const supervisorsList = document.getElementById('supervisors-list');
+    const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
+
+    // Functions
+    function showMessage(message, isSuccess = true) {
+        messageBox.textContent = message;
+        messageBox.className = `message-box ${isSuccess ? 'success' : 'error'}`;
+        messageBox.style.display = 'block';
+        setTimeout(() => {
+            messageBox.style.display = 'none';
+        }, 3000);
+    }
+
+    function showSection(sectionId) {
+        contentSections.forEach(section => {
+            section.classList.remove('active');
+        });
+        document.getElementById(sectionId).classList.add('active');
+        navItems.forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector(`.nav-item[data-section="${sectionId}"]`).classList.add('active');
+    }
+
+    // Add event listeners for navigation
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const sectionId = item.getAttribute('data-section');
+            showSection(sectionId);
+        });
+    });
+
+    // Firebase Initialization and Authentication
+    async function initializeFirebase() {
+        try {
+            // Initialize Firebase App
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Sign in the user using the custom token provided by the environment
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
             } else {
-                messageBox.classList.add('error');
+                await signInAnonymously(auth);
             }
-            messageBox.style.display = 'block';
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, 5000); // Hide after 5 seconds
-        };
 
-        // Function to switch between sections
-        const showSection = (sectionId) => {
-            contentSections.forEach(section => {
-                section.classList.remove('active');
-                // Reset scroll position for previously active sections (optional but good practice)
-                section.scrollTop = 0;
-            });
-            const activeSection = document.getElementById(sectionId);
-            activeSection.classList.add('active');
-            // Scroll the newly active section to the top
-            activeSection.scrollTop = 0;
-
-            navItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.section === sectionId) {
-                    item.classList.add('active');
+            // Listen for auth state changes to set up listeners and user-specific data
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    showMessage("تم تسجيل الدخول بنجاح!", true);
+                    setupRealtimeListeners();
+                } else {
+                    userId = null;
+                    showMessage("تم تسجيل الخروج.", false);
+                    // Clear UI or handle a logged-out state
                 }
             });
-        };
-        
-        // Add event listeners for navigation bar
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const sectionId = item.dataset.section;
-                showSection(sectionId);
-            });
-        });
 
-        // ======================
-        // Reviews Section Logic
-        // ======================
+        } catch (error) {
+            console.error("Firebase initialization or authentication error:", error);
+            showMessage("خطأ في الاتصال بـ Firebase. يرجى إعادة المحاولة.", false);
+        }
+    }
 
-        // Check if there are reviews and update UI
-        const checkReviewsList = () => {
-            if (reviewsListContainer.children.length === 0) {
+    // This function sets up all the realtime data listeners for each section
+    function setupRealtimeListeners() {
+        if (!userId) {
+            console.error("لا يوجد معرف مستخدم. لا يمكن إعداد المستمعين.");
+            return;
+        }
+
+        // Listener for Reviews (المراجعات)
+        const reviewsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/reviews`));
+        onSnapshot(reviewsQuery, (snapshot) => {
+            reviewsListContainer.innerHTML = '';
+            if (snapshot.empty) {
                 reviewsPlaceholder.classList.remove('hidden');
-                reviewsListContainer.classList.add('hidden');
-                reviewsHr.classList.add('hidden');
             } else {
                 reviewsPlaceholder.classList.add('hidden');
-                reviewsListContainer.classList.remove('hidden');
-                reviewsHr.classList.remove('hidden');
-            }
-        };
-
-        // Event listener for "Add Review" button
-        addReviewButton.addEventListener('click', () => {
-            addReviewButton.classList.add('hidden');
-            reviewsPlaceholder.classList.add('hidden');
-            subjectSelectionContainer.classList.remove('hidden');
-        });
-
-        // Event listeners for subject buttons
-        subjectButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                selectedSubject = button.dataset.subject;
-                subjectSelectionContainer.classList.add('hidden');
-                reviewWeekTitle.textContent = `أدخل رقم الأسبوع لمادة ${selectedSubject}`;
-                reviewWeekContainer.classList.remove('hidden');
-                reviewWeekNumberInput.focus();
-            });
-        });
-
-        // Event listener for "Confirm Week" button
-        confirmWeekButton.addEventListener('click', () => {
-            const weekNumber = reviewWeekNumberInput.value.trim();
-            if (weekNumber === '') {
-                showMessage('الرجاء إدخال رقم الأسبوع.', false);
-                return;
-            }
-            selectedWeekNumber = weekNumber;
-            reviewWeekContainer.classList.add('hidden');
-            reviewFormContainer.classList.remove('hidden');
-            reviewText.value = `تقييم ${selectedSubject} الأسبوع ${selectedWeekNumber}`;
-        });
-        
-        // Event listener for "Cancel Week" button
-        cancelWeekButton.addEventListener('click', () => {
-            reviewWeekContainer.classList.add('hidden');
-            subjectSelectionContainer.classList.remove('hidden');
-            reviewWeekNumberInput.value = '';
-            selectedSubject = '';
-            selectedWeekNumber = '';
-        });
-
-        // Event listener for "Save Review" button
-        saveReviewButton.addEventListener('click', async () => {
-            const text = reviewText.value.trim();
-            const link = reviewLink.value.trim();
-            
-            if (text === '' || link === '') {
-                showMessage('الرجاء تعبئة جميع الحقول.', false);
-                return;
-            }
-            
-            const reviewData = {
-                subject: selectedSubject,
-                week: selectedWeekNumber,
-                reviewText: text,
-                reviewLink: link,
-                createdAt: new Date().toISOString()
-            };
-
-            const docId = await saveReviewToFirestore(reviewData);
-
-            if (docId) {
-                showMessage('تم حفظ التقييم بنجاح.', true);
-                const reviewCard = document.createElement('div');
-                reviewCard.className = 'review-card';
-                reviewCard.innerHTML = `
-                    <h4>${text}</h4>
-                    <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
-                `;
-                
-                reviewCard.addEventListener('click', (e) => {
-                    if (!e.target.closest('.delete-card-button')) {
-                        window.open(link, '_blank');
-                    }
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    createReviewCard(doc.id, data.subject, data.week, data.text, data.link);
                 });
-
-                reviewCard.querySelector('.delete-card-button').addEventListener('click', () => {
-                    reviewCard.remove();
-                    checkReviewsList();
-                    showMessage('تم حذف التقييم بنجاح.', true);
-                });
-
-                reviewsListContainer.appendChild(reviewCard);
-                reviewsHr.classList.remove('hidden');
-                reviewsListContainer.classList.remove('hidden');
-                
-                reviewWeekNumberInput.value = '';
-                reviewText.value = '';
-                reviewLink.value = '';
-                selectedSubject = '';
-                selectedWeekNumber = '';
-                reviewFormContainer.classList.add('hidden');
-                addReviewButton.classList.remove('hidden');
-                checkReviewsList();
-            } else {
-                showMessage('فشل حفظ التقييم.', false);
             }
+        }, (error) => {
+            console.error("خطأ في جلب المراجعات:", error);
+            showMessage("خطأ في جلب المراجعات.", false);
         });
 
-        // Event listener for "Cancel Review" button
-        cancelReviewButton.addEventListener('click', () => {
-            reviewFormContainer.classList.add('hidden');
-            addReviewButton.classList.remove('hidden');
-            checkReviewsList();
-            reviewWeekNumberInput.value = '';
-            reviewText.value = '';
-            reviewLink.value = '';
-            selectedSubject = '';
-            selectedWeekNumber = '';
-        });
-
-        // ======================
-        // Exams Section Logic
-        // ======================
-
-        // Function to create a new question element
-        const createQuestionElement = () => {
-            const questionIndex = questionsContainer.children.length + 1;
-            const defaultPoints = defaultPointsInput.value || 10;
-            const questionBlock = document.createElement('div');
-            questionBlock.className = 'question-block';
-            questionBlock.innerHTML = `
-                <div class="question-actions"> <!-- New container for action buttons -->
-                    <button class="difficult-button" title="سؤال صعب" data-is-difficult="false">
-                        <svg width="800px" height="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet">
-                            <ellipse cx="64" cy="116.87" rx="12.09" ry="7.13" fill="#424242"></ellipse>
-                            <path d="M64 4C42.92 4 25.82 19.67 25.82 38.99c0 5.04 1.52 10.43 3.75 15.18c3.13 6.68 6.54 11.62 7.54 13.44c2.78 5.06 2.38 10.39 3.15 13.73c1.45 6.24 5.79 8.5 23.73 8.5s21.8-2.15 23.41-7.9c1.1-3.91.03-8.18 2.8-13.23c1-1.82 5.07-7.85 8.21-14.54c2.23-4.75 3.75-10.14 3.75-15.18C102.18 19.67 85.08 4 64 4z" fill="#ffd600"></path>
-                            <ellipse cx="64" cy="86.13" rx="21.94" ry="4.46" fill="#b26500"></ellipse>
-                            <ellipse cx="64" cy="86.13" rx="21.94" ry="4.46" fill="#b26500"></ellipse>
-                            <ellipse cx="64" cy="86.13" rx="15.99" ry="2.06" fill="#ffa000"></ellipse>
-                            <g fill="none" stroke-width="2" stroke-miterlimit="10">
-                                <path d="M53.3 56.77c-.62 1.56-2.23 4.77-1.39 6.21c1.95 3.35 6.6 4.55 6.6 7.63c0 4.7-3.42 19.93-3.42 19.93" stroke="#b26500"></path>
-                                <path d="M74.03 56.21s2.24 4.8 1.29 6.95c-.71 1.6-4.98 4.18-5.53 4.61c-2.55 2 .84 22.78.84 22.78" stroke="#b26500"></path>
-                                <path d="M53.3 56.77c3.44-6.8 5.21-22.32.84-21.53c-7.37 1.33 1.71 26.83 6.18 23.9s10.01-23.85 3.21-23.93c-6.8-.08.46 26.66 5.08 23.69c3.65-2.35 12.56-23.66 5.24-23.66c-6.23 0 .19 20.97.19 20.97" stroke="#ffffff"></path>
-                            </g>
-                            <path d="M85.89 87.06S80.13 89.84 64 89.84s-21.89-2.78-21.89-2.78s-.36 5.14.83 7.47c1.43 2.8 2.53 3.77 2.53 3.77l.6 2.85l-.24.75c-.31.98-.09 2.06.6 2.83l.52.58l.58 2.74l-.2.55c-.38 1.05-.12 2.22.66 3.02l.38.39l.47 2.24s2.38 5.08 15.16 5.08s15.16-5.08 15.16-5.08l.04-.19l.26-.26c.52-.51.69-1.27.44-1.95l-.15-.39l.62-2.96l1.09-1.15c.54-.57.66-1.41.31-2.11l-.5-.99l.63-2.97l.4-.31c.59-.65.6-1.63.34-2.3c-.2-.53-.04-1.13.37-1.52c.63-.6 1.44-1.51 2.04-2.64c1.23-2.29.84-7.45.84-7.45z" fill="#82aec0"></path>
-                            <path d="M45.47 98.3l.54 2.87c5.82-.03 13.59.26 28.5-2.11c2.69-.61 5.92-1.82 2.35-1.32c0-.01-13.69 1.3-31.39.56z" fill="#2f7889"></path>
-                            <path d="M47.47 108.07c6.44-.11 19.6-.75 33.74-3.82l.63-2.97c-14.79 3.36-28.7 3.96-34.95 4.04l.58 2.75z" fill="#2f7889"></path>
-                            <path d="M80.31 108.49c-13.09 2.84-25.34 3.57-31.97 3.73l.43 2.04s.21 6.33 15.16 6.33s15.16-6.33 15.16-6.33s-6.38 1.82-14.23.93a.63.63 0 0 1-.01-1.26c4.69-.62 10.29-1.54 14.84-2.48l.62-2.96z" fill="#2f7889"></path>
-                            <path d="M42.18 87.06s6.46 2.78 21.76 2.78s21.88-2.78 21.88-2.78" fill="none" stroke="#82aec0" stroke-width="3.997" stroke-linecap="round" stroke-miterlimit="10"></path>
-                            <path d="M49.88 10.32c3.91-.96 8-.48 10.8 2.92c.79.96 1.4 2.1 1.54 3.34c.28 2.39-1.2 4.65-2.96 6.31c-5.02 4.74-12.15 7.04-15.39 13.58c-.76 1.53-1.36 3.18-2.52 4.43c-1.16 1.25-3.09 2.01-4.6 1.21c-.8-.42-1.35-1.21-1.8-2c-2.84-5.06-2.63-11.51-.13-16.75c2.75-5.74 8.78-11.5 15.06-13.04z" fill="#ffff8d"></path>
-                            <path d="M46.45 91.93c-.88-.4-.53-1.72.43-1.65c3.22.25 8.7.56 15.95.56c7.64 0 14.36-.57 18.28-.99c.97-.1 1.34 1.23.45 1.64c-3.02 1.42-8.55 3.04-18.03 3.04c-9.25 0-14.35-1.37-17.08-2.6z" fill="#ffd600"></path>
-                            <path d="M51.94 102.03c-.67.24-1.36.57-1.7 1.19c-.12.23-.19.49-.14.75c.08.38.43.65.78.82c.7.34 1.49.43 2.26.44c1.59.02 3.17-.28 4.74-.58c.47-.09.95-.18 1.37-.41c.42-.23.78-.62.85-1.09c.1-.63-.35-1.24-.9-1.54c-1.9-1.05-5.34-.27-7.26.42z" fill="#94d1e0"></path>
-                            <path d="M53.43 108.62c-.67.24-1.36.57-1.7 1.19c-.12.23-.19.49-.14.75c.08.38.43.65.78.82c.7.34 1.49.43 2.26.44c1.59.02 3.17-.28 4.74-.58c.47-.09.95-.18 1.37-.41c.42-.23.78-.62.85-1.09c.1-.63-.35-1.24-.9-1.54c-1.9-1.04-5.35-.26-7.26.42z" fill="#94d1e0"></path>
-                            <path d="M50.01 84.2c.91.09 1.87.01 2.64-.48s1.26-1.49.95-2.35c-.16-.45-.51-.81-.85-1.15c-.75-.74-1.7-1.25-2.91-1.3c-1.7-.06-3.84-.13-5.22.42-1.3.52-2.14 1.25-2.45 2.1-.31.85-.05 1.83.62 2.53s1.77 1.12 3.2 1.42s3.04.41 4.54.41z" fill="#94d1e0"></path>
-                            <path d="M73.47 84.18c-1.4.15-2.8.2-4.14.07c-1.58-.15-2.92-1.07-3.41-2.42c-.22-.59-.14-1.28.27-1.85c.66-.9 1.63-1.43 2.62-1.89c1.99-.94 4.5-.78 6.47-.19c1.87.56 3.1 1.66 3.55 3.01c.47 1.38.22 2.87-1.04 3.91c-1.02.82-2.22 1.09-3.34 1.22z" fill="#94d1e0"></path>
-                        </svg>
-                    </button>
-                    <button class="delete-question-button" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
-                </div>
-                <div class="input-group">
-                    <label>السؤال ${questionIndex}:</label>
-                    <textarea class="question-input" placeholder="أدخل نص السؤال هنا..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label>الدرجة:</label>
-                    <input type="number" value="${defaultPoints}" min="0">
-                </div>
-                <div class="options-container">
-                    <div class="input-group">
-                        <label>الخيار 1:</label>
-                        <input type="text" class="option-input" placeholder="أدخل الخيار 1">
-                    </div>
-                    <div class="input-group">
-                        <label>الخيار 2:</label>
-                        <input type="text" class="option-input" placeholder="أدخل الخيار 2">
-                    </div>
-                    <div class="input-group">
-                        <label>الخيار 3:</label>
-                        <input type="text" class="option-input" placeholder="أدخل الخيار 3">
-                    </div>
-                    <div class="input-group">
-                        <label>الخيار 4:</label>
-                        <input type="text" class="option-input" placeholder="أدخل الخيار 4">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>الإجابة الصحيحة:</label>
-                    <select class="correct-answer">
-                        <option value="0">الخيار 1</option>
-                        <option value="1">الخيار 2</option>
-                        <option value="2">الخيار 3</option>
-                        <option value="3">الخيار 4</option>
-                    </select>
-                </div>
-                <hr>
-            `;
-            
-            // Add event listeners for the new question block
-            questionBlock.querySelector('.delete-question-button').addEventListener('click', () => {
-                questionBlock.remove();
-            });
-
-            questionBlock.querySelector('.difficult-button').addEventListener('click', (e) => {
-                const button = e.currentTarget;
-                const isDifficult = button.dataset.isDifficult === 'true';
-                if (isDifficult) {
-                    button.classList.remove('active');
-                    button.dataset.isDifficult = 'false';
-                } else {
-                    button.classList.add('active');
-                    button.dataset.isDifficult = 'true';
-                }
-            });
-
-            // Update points when default points change
-            defaultPointsInput.addEventListener('input', () => {
-                const pointsInput = questionBlock.querySelector('input[type="number"]');
-                pointsInput.value = defaultPointsInput.value;
-            });
-            
-            return questionBlock;
-        };
-        
-        // Check if there are published exams and update UI
-        const checkPublishedExamsList = () => {
-            if (publishedExamsCards.children.length === 0) {
+        // Listener for Exams (الاختبارات)
+        const examsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/exams`));
+        onSnapshot(examsQuery, (snapshot) => {
+            examPublishedList.innerHTML = '';
+            if (snapshot.empty) {
                 examsPlaceholder.classList.remove('hidden');
             } else {
                 examsPlaceholder.classList.add('hidden');
-            }
-        };
-
-        // Function to create an exam card
-        const createExamCard = (examName, examId) => {
-            const card = document.createElement('div');
-            card.className = 'exam-card';
-            card.innerHTML = `
-                <div class="exam-info">
-                    <h4>${examName}</h4>
-                </div>
-                <div class="exam-actions">
-                    <button class="edit-exam-button" title="تعديل"><i class="fas fa-edit"></i></button>
-                    <button class="delete-exam-button" title="حذف"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            `;
-            
-            // Add event listener for delete button
-            card.querySelector('.delete-exam-button').addEventListener('click', () => {
-                card.remove();
-                checkPublishedExamsList();
-                showMessage('تم حذف الامتحان بنجاح (وهمي).', true);
-            });
-
-            return card;
-        };
-
-        // Event listener for "Add Question" button
-        addQuestionButton.addEventListener('click', () => {
-            const newQuestionBlock = createQuestionElement();
-            questionsContainer.appendChild(newQuestionBlock);
-        });
-
-        // Event listener for "Publish Exam" button
-        publishExamButton.addEventListener('click', async () => {
-            const examName = examNameInput.value.trim();
-            const examDuration = examDurationInput.value.trim();
-            if (examName === '' || examDuration === '') {
-                showMessage('الرجاء تعبئة اسم الامتحان ومدته.', false);
-                return;
-            }
-
-            const questions = [];
-            questionsContainer.querySelectorAll('.question-block').forEach(questionBlock => {
-                const questionText = questionBlock.querySelector('.question-input').value;
-                const points = questionBlock.querySelector('input[type="number"]').value;
-                const options = [];
-                questionBlock.querySelectorAll('.option-input').forEach(optionInput => {
-                    options.push(optionInput.value);
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    createExamCard(doc.id, data.name, data.subject, data.time);
                 });
-                const correctAnswerIndex = parseInt(questionBlock.querySelector('select').value);
-                const difficult = questionBlock.querySelector('.difficult-button').classList.contains('active');
-
-                questions.push({
-                    questionText,
-                    points,
-                    options,
-                    correctAnswerIndex,
-                    difficult
-                });
-            });
-            
-            if (questions.length === 0) {
-                showMessage('الرجاء إضافة سؤال واحد على الأقل.', false);
-                return;
             }
-
-            const examData = {
-                name: examName,
-                duration: examDuration,
-                questions: questions,
-                createdAt: new Date().toISOString()
-            };
-
-            const docId = await saveExamToFirestore(examData);
-            if (docId) {
-                showMessage('تم نشر الامتحان بنجاح (معرف: ' + docId + ')', true);
-                
-                // Add to the published list
-                const examCard = createExamCard(examData.name, docId);
-                publishedExamsCards.appendChild(examCard);
-                checkPublishedExamsList();
-                
-                // Clear form after publishing
-                examNameInput.value = '';
-                examDurationInput.value = '';
-                questionsContainer.innerHTML = '';
-                examFormSection.classList.add('hidden');
-                examCreationButtons.classList.remove('hidden');
-            } else {
-                showMessage('فشل نشر الامتحان.', false);
-            }
+        }, (error) => {
+            console.error("خطأ في جلب الاختبارات:", error);
+            showMessage("خطأ في جلب الاختبارات.", false);
         });
 
-        // Event listener for "Cancel Exam" button
-        cancelExamButton.addEventListener('click', () => {
-            examFormSection.classList.add('hidden');
-            examCreationButtons.classList.remove('hidden');
-        });
-
-        // Event listener for "Create Exam" button
-        document.getElementById('create-exam-button').addEventListener('click', () => {
-            examCreationButtons.classList.add('hidden');
-            examFormSection.classList.remove('hidden');
-            questionsContainer.innerHTML = ''; // Clear previous questions
-            addQuestionButton.click(); // Add a default question
-        });
-
-        // ============================
-        // Supervisors Section Logic
-        // ============================
-
-        // Check if there are supervisors and update UI
-        const checkSupervisorsList = () => {
-            if (supervisorsList.children.length === 0) {
+        // Listener for Supervisors (المشرفون)
+        const supervisorsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/supervisors`));
+        onSnapshot(supervisorsQuery, (snapshot) => {
+            supervisorsList.innerHTML = '';
+            if (snapshot.empty) {
                 supervisorsPlaceholder.classList.remove('hidden');
             } else {
                 supervisorsPlaceholder.classList.add('hidden');
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    createSupervisorCard(doc.id, data.name, data.uid);
+                });
             }
+        }, (error) => {
+            console.error("خطأ في جلب المشرفين:", error);
+            showMessage("خطأ في جلب المشرفين.", false);
+        });
+        
+        // Listener for Images (الصور)
+        const imagesQuery = query(collection(db, `artifacts/${appId}/users/${userId}/images`));
+        onSnapshot(imagesQuery, (snapshot) => {
+            imagesListContainer.innerHTML = ''; // Changed from imagePreviewContainer to imagesListContainer
+            if (snapshot.empty) {
+                imagesPlaceholder.classList.remove('hidden');
+            } else {
+                imagesPlaceholder.classList.add('hidden');
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    createImagePreview(doc.id, data.url);
+                });
+            }
+        }, (error) => {
+            console.error("خطأ في جلب الصور:", error);
+            showMessage("خطأ في جلب الصور.", false);
+        });
+    }
+    
+    // Review Section Functions
+    subjectButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            currentSubject = button.getAttribute('data-subject');
+            subjectSelectionContainer.classList.add('hidden');
+            reviewWeekContainer.classList.remove('hidden');
+            reviewWeekTitle.textContent = `مراجعة مادة ${button.textContent.trim()}`;
+        });
+    });
+
+    confirmWeekButton.addEventListener('click', () => {
+        currentWeek = reviewWeekNumberInput.value;
+        if (currentWeek > 0) {
+            reviewWeekContainer.classList.add('hidden');
+            reviewFormContainer.classList.remove('hidden');
+        } else {
+            showMessage('يرجى إدخال رقم أسبوع صحيح.', false);
+        }
+    });
+
+    cancelWeekButton.addEventListener('click', () => {
+        reviewWeekContainer.classList.add('hidden');
+        subjectSelectionContainer.classList.remove('hidden');
+        reviewWeekNumberInput.value = '';
+    });
+
+    saveReviewButton.addEventListener('click', async () => {
+        if (!userId) {
+            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+            return;
+        }
+
+        const reviewData = {
+            subject: currentSubject,
+            week: parseInt(reviewWeekNumberInput.value),
+            text: reviewText.value,
+            link: reviewLink.value,
+            createdAt: new Date()
         };
 
-        // Event listener for "Add Supervisor" button
-        addSupervisorButton.addEventListener('click', () => {
-            const supervisorName = supervisorNameInput.value.trim();
-            const supervisorUid = supervisorUidInput.value.trim();
+        try {
+            if (editingReviewId) {
+                const reviewDocRef = doc(db, `artifacts/${appId}/users/${userId}/reviews`, editingReviewId);
+                await updateDoc(reviewDocRef, reviewData);
+                showMessage('تم تحديث المراجعة بنجاح.', true);
+            } else {
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/reviews`), reviewData);
+                showMessage('تمت إضافة المراجعة بنجاح.', true);
+            }
             
-            if (supervisorName === '' || supervisorUid === '') {
-                showMessage('الرجاء تعبئة جميع حقول المشرف.', false);
+            // Reset form
+            editingReviewId = null;
+            reviewText.value = '';
+            reviewLink.value = '';
+            reviewFormContainer.classList.add('hidden');
+            subjectSelectionContainer.classList.remove('hidden');
+
+        } catch (e) {
+            console.error("Error adding/updating document: ", e);
+            showMessage('خطأ في حفظ المراجعة.', false);
+        }
+    });
+
+    cancelReviewButton.addEventListener('click', () => {
+        reviewFormContainer.classList.add('hidden');
+        subjectSelectionContainer.classList.remove('hidden');
+        reviewText.value = '';
+        reviewLink.value = '';
+        editingReviewId = null;
+    });
+
+    function createReviewCard(id, subject, week, text, link) {
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'review-card cursor-pointer';
+        reviewCard.dataset.id = id;
+        reviewCard.innerHTML = `
+            <div>
+                <h4 class="text-md font-bold text-gray-800">${subject} - الأسبوع ${week}</h4>
+                <p class="text-sm text-gray-600">${text.substring(0, 50)}...</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="edit-review-button btn-icon text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                <button class="delete-review-button btn-icon text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                ${link ? `<a href="${link}" target="_blank" class="btn-icon text-gray-500 hover:text-gray-700"><i class="fas fa-link"></i></a>` : ''}
+            </div>
+        `;
+        
+        reviewCard.querySelector('.delete-review-button').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد.', false);
                 return;
             }
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/reviews`, id));
+                showMessage('تم حذف المراجعة بنجاح.', true);
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+                showMessage('خطأ في حذف المراجعة.', false);
+            }
+        });
 
-            const supervisorCard = document.createElement('div');
-            supervisorCard.className = 'supervisor-card';
-            supervisorCard.innerHTML = `
-                <h4>${supervisorName}</h4>
-                <p>UID: ${supervisorUid}</p>
-                <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
+        reviewCard.querySelector('.edit-review-button').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد.', false);
+                return;
+            }
+            try {
+                const reviewDoc = await getDoc(doc(db, `artifacts/${appId}/users/${userId}/reviews`, id));
+                if (reviewDoc.exists()) {
+                    const data = reviewDoc.data();
+                    currentSubject = data.subject;
+                    currentWeek = data.week;
+                    reviewText.value = data.text;
+                    reviewLink.value = data.link;
+                    editingReviewId = id;
+
+                    // Show review form
+                    subjectSelectionContainer.classList.add('hidden');
+                    reviewWeekContainer.classList.add('hidden');
+                    reviewFormContainer.classList.remove('hidden');
+                    showMessage('جارِ تعديل المراجعة.', true);
+                } else {
+                    showMessage('المراجعة غير موجودة.', false);
+                }
+            } catch (e) {
+                console.error("Error fetching document for edit: ", e);
+                showMessage('خطأ في جلب بيانات المراجعة.', false);
+            }
+        });
+
+        reviewsListContainer.appendChild(reviewCard);
+    }
+
+    addReviewButton.addEventListener('click', () => {
+        editingReviewId = null;
+        reviewText.value = '';
+        reviewLink.value = '';
+        subjectSelectionContainer.classList.remove('hidden');
+        reviewWeekContainer.classList.add('hidden');
+        reviewFormContainer.classList.add('hidden');
+    });
+
+    // Exam Section Functions
+    addQuestionButton.addEventListener('click', () => {
+        questionCounter++;
+        const questionBlock = document.createElement('div');
+        questionBlock.className = 'question-block card';
+        questionBlock.dataset.id = questionCounter;
+        questionBlock.innerHTML = `
+            <button class="delete-question-button" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
+            <button class="difficult-button" title="سؤال صعب">
+                <svg viewBox="0 0 576 512">
+                    <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12.1 3.4 24.3 13.5 31.5s23.5 3.3 33.8-5.3l128.5-68.5 128.5 68.5c10.3 8.6 23.5 10.5 33.8 5.3s15.5-19.4 13.5-31.5L438.5 329 542.7 225.9c8.6-8.5 11.2-20.9 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"/>
+                </svg>
+            </button>
+            <h4 class="text-md font-bold mb-4">سؤال جديد</h4>
+            <div class="form-group">
+                <label for="question-text-${questionCounter}">نص السؤال:</label>
+                <textarea id="question-text-${questionCounter}" class="question-input" rows="3" placeholder="اكتب نص السؤال هنا..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="question-type-${questionCounter}">نوع السؤال:</label>
+                <select id="question-type-${questionCounter}" class="question-type-select">
+                    <option value="multiple-choice">اختيار من متعدد</option>
+                    <option value="true-false">صواب أو خطأ</option>
+                    <option value="text-answer">إجابة نصية</option>
+                </select>
+            </div>
+            <div class="options-container" id="options-container-${questionCounter}">
+                <!-- Options will be added here dynamically -->
+            </div>
+            <div class="form-group flex justify-between items-center">
+                <div class="flex-grow">
+                    <label for="question-points-${questionCounter}">النقاط:</label>
+                    <input type="number" id="question-points-${questionCounter}" value="${defaultPointsInput.value || 1}" min="1" class="w-full">
+                </div>
+            </div>
+        `;
+        questionsContainer.appendChild(questionBlock);
+        updateQuestionOptions(questionBlock);
+
+        questionBlock.querySelector('.delete-question-button').addEventListener('click', () => {
+            questionBlock.remove();
+        });
+
+        questionBlock.querySelector('.question-type-select').addEventListener('change', () => {
+            updateQuestionOptions(questionBlock);
+        });
+
+        questionBlock.querySelector('.difficult-button').addEventListener('click', () => {
+            questionBlock.classList.toggle('difficult-question');
+            questionBlock.querySelector('.difficult-button').classList.toggle('active');
+        });
+    });
+
+    function updateQuestionOptions(questionBlock) {
+        const questionType = questionBlock.querySelector('.question-type-select').value;
+        const optionsContainer = questionBlock.querySelector('.options-container');
+        const questionId = questionBlock.dataset.id;
+        optionsContainer.innerHTML = '';
+
+        if (questionType === 'multiple-choice') {
+            for (let i = 1; i <= 4; i++) {
+                const optionGroup = document.createElement('div');
+                optionGroup.className = 'option-group';
+                optionGroup.innerHTML = `
+                    <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-${i}" class="correct-answer-checkbox">
+                    <input type="text" id="option-text-${questionId}-${i}" class="flex-grow p-2 rounded border" placeholder="خيار ${i}">
+                `;
+                optionsContainer.appendChild(optionGroup);
+            }
+        } else if (questionType === 'true-false') {
+            const trueOption = document.createElement('div');
+            trueOption.className = 'option-group';
+            trueOption.innerHTML = `
+                <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-true" class="correct-answer-checkbox">
+                <label for="correct-option-${questionId}-true" class="text-gray-700">صواب</label>
             `;
-            
-            supervisorCard.querySelector('.delete-card-button').addEventListener('click', () => {
-                supervisorCard.remove();
-                checkSupervisorsList();
-                showMessage('تم حذف المشرف بنجاح (وهمي).', true);
+            optionsContainer.appendChild(trueOption);
+
+            const falseOption = document.createElement('div');
+            falseOption.className = 'option-group';
+            falseOption.innerHTML = `
+                <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-false" class="correct-answer-checkbox">
+                <label for="correct-option-${questionId}-false" class="text-gray-700">خطأ</label>
+            `;
+            optionsContainer.appendChild(falseOption);
+        } else if (questionType === 'text-answer') {
+            const answerInput = document.createElement('div');
+            answerInput.className = 'option-group';
+            answerInput.innerHTML = `
+                <label for="text-answer-${questionId}" class="flex-grow">الإجابة الصحيحة:</label>
+                <input type="text" id="text-answer-${questionId}" class="p-2 rounded border w-full" placeholder="اكتب الإجابة هنا...">
+            `;
+            optionsContainer.appendChild(answerInput);
+        }
+    }
+
+    saveExamButton.addEventListener('click', async () => {
+        if (!userId) {
+            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+            return;
+        }
+
+        const exam = {
+            subject: examSubjectInput.value,
+            name: examNameInput.value,
+            time: examTimeInput.value,
+            points: examPointsInput.value,
+            questions: []
+        };
+
+        const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+        if (questionBlocks.length === 0) {
+            showMessage('يجب إضافة سؤال واحد على الأقل.', false);
+            return;
+        }
+
+        questionBlocks.forEach(block => {
+            const questionId = block.dataset.id;
+            const question = {
+                text: block.querySelector(`#question-text-${questionId}`).value,
+                type: block.querySelector(`#question-type-${questionId}`).value,
+                points: block.querySelector(`#question-points-${questionId}`).value,
+                isDifficult: block.classList.contains('difficult-question'),
+                options: [],
+                correctAnswer: ''
+            };
+
+            if (question.type === 'multiple-choice') {
+                const optionsInputs = block.querySelectorAll('.option-group input[type="text"]');
+                const correctOptionInput = block.querySelector('.option-group input[type="radio"]:checked');
+                optionsInputs.forEach(input => {
+                    question.options.push(input.value);
+                });
+                if (correctOptionInput) {
+                    question.correctAnswer = correctOptionInput.nextElementSibling.value;
+                }
+            } else if (question.type === 'true-false') {
+                const correctOptionInput = block.querySelector('.option-group input[type="radio"]:checked');
+                if (correctOptionInput) {
+                    question.correctAnswer = correctOptionInput.id.includes('true') ? 'صواب' : 'خطأ';
+                }
+            } else if (question.type === 'text-answer') {
+                question.correctAnswer = block.querySelector(`#text-answer-${questionId}`).value;
+            }
+
+            exam.questions.push(question);
+        });
+
+        try {
+            await addDoc(collection(db, `artifacts/${appId}/users/${userId}/exams`), exam);
+            showMessage('تم حفظ الاختبار بنجاح.', true);
+            // Reset form
+            examSubjectInput.value = '';
+            examNameInput.value = '';
+            examTimeInput.value = '';
+            examPointsInput.value = '';
+            questionsContainer.innerHTML = '';
+            questionCounter = 0;
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            showMessage('خطأ في حفظ الاختبار.', false);
+        }
+    });
+
+    function createExamCard(id, name, subject, time) {
+        const examCard = document.createElement('div');
+        examCard.className = 'exam-card';
+        examCard.dataset.id = id;
+        examCard.innerHTML = `
+            <div>
+                <h4 class="text-md font-bold text-gray-800">${name}</h4>
+                <p class="text-sm text-gray-600">${subject} - ${time} دقيقة</p>
+            </div>
+            <button class="delete-exam-button"><i class="fas fa-trash-alt"></i></button>
+        `;
+        examCard.querySelector('.delete-exam-button').addEventListener('click', async () => {
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد.', false);
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/exams`, id));
+                showMessage('تم حذف الاختبار بنجاح.', true);
+            } catch (e) {
+            console.error("Error deleting document: ", e);
+            showMessage('خطأ في حذف الاختبار.', false);
+            }
+        });
+        examPublishedList.appendChild(examCard);
+    }
+
+    // Image Upload Section Functions
+    dragDropArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dragDropArea.classList.add('drag-over');
+    });
+
+    dragDropArea.addEventListener('dragleave', () => {
+        dragDropArea.classList.remove('drag-over');
+    });
+
+    dragDropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragDropArea.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    dragDropArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(newFiles) {
+        for (const file of newFiles) {
+            if (file.type.startsWith('image/')) {
+                files.push(file);
+            } else {
+                showMessage(`الملف ${file.name} ليس صورة.`, false);
+            }
+        }
+        updateImagePreviews();
+    }
+
+    function updateImagePreviews() {
+        imagePreviewContainer.innerHTML = '';
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'image-preview-item';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="${file.name}">
+                    <button class="remove-image-button" data-index="${index}"><i class="fas fa-times"></i></button>
+                `;
+                imagePreviewContainer.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        });
+        updateRemoveButtons();
+    }
+    
+    function updateRemoveButtons() {
+        document.querySelectorAll('.remove-image-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const index = e.target.closest('.remove-image-button').dataset.index;
+                files.splice(index, 1);
+                updateImagePreviews();
             });
-            
-            supervisorsList.appendChild(supervisorCard); // Append to the card container
-            checkSupervisorsList();
-            
+        });
+    }
+
+    imageUploadButton.addEventListener('click', async () => {
+        if (!userId) {
+            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+            return;
+        }
+
+        if (files.length === 0) {
+            showMessage('يرجى اختيار صورة واحدة على الأقل.', false);
+            return;
+        }
+
+        // This is a placeholder for file upload logic.
+        // In a real application, you would upload files to a storage service
+        // and then save the returned URL to Firestore.
+        try {
+            for (const file of files) {
+                // Using a placeholder URL for demonstration.
+                const imageUrl = `https://placehold.co/150x150/e2e8f0/4a5568?text=${file.name.substring(0, 10)}`;
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/images`), {
+                    url: imageUrl,
+                    filename: file.name,
+                    createdAt: new Date()
+                });
+            }
+            showMessage('تم رفع الصور بنجاح.', true);
+            files = [];
+            updateImagePreviews();
+        } catch (e) {
+            console.error("Error uploading images: ", e);
+            showMessage('خطأ في رفع الصور.', false);
+        }
+    });
+
+    function createImagePreview(id, url) {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'image-preview-item';
+        previewItem.dataset.id = id;
+        previewItem.innerHTML = `
+            <img src="${url}" alt="صورة مرفوعة">
+            <button class="remove-image-button" data-id="${id}"><i class="fas fa-times"></i></button>
+        `;
+        
+        previewItem.querySelector('.remove-image-button').addEventListener('click', async (e) => {
+            const imageId = e.target.closest('.remove-image-button').dataset.id;
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد.', false);
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/images`, imageId));
+                showMessage('تم حذف الصورة بنجاح.', true);
+            } catch (e) {
+                console.error("Error deleting image: ", e);
+                showMessage('خطأ في حذف الصورة.', false);
+            }
+        });
+        imagesListContainer.appendChild(previewItem);
+    }
+
+    // Supervisor Section Functions
+    addSupervisorButton.addEventListener('click', async () => {
+        if (!userId) {
+            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+            return;
+        }
+
+        const supervisorName = supervisorNameInput.value;
+        const supervisorUid = supervisorUidInput.value;
+
+        if (supervisorName === '' || supervisorUid === '') {
+            showMessage('يرجى إدخال اسم المشرف ومعرف المستخدم (UID).', false);
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, `artifacts/${appId}/users/${userId}/supervisors`), {
+                name: supervisorName,
+                uid: supervisorUid,
+                createdAt: new Date()
+            });
+            showMessage('تمت إضافة المشرف بنجاح.', true);
             supervisorNameInput.value = '';
-            supervisorUidInput.value = ''; // Changed from supervisorPasswordInput
-            
-            showMessage('تمت إضافة المشرف بنجاح. هذه العملية تحتاج إلى ربط بالباك إند للحفظ الفعلي.', true);
-        });
+            supervisorUidInput.value = '';
+        } catch (e) {
+            console.error("Error adding supervisor: ", e);
+            showMessage('خطأ في إضافة المشرف.', false);
+        }
+    });
 
-        // Add event listener for default points input
-        defaultPointsInput.addEventListener('input', () => {
-            const newDefaultPoints = defaultPointsInput.value;
-            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
-            questionBlocks.forEach(block => {
-                const pointsInput = block.querySelector('input[type="number"]');
-                pointsInput.value = newDefaultPoints;
-            });
+    function createSupervisorCard(id, name, uid) {
+        const supervisorCard = document.createElement('div');
+        supervisorCard.className = 'supervisor-card';
+        supervisorCard.dataset.id = id;
+        supervisorCard.innerHTML = `
+            <div>
+                <h4 class="text-md font-bold text-gray-800">${name}</h4>
+                <p class="text-sm text-gray-600">UID: ${uid}</p>
+            </div>
+            <button class="delete-card-button" data-id="${id}"><i class="fas fa-trash-alt"></i></button>
+        `;
+        supervisorCard.querySelector('.delete-card-button').addEventListener('click', async (e) => {
+            const supervisorId = e.target.closest('.delete-card-button').dataset.id;
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد.', false);
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/supervisors`, supervisorId));
+                showMessage('تم حذف المشرف بنجاح.', true);
+            } catch (e) {
+                console.error("Error deleting supervisor: ", e);
+                showMessage('خطأ في حذف المشرف.', false);
+            }
         });
+        supervisorsList.appendChild(supervisorCard);
+    }
 
-        // Show initial section on page load
+    // Add event listener for default points input
+    defaultPointsInput.addEventListener('input', () => {
+        const newDefaultPoints = defaultPointsInput.value;
+        const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+        questionBlocks.forEach(block => {
+            const pointsInput = block.querySelector('input[type="number"]');
+            pointsInput.value = newDefaultPoints;
+        });
+    });
+    
+    // Logout button functionality
+    logoutButton.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            showMessage('تم تسجيل الخروج بنجاح.', true);
+            // Optionally clear UI elements or navigate
+            showSection('exam-section');
+        } catch (error) {
+            console.error("Error during logout:", error);
+            showMessage('خطأ في تسجيل الخروج.', false);
+        }
+    });
+
+    // Initial setup
+    window.addEventListener('load', () => {
+        initializeFirebase();
         showSection('exam-section');
-        checkPublishedExamsList();
-        checkReviewsList();
-        checkSupervisorsList();
+    });
     </script>
 </body>
 </html>
