@@ -609,764 +609,799 @@
         </div>
     </nav>
     
-  <script type="module">
+    <script type="module">
     // Global variables for Firebase
-    let db;
-    let auth;
-    let userId;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    
-    // Import Firebase functions
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, addDoc, collection, onSnapshot, deleteDoc, getDoc, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        let db;
+        let auth;
+        let userId;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, onSnapshot, deleteDoc, getDoc, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Main UI elements
-    const navItems = document.querySelectorAll('.nav-item');
-    const contentSections = document.querySelectorAll('.main-content-section');
-    const messageBox = document.getElementById('message-box');
-    const logoutButton = document.getElementById('logout-button');
+        // Main UI elements
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.main-content-section');
+        const messageBox = document.getElementById('message-box');
+        const logoutButton = document.getElementById('logout-button');
+        const userIdDisplay = document.getElementById('user-id-display');
 
-    // Review section elements
-    const addReviewButton = document.getElementById('add-review-button');
-    const subjectSelectionContainer = document.getElementById('subject-selection-container');
-    const subjectButtons = document.querySelectorAll('.subject-button');
-    const reviewWeekContainer = document.getElementById('review-week-container');
-    const reviewWeekTitle = document.getElementById('review-week-title');
-    const reviewWeekNumberInput = document.getElementById('review-week-number');
-    const confirmWeekButton = document.getElementById('confirm-week-button');
-    const cancelWeekButton = document.getElementById('cancel-week-button');
-    const reviewFormContainer = document.getElementById('review-form-container');
-    const reviewText = document.getElementById('review-text');
-    const reviewLink = document.getElementById('review-link');
-    const saveReviewButton = document.getElementById('save-review-button');
-    const cancelReviewButton = document.getElementById('cancel-review-button');
-    const reviewsListContainer = document.getElementById('reviews-list-container');
-    const reviewsPlaceholder = document.getElementById('reviews-placeholder');
-    
-    let currentSubject = '';
-    let currentWeek = 0;
-    let editingReviewId = null;
+        // Exam section elements
+        const addManualExamBtn = document.getElementById('add-manual-exam-btn');
+        const addImageExamBtn = document.getElementById('add-image-exam-btn');
+        const manualExamFormSection = document.getElementById('manual-exam-form-section');
+        const imageExamFormSection = document.getElementById('image-exam-form-section');
+        const addQuestionButton = document.getElementById('add-question-button');
+        const examSubjectInput = document.getElementById('exam-subject');
+        const examNameInput = document.getElementById('exam-name');
+        const examTimeInput = document.getElementById('exam-time');
+        const examPointsInput = document.getElementById('exam-points');
+        const defaultPointsInput = document.getElementById('default-points');
+        const questionsContainer = document.getElementById('questions-container');
+        const saveExamButton = document.getElementById('save-exam-button');
+        const cancelExamButton = document.getElementById('cancel-exam-button');
+        const examPublishedList = document.getElementById('exams-published-list');
+        const examsPlaceholder = document.getElementById('exams-placeholder');
 
-    // Exam section elements
-    const addQuestionButton = document.getElementById('add-question-button');
-    const examSubjectInput = document.getElementById('exam-subject');
-    const examNameInput = document.getElementById('exam-name');
-    const examTimeInput = document.getElementById('exam-time');
-    const examPointsInput = document.getElementById('exam-points');
-    const defaultPointsInput = document.getElementById('default-points');
-    const questionsContainer = document.getElementById('questions-container');
-    const saveExamButton = document.getElementById('save-exam-button');
-    const examPublishedList = document.getElementById('exams-published-list');
-    const examsPlaceholder = document.getElementById('exams-placeholder');
+        let questionCounter = 0;
 
-    let questionCounter = 0;
+        // Image section elements (for exam by images)
+        const dragDropArea = document.getElementById('drag-drop-area');
+        const fileInput = document.getElementById('file-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imageUploadButton = document.getElementById('image-upload-button');
+        const imagesPlaceholder = document.getElementById('images-placeholder');
+        const imagesListContainer = document.getElementById('images-list-container');
+        const cancelImageUploadBtn = document.getElementById('cancel-image-upload-btn');
+        
+        let files = [];
 
-    // Image section elements
-    const dragDropArea = document.getElementById('drag-drop-area');
-    const fileInput = document.getElementById('file-input');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imageUploadButton = document.getElementById('image-upload-button');
-    const imagesPlaceholder = document.getElementById('images-placeholder');
-    const imagesListContainer = document.getElementById('images-list-container');
-    
-    let files = [];
+        // Review section elements
+        const addReviewButton = document.getElementById('add-review-button');
+        const subjectSelectionContainer = document.getElementById('subject-selection-container');
+        const subjectButtons = document.querySelectorAll('.subject-button');
+        const reviewWeekContainer = document.getElementById('review-week-container');
+        const reviewWeekTitle = document.getElementById('review-week-title');
+        const reviewWeekNumberInput = document.getElementById('review-week-number');
+        const confirmWeekButton = document.getElementById('confirm-week-button');
+        const cancelWeekButton = document.getElementById('cancel-week-button');
+        const reviewFormContainer = document.getElementById('review-details-form');
+        const reviewText = document.getElementById('review-text');
+        const reviewLink = document.getElementById('review-link');
+        const saveReviewButton = document.getElementById('save-review-button');
+        const cancelReviewButton = document.getElementById('cancel-review-button');
+        const reviewsListContainer = document.getElementById('reviews-list-container');
+        const reviewsPlaceholder = document.getElementById('reviews-placeholder');
+        
+        let currentSubject = '';
+        let currentWeek = 0;
+        let editingReviewId = null;
 
-    // Supervisors section elements
-    const supervisorNameInput = document.getElementById('supervisor-name');
-    const supervisorUidInput = document.getElementById('supervisor-uid');
-    const addSupervisorButton = document.getElementById('add-supervisor-button');
-    const supervisorsList = document.getElementById('supervisors-list');
-    const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
+        // Supervisors section elements
+        const supervisorNameInput = document.getElementById('supervisor-name');
+        const supervisorUidInput = document.getElementById('supervisor-uid');
+        const addSupervisorButton = document.getElementById('add-supervisor-button');
+        const supervisorsList = document.getElementById('supervisors-list');
+        const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
 
-    // Functions
-    function showMessage(message, isSuccess = true) {
-        messageBox.textContent = message;
-        messageBox.className = `message-box ${isSuccess ? 'success' : 'error'}`;
-        messageBox.style.display = 'block';
-        setTimeout(() => {
-            messageBox.style.display = 'none';
-        }, 3000);
-    }
+        // Functions
+        function showMessage(message, isSuccess = true) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${isSuccess ? 'success' : 'error'}`;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
 
-    function showSection(sectionId) {
-        contentSections.forEach(section => {
-            section.classList.remove('active');
-        });
-        document.getElementById(sectionId).classList.add('active');
+        function showSection(sectionId) {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.nav-item[data-section="${sectionId}"]`).classList.add('active');
+        }
+
+        // Add event listeners for navigation
         navItems.forEach(item => {
-            item.classList.remove('active');
+            item.addEventListener('click', () => {
+                const sectionId = item.getAttribute('data-section');
+                showSection(sectionId);
+            });
         });
-        document.querySelector(`.nav-item[data-section="${sectionId}"]`).classList.add('active');
-    }
 
-    // Add event listeners for navigation
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const sectionId = item.getAttribute('data-section');
-            showSection(sectionId);
-        });
-    });
+        // Firebase Initialization and Authentication
+        async function initializeFirebase() {
+            try {
+                // Initialize Firebase App
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
 
-    // Firebase Initialization and Authentication
-    async function initializeFirebase() {
-        try {
-            // Initialize Firebase App
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
+                // Sign in the user using the custom token provided by the environment
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
-            // Sign in the user using the custom token provided by the environment
-            if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-                await signInAnonymously(auth);
+                // Listen for auth state changes to set up listeners and user-specific data
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = `UID: ${userId}`;
+                        showMessage("تم تسجيل الدخول بنجاح!", true);
+                        setupRealtimeListeners();
+                    } else {
+                        userId = null;
+                        userIdDisplay.textContent = "UID: غير متصل";
+                        showMessage("تم تسجيل الخروج.", false);
+                        // Clear UI or handle a logged-out state
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication error:", error);
+                showMessage("خطأ في الاتصال بـ Firebase. يرجى إعادة المحاولة.", false);
+            }
+        }
+
+        // This function sets up all the realtime data listeners for each section
+        function setupRealtimeListeners() {
+            if (!userId) {
+                console.error("لا يوجد معرف مستخدم. لا يمكن إعداد المستمعين.");
+                return;
             }
 
-            // Listen for auth state changes to set up listeners and user-specific data
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    showMessage("تم تسجيل الدخول بنجاح!", true);
-                    setupRealtimeListeners();
+            // Listener for Reviews (المراجعات)
+            const reviewsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/reviews`));
+            onSnapshot(reviewsQuery, (snapshot) => {
+                reviewsListContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    reviewsPlaceholder.classList.remove('hidden');
                 } else {
-                    userId = null;
-                    showMessage("تم تسجيل الخروج.", false);
-                    // Clear UI or handle a logged-out state
+                    reviewsPlaceholder.classList.add('hidden');
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        createReviewCard(doc.id, data.subject, data.week, data.text, data.link);
+                    });
+                }
+            }, (error) => {
+                console.error("خطأ في جلب المراجعات:", error);
+                showMessage("خطأ في جلب المراجعات.", false);
+            });
+
+            // Listener for Exams (الاختبارات)
+            const examsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/exams`));
+            onSnapshot(examsQuery, (snapshot) => {
+                examPublishedList.innerHTML = '';
+                if (snapshot.empty) {
+                    examsPlaceholder.classList.remove('hidden');
+                } else {
+                    examsPlaceholder.classList.add('hidden');
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        createExamCard(doc.id, data.name, data.subject, data.time);
+                    });
+                }
+            }, (error) => {
+                console.error("خطأ في جلب الاختبارات:", error);
+                showMessage("خطأ في جلب الاختبارات.", false);
+            });
+
+            // Listener for Supervisors (المشرفون)
+            const supervisorsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/supervisors`));
+            onSnapshot(supervisorsQuery, (snapshot) => {
+                supervisorsList.innerHTML = '';
+                if (snapshot.empty) {
+                    supervisorsPlaceholder.classList.remove('hidden');
+                } else {
+                    supervisorsPlaceholder.classList.add('hidden');
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        createSupervisorCard(doc.id, data.name, data.uid);
+                    });
+                }
+            }, (error) => {
+                console.error("خطأ في جلب المشرفين:", error);
+                showMessage("خطأ في جلب المشرفين.", false);
+            });
+            
+            // Listener for Images (الصور)
+            const imagesQuery = query(collection(db, `artifacts/${appId}/users/${userId}/images`));
+            onSnapshot(imagesQuery, (snapshot) => {
+                imagesListContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    imagesPlaceholder.classList.remove('hidden');
+                } else {
+                    imagesPlaceholder.classList.add('hidden');
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        createImagePreview(doc.id, data.url);
+                    });
+                }
+            }, (error) => {
+                console.error("خطأ في جلب الصور:", error);
+                showMessage("خطأ في جلب الصور.", false);
+            });
+        }
+        
+        // --- Exam Section Functions ---
+        // Show manual exam form
+        addManualExamBtn.addEventListener('click', () => {
+            manualExamFormSection.classList.remove('hidden');
+            imageExamFormSection.classList.add('hidden');
+        });
+
+        // Show image exam form
+        addImageExamBtn.addEventListener('click', () => {
+            imageExamFormSection.classList.remove('hidden');
+            manualExamFormSection.classList.add('hidden');
+        });
+        
+        // Cancel manual exam creation
+        cancelExamButton.addEventListener('click', () => {
+            manualExamFormSection.classList.add('hidden');
+            // You might want to reset the form here
+            examSubjectInput.value = '';
+            examNameInput.value = '';
+            examTimeInput.value = '60';
+            examPointsInput.value = '100';
+            questionsContainer.innerHTML = '';
+            questionCounter = 0;
+        });
+
+        // Cancel image exam creation
+        cancelImageUploadBtn.addEventListener('click', () => {
+            imageExamFormSection.classList.add('hidden');
+            files = [];
+            imagePreviewContainer.innerHTML = '';
+        });
+
+        addQuestionButton.addEventListener('click', () => {
+            questionCounter++;
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block card';
+            questionBlock.dataset.id = questionCounter;
+            questionBlock.innerHTML = `
+                <button class="delete-question-button" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
+                <button class="difficult-button" title="سؤال صعب">
+                    <svg viewBox="0 0 576 512">
+                        <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12.1 3.4 24.3 13.5 31.5s23.5 3.3 33.8-5.3l128.5-68.5 128.5 68.5c10.3 8.6 23.5 10.5 33.8 5.3s15.5-19.4 13.5-31.5L438.5 329 542.7 225.9c8.6-8.5 11.2-20.9 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"/>
+                    </svg>
+                </button>
+                <h4 class="text-md font-bold mb-4">سؤال جديد</h4>
+                <div class="form-group">
+                    <label for="question-text-${questionCounter}">نص السؤال:</label>
+                    <textarea id="question-text-${questionCounter}" class="question-input" rows="3" placeholder="اكتب نص السؤال هنا..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="question-type-${questionCounter}">نوع السؤال:</label>
+                    <select id="question-type-${questionCounter}" class="question-type-select">
+                        <option value="multiple-choice">اختيار من متعدد</option>
+                        <option value="true-false">صواب أو خطأ</option>
+                        <option value="text-answer">إجابة نصية</option>
+                    </select>
+                </div>
+                <div class="options-container" id="options-container-${questionCounter}">
+                    <!-- Options will be added here dynamically -->
+                </div>
+                <div class="form-group flex justify-between items-center">
+                    <div class="flex-grow">
+                        <label for="question-points-${questionCounter}">النقاط:</label>
+                        <input type="number" id="question-points-${questionCounter}" value="${defaultPointsInput.value || 1}" min="1" class="w-full">
+                    </div>
+                </div>
+            `;
+            questionsContainer.appendChild(questionBlock);
+            updateQuestionOptions(questionBlock);
+
+            questionBlock.querySelector('.delete-question-button').addEventListener('click', () => {
+                questionBlock.remove();
+            });
+
+            questionBlock.querySelector('.question-type-select').addEventListener('change', () => {
+                updateQuestionOptions(questionBlock);
+            });
+
+            questionBlock.querySelector('.difficult-button').addEventListener('click', () => {
+                questionBlock.classList.toggle('difficult-question');
+                questionBlock.querySelector('.difficult-button').classList.toggle('active');
+            });
+        });
+
+        function updateQuestionOptions(questionBlock) {
+            const questionType = questionBlock.querySelector('.question-type-select').value;
+            const optionsContainer = questionBlock.querySelector('.options-container');
+            const questionId = questionBlock.dataset.id;
+            optionsContainer.innerHTML = '';
+
+            if (questionType === 'multiple-choice') {
+                for (let i = 1; i <= 4; i++) {
+                    const optionGroup = document.createElement('div');
+                    optionGroup.className = 'option-group';
+                    optionGroup.innerHTML = `
+                        <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-${i}" class="correct-answer-checkbox">
+                        <input type="text" id="option-text-${questionId}-${i}" class="flex-grow p-2 rounded border" placeholder="خيار ${i}">
+                    `;
+                    optionsContainer.appendChild(optionGroup);
+                }
+            } else if (questionType === 'true-false') {
+                const trueOption = document.createElement('div');
+                trueOption.className = 'option-group';
+                trueOption.innerHTML = `
+                    <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-true" class="correct-answer-checkbox">
+                    <label for="correct-option-${questionId}-true" class="text-gray-700">صواب</label>
+                `;
+                optionsContainer.appendChild(trueOption);
+
+                const falseOption = document.createElement('div');
+                falseOption.className = 'option-group';
+                falseOption.innerHTML = `
+                    <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-false" class="correct-answer-checkbox">
+                    <label for="correct-option-${questionId}-false" class="text-gray-700">خطأ</label>
+                `;
+                optionsContainer.appendChild(falseOption);
+            } else if (questionType === 'text-answer') {
+                const answerInput = document.createElement('div');
+                answerInput.className = 'option-group';
+                answerInput.innerHTML = `
+                    <label for="text-answer-${questionId}" class="flex-grow">الإجابة الصحيحة:</label>
+                    <input type="text" id="text-answer-${questionId}" class="p-2 rounded border w-full" placeholder="اكتب الإجابة هنا...">
+                `;
+                optionsContainer.appendChild(answerInput);
+            }
+        }
+
+        saveExamButton.addEventListener('click', async () => {
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+                return;
+            }
+
+            const exam = {
+                subject: examSubjectInput.value,
+                name: examNameInput.value,
+                time: examTimeInput.value,
+                points: examPointsInput.value,
+                questions: []
+            };
+
+            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+            if (questionBlocks.length === 0) {
+                showMessage('يجب إضافة سؤال واحد على الأقل.', false);
+                return;
+            }
+
+            questionBlocks.forEach(block => {
+                const questionId = block.dataset.id;
+                const question = {
+                    text: block.querySelector(`#question-text-${questionId}`).value,
+                    type: block.querySelector(`#question-type-${questionId}`).value,
+                    points: block.querySelector(`#question-points-${questionId}`).value,
+                    isDifficult: block.classList.contains('difficult-question'),
+                    options: [],
+                    correctAnswer: ''
+                };
+
+                if (question.type === 'multiple-choice') {
+                    const optionsInputs = block.querySelectorAll('.option-group input[type="text"]');
+                    const correctOptionInput = block.querySelector('.option-group input[type="radio"]:checked');
+                    optionsInputs.forEach(input => {
+                        question.options.push(input.value);
+                    });
+                    if (correctOptionInput) {
+                        question.correctAnswer = correctOptionInput.nextElementSibling.value;
+                    }
+                } else if (question.type === 'true-false') {
+                    const correctOptionInput = block.querySelector('.option-group input[type="radio"]:checked');
+                    if (correctOptionInput) {
+                        question.correctAnswer = correctOptionInput.id.includes('true') ? 'صواب' : 'خطأ';
+                    }
+                } else if (question.type === 'text-answer') {
+                    question.correctAnswer = block.querySelector(`#text-answer-${questionId}`).value;
+                }
+
+                exam.questions.push(question);
+            });
+
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/exams`), exam);
+                showMessage('تم حفظ الاختبار بنجاح.', true);
+                // Reset form
+                cancelExamButton.click();
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage('خطأ في حفظ الاختبار.', false);
+            }
+        });
+
+        function createExamCard(id, name, subject, time) {
+            const examCard = document.createElement('div');
+            examCard.className = 'exam-card';
+            examCard.dataset.id = id;
+            examCard.innerHTML = `
+                <div>
+                    <h4 class="text-md font-bold text-gray-800">${name}</h4>
+                    <p class="text-sm text-gray-600">${subject} - ${time} دقيقة</p>
+                </div>
+                <button class="delete-exam-button"><i class="fas fa-trash-alt"></i></button>
+            `;
+            examCard.querySelector('.delete-exam-button').addEventListener('click', async () => {
+                if (!userId) {
+                    showMessage('لم يتم تسجيل الدخول بعد.', false);
+                    return;
+                }
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/exams`, id));
+                    showMessage('تم حذف الاختبار بنجاح.', true);
+                } catch (e) {
+                    console.error("Error deleting document: ", e);
+                    showMessage('خطأ في حذف الاختبار.', false);
+                }
+            });
+            examPublishedList.appendChild(examCard);
+        }
+
+        // Image Upload Section Functions
+        dragDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.add('drag-over');
+        });
+
+        dragDropArea.addEventListener('dragleave', () => {
+            dragDropArea.classList.remove('drag-over');
+        });
+
+        dragDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        dragDropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(newFiles) {
+            for (const file of newFiles) {
+                if (file.type.startsWith('image/')) {
+                    files.push(file);
+                } else {
+                    showMessage(`الملف ${file.name} ليس صورة.`, false);
+                }
+            }
+            updateImagePreviews();
+        }
+
+        function updateImagePreviews() {
+            imagePreviewContainer.innerHTML = '';
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}">
+                        <button class="remove-image-button" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    imagePreviewContainer.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            });
+            updateRemoveButtons();
+        }
+        
+        function updateRemoveButtons() {
+            document.querySelectorAll('.remove-image-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const index = e.target.closest('.remove-image-button').dataset.index;
+                    files.splice(index, 1);
+                    updateImagePreviews();
+                });
+            });
+        }
+
+        imageUploadButton.addEventListener('click', async () => {
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+                return;
+            }
+
+            if (files.length === 0) {
+                showMessage('يرجى اختيار صورة واحدة على الأقل.', false);
+                return;
+            }
+
+            // This is a placeholder for file upload logic.
+            // In a real application, you would upload files to a storage service
+            // and then save the returned URL to Firestore.
+            try {
+                for (const file of files) {
+                    // Using a placeholder URL for demonstration.
+                    const imageUrl = `https://placehold.co/150x150/e2e8f0/4a5568?text=${file.name.substring(0, 10)}`;
+                    await addDoc(collection(db, `artifacts/${appId}/users/${userId}/images`), {
+                        url: imageUrl,
+                        filename: file.name,
+                        createdAt: new Date()
+                    });
+                }
+                showMessage('تم رفع الصور بنجاح.', true);
+                files = [];
+                updateImagePreviews();
+            } catch (e) {
+                console.error("Error uploading images: ", e);
+                showMessage('خطأ في رفع الصور.', false);
+            }
+        });
+
+        function createImagePreview(id, url) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'image-preview-item';
+            previewItem.dataset.id = id;
+            previewItem.innerHTML = `
+                <img src="${url}" alt="صورة مرفوعة">
+                <button class="remove-image-button" data-id="${id}"><i class="fas fa-times"></i></button>
+            `;
+            
+            previewItem.querySelector('.remove-image-button').addEventListener('click', async (e) => {
+                const imageId = e.target.closest('.remove-image-button').dataset.id;
+                if (!userId) {
+                    showMessage('لم يتم تسجيل الدخول بعد.', false);
+                    return;
+                }
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/images`, imageId));
+                    showMessage('تم حذف الصورة بنجاح.', true);
+                } catch (e) {
+                    console.error("Error deleting image: ", e);
+                    showMessage('خطأ في حذف الصورة.', false);
+                }
+            });
+            imagesListContainer.appendChild(previewItem);
+        }
+
+        // Review Section Functions
+        subjectButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                currentSubject = button.getAttribute('data-subject');
+                subjectSelectionContainer.classList.add('hidden');
+                reviewWeekContainer.classList.remove('hidden');
+                reviewWeekTitle.textContent = `مراجعة مادة ${button.textContent.trim()}`;
+            });
+        });
+
+        confirmWeekButton.addEventListener('click', () => {
+            currentWeek = reviewWeekNumberInput.value;
+            if (currentWeek > 0) {
+                reviewWeekContainer.classList.add('hidden');
+                reviewFormContainer.classList.remove('hidden');
+            } else {
+                showMessage('يرجى إدخال رقم أسبوع صحيح.', false);
+            }
+        });
+
+        cancelWeekButton.addEventListener('click', () => {
+            reviewWeekContainer.classList.add('hidden');
+            subjectSelectionContainer.classList.remove('hidden');
+            reviewWeekNumberInput.value = '';
+        });
+
+        saveReviewButton.addEventListener('click', async () => {
+            if (!userId) {
+                showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
+                return;
+            }
+
+            const reviewData = {
+                subject: currentSubject,
+                week: parseInt(reviewWeekNumberInput.value),
+                text: reviewText.value,
+                link: reviewLink.value,
+                createdAt: new Date()
+            };
+
+            try {
+                if (editingReviewId) {
+                    const reviewDocRef = doc(db, `artifacts/${appId}/users/${userId}/reviews`, editingReviewId);
+                    await updateDoc(reviewDocRef, reviewData);
+                    showMessage('تم تحديث المراجعة بنجاح.', true);
+                } else {
+                    await addDoc(collection(db, `artifacts/${appId}/users/${userId}/reviews`), reviewData);
+                    showMessage('تمت إضافة المراجعة بنجاح.', true);
+                }
+                
+                // Reset form
+                editingReviewId = null;
+                reviewText.value = '';
+                reviewLink.value = '';
+                reviewFormContainer.classList.add('hidden');
+                subjectSelectionContainer.classList.remove('hidden');
+
+            } catch (e) {
+                console.error("Error adding/updating document: ", e);
+                showMessage('خطأ في حفظ المراجعة.', false);
+            }
+        });
+
+        cancelReviewButton.addEventListener('click', () => {
+            reviewFormContainer.classList.add('hidden');
+            subjectSelectionContainer.classList.remove('hidden');
+            reviewText.value = '';
+            reviewLink.value = '';
+            editingReviewId = null;
+        });
+
+        function createReviewCard(id, subject, week, text, link) {
+            const reviewCard = document.createElement('div');
+            reviewCard.className = 'review-card card cursor-pointer';
+            reviewCard.dataset.id = id;
+            reviewCard.innerHTML = `
+                <div>
+                    <h4 class="text-md font-bold text-gray-800">${subject} - الأسبوع ${week}</h4>
+                    <p class="text-sm text-gray-600">${text.substring(0, 50)}...</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="edit-review-button btn-icon text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                    <button class="delete-review-button btn-icon text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                    ${link ? `<a href="${link}" target="_blank" class="btn-icon text-gray-500 hover:text-gray-700"><i class="fas fa-link"></i></a>` : ''}
+                </div>
+            `;
+            
+            reviewCard.querySelector('.delete-review-button').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!userId) {
+                    showMessage('لم يتم تسجيل الدخول بعد.', false);
+                    return;
+                }
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/reviews`, id));
+                    showMessage('تم حذف المراجعة بنجاح.', true);
+                } catch (e) {
+                    console.error("Error deleting document: ", e);
+                    showMessage('خطأ في حذف المراجعة.', false);
                 }
             });
 
-        } catch (error) {
-            console.error("Firebase initialization or authentication error:", error);
-            showMessage("خطأ في الاتصال بـ Firebase. يرجى إعادة المحاولة.", false);
-        }
-    }
+            reviewCard.querySelector('.edit-review-button').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!userId) {
+                    showMessage('لم يتم تسجيل الدخول بعد.', false);
+                    return;
+                }
+                try {
+                    const reviewDoc = await getDoc(doc(db, `artifacts/${appId}/users/${userId}/reviews`, id));
+                    if (reviewDoc.exists()) {
+                        const data = reviewDoc.data();
+                        currentSubject = data.subject;
+                        currentWeek = data.week;
+                        reviewText.value = data.text;
+                        reviewLink.value = data.link;
+                        editingReviewId = id;
 
-    // This function sets up all the realtime data listeners for each section
-    function setupRealtimeListeners() {
-        if (!userId) {
-            console.error("لا يوجد معرف مستخدم. لا يمكن إعداد المستمعين.");
-            return;
-        }
+                        // Show review form
+                        subjectSelectionContainer.classList.add('hidden');
+                        reviewWeekContainer.classList.add('hidden');
+                        reviewFormContainer.classList.remove('hidden');
+                        showMessage('جارِ تعديل المراجعة.', true);
+                    } else {
+                        showMessage('المراجعة غير موجودة.', false);
+                    }
+                } catch (e) {
+                    console.error("Error fetching document for edit: ", e);
+                    showMessage('خطأ في جلب بيانات المراجعة.', false);
+                }
+            });
 
-        // Listener for Reviews (المراجعات)
-        const reviewsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/reviews`));
-        onSnapshot(reviewsQuery, (snapshot) => {
-            reviewsListContainer.innerHTML = '';
-            if (snapshot.empty) {
-                reviewsPlaceholder.classList.remove('hidden');
-            } else {
-                reviewsPlaceholder.classList.add('hidden');
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    createReviewCard(doc.id, data.subject, data.week, data.text, data.link);
-                });
-            }
-        }, (error) => {
-            console.error("خطأ في جلب المراجعات:", error);
-            showMessage("خطأ في جلب المراجعات.", false);
-        });
-
-        // Listener for Exams (الاختبارات)
-        const examsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/exams`));
-        onSnapshot(examsQuery, (snapshot) => {
-            examPublishedList.innerHTML = '';
-            if (snapshot.empty) {
-                examsPlaceholder.classList.remove('hidden');
-            } else {
-                examsPlaceholder.classList.add('hidden');
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    createExamCard(doc.id, data.name, data.subject, data.time);
-                });
-            }
-        }, (error) => {
-            console.error("خطأ في جلب الاختبارات:", error);
-            showMessage("خطأ في جلب الاختبارات.", false);
-        });
-
-        // Listener for Supervisors (المشرفون)
-        const supervisorsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/supervisors`));
-        onSnapshot(supervisorsQuery, (snapshot) => {
-            supervisorsList.innerHTML = '';
-            if (snapshot.empty) {
-                supervisorsPlaceholder.classList.remove('hidden');
-            } else {
-                supervisorsPlaceholder.classList.add('hidden');
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    createSupervisorCard(doc.id, data.name, data.uid);
-                });
-            }
-        }, (error) => {
-            console.error("خطأ في جلب المشرفين:", error);
-            showMessage("خطأ في جلب المشرفين.", false);
-        });
-        
-        // Listener for Images (الصور)
-        const imagesQuery = query(collection(db, `artifacts/${appId}/users/${userId}/images`));
-        onSnapshot(imagesQuery, (snapshot) => {
-            imagesListContainer.innerHTML = ''; // Changed from imagePreviewContainer to imagesListContainer
-            if (snapshot.empty) {
-                imagesPlaceholder.classList.remove('hidden');
-            } else {
-                imagesPlaceholder.classList.add('hidden');
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    createImagePreview(doc.id, data.url);
-                });
-            }
-        }, (error) => {
-            console.error("خطأ في جلب الصور:", error);
-            showMessage("خطأ في جلب الصور.", false);
-        });
-    }
-    
-    // Review Section Functions
-    subjectButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            currentSubject = button.getAttribute('data-subject');
-            subjectSelectionContainer.classList.add('hidden');
-            reviewWeekContainer.classList.remove('hidden');
-            reviewWeekTitle.textContent = `مراجعة مادة ${button.textContent.trim()}`;
-        });
-    });
-
-    confirmWeekButton.addEventListener('click', () => {
-        currentWeek = reviewWeekNumberInput.value;
-        if (currentWeek > 0) {
-            reviewWeekContainer.classList.add('hidden');
-            reviewFormContainer.classList.remove('hidden');
-        } else {
-            showMessage('يرجى إدخال رقم أسبوع صحيح.', false);
-        }
-    });
-
-    cancelWeekButton.addEventListener('click', () => {
-        reviewWeekContainer.classList.add('hidden');
-        subjectSelectionContainer.classList.remove('hidden');
-        reviewWeekNumberInput.value = '';
-    });
-
-    saveReviewButton.addEventListener('click', async () => {
-        if (!userId) {
-            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
-            return;
+            reviewsListContainer.appendChild(reviewCard);
         }
 
-        const reviewData = {
-            subject: currentSubject,
-            week: parseInt(reviewWeekNumberInput.value),
-            text: reviewText.value,
-            link: reviewLink.value,
-            createdAt: new Date()
-        };
-
-        try {
-            if (editingReviewId) {
-                const reviewDocRef = doc(db, `artifacts/${appId}/users/${userId}/reviews`, editingReviewId);
-                await updateDoc(reviewDocRef, reviewData);
-                showMessage('تم تحديث المراجعة بنجاح.', true);
-            } else {
-                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/reviews`), reviewData);
-                showMessage('تمت إضافة المراجعة بنجاح.', true);
-            }
-            
-            // Reset form
+        addReviewButton.addEventListener('click', () => {
             editingReviewId = null;
             reviewText.value = '';
             reviewLink.value = '';
-            reviewFormContainer.classList.add('hidden');
             subjectSelectionContainer.classList.remove('hidden');
+            reviewWeekContainer.classList.add('hidden');
+            reviewFormContainer.classList.add('hidden');
+        });
 
-        } catch (e) {
-            console.error("Error adding/updating document: ", e);
-            showMessage('خطأ في حفظ المراجعة.', false);
-        }
-    });
-
-    cancelReviewButton.addEventListener('click', () => {
-        reviewFormContainer.classList.add('hidden');
-        subjectSelectionContainer.classList.remove('hidden');
-        reviewText.value = '';
-        reviewLink.value = '';
-        editingReviewId = null;
-    });
-
-    function createReviewCard(id, subject, week, text, link) {
-        const reviewCard = document.createElement('div');
-        reviewCard.className = 'review-card cursor-pointer';
-        reviewCard.dataset.id = id;
-        reviewCard.innerHTML = `
-            <div>
-                <h4 class="text-md font-bold text-gray-800">${subject} - الأسبوع ${week}</h4>
-                <p class="text-sm text-gray-600">${text.substring(0, 50)}...</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <button class="edit-review-button btn-icon text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
-                <button class="delete-review-button btn-icon text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
-                ${link ? `<a href="${link}" target="_blank" class="btn-icon text-gray-500 hover:text-gray-700"><i class="fas fa-link"></i></a>` : ''}
-            </div>
-        `;
-        
-        reviewCard.querySelector('.delete-review-button').addEventListener('click', async (e) => {
-            e.stopPropagation();
+        // Supervisor Section Functions
+        addSupervisorButton.addEventListener('click', async () => {
             if (!userId) {
-                showMessage('لم يتم تسجيل الدخول بعد.', false);
+                showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
                 return;
             }
-            try {
-                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/reviews`, id));
-                showMessage('تم حذف المراجعة بنجاح.', true);
-            } catch (e) {
-                console.error("Error deleting document: ", e);
-                showMessage('خطأ في حذف المراجعة.', false);
-            }
-        });
 
-        reviewCard.querySelector('.edit-review-button').addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (!userId) {
-                showMessage('لم يتم تسجيل الدخول بعد.', false);
+            const supervisorName = supervisorNameInput.value;
+            const supervisorUid = supervisorUidInput.value;
+
+            if (supervisorName === '' || supervisorUid === '') {
+                showMessage('يرجى إدخال اسم المشرف ومعرف المستخدم (UID).', false);
                 return;
             }
+
             try {
-                const reviewDoc = await getDoc(doc(db, `artifacts/${appId}/users/${userId}/reviews`, id));
-                if (reviewDoc.exists()) {
-                    const data = reviewDoc.data();
-                    currentSubject = data.subject;
-                    currentWeek = data.week;
-                    reviewText.value = data.text;
-                    reviewLink.value = data.link;
-                    editingReviewId = id;
-
-                    // Show review form
-                    subjectSelectionContainer.classList.add('hidden');
-                    reviewWeekContainer.classList.add('hidden');
-                    reviewFormContainer.classList.remove('hidden');
-                    showMessage('جارِ تعديل المراجعة.', true);
-                } else {
-                    showMessage('المراجعة غير موجودة.', false);
-                }
-            } catch (e) {
-                console.error("Error fetching document for edit: ", e);
-                showMessage('خطأ في جلب بيانات المراجعة.', false);
-            }
-        });
-
-        reviewsListContainer.appendChild(reviewCard);
-    }
-
-    addReviewButton.addEventListener('click', () => {
-        editingReviewId = null;
-        reviewText.value = '';
-        reviewLink.value = '';
-        subjectSelectionContainer.classList.remove('hidden');
-        reviewWeekContainer.classList.add('hidden');
-        reviewFormContainer.classList.add('hidden');
-    });
-
-    // Exam Section Functions
-    addQuestionButton.addEventListener('click', () => {
-        questionCounter++;
-        const questionBlock = document.createElement('div');
-        questionBlock.className = 'question-block card';
-        questionBlock.dataset.id = questionCounter;
-        questionBlock.innerHTML = `
-            <button class="delete-question-button" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
-            <button class="difficult-button" title="سؤال صعب">
-                <svg viewBox="0 0 576 512">
-                    <path d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12.1 3.4 24.3 13.5 31.5s23.5 3.3 33.8-5.3l128.5-68.5 128.5 68.5c10.3 8.6 23.5 10.5 33.8 5.3s15.5-19.4 13.5-31.5L438.5 329 542.7 225.9c8.6-8.5 11.2-20.9 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"/>
-                </svg>
-            </button>
-            <h4 class="text-md font-bold mb-4">سؤال جديد</h4>
-            <div class="form-group">
-                <label for="question-text-${questionCounter}">نص السؤال:</label>
-                <textarea id="question-text-${questionCounter}" class="question-input" rows="3" placeholder="اكتب نص السؤال هنا..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="question-type-${questionCounter}">نوع السؤال:</label>
-                <select id="question-type-${questionCounter}" class="question-type-select">
-                    <option value="multiple-choice">اختيار من متعدد</option>
-                    <option value="true-false">صواب أو خطأ</option>
-                    <option value="text-answer">إجابة نصية</option>
-                </select>
-            </div>
-            <div class="options-container" id="options-container-${questionCounter}">
-                <!-- Options will be added here dynamically -->
-            </div>
-            <div class="form-group flex justify-between items-center">
-                <div class="flex-grow">
-                    <label for="question-points-${questionCounter}">النقاط:</label>
-                    <input type="number" id="question-points-${questionCounter}" value="${defaultPointsInput.value || 1}" min="1" class="w-full">
-                </div>
-            </div>
-        `;
-        questionsContainer.appendChild(questionBlock);
-        updateQuestionOptions(questionBlock);
-
-        questionBlock.querySelector('.delete-question-button').addEventListener('click', () => {
-            questionBlock.remove();
-        });
-
-        questionBlock.querySelector('.question-type-select').addEventListener('change', () => {
-            updateQuestionOptions(questionBlock);
-        });
-
-        questionBlock.querySelector('.difficult-button').addEventListener('click', () => {
-            questionBlock.classList.toggle('difficult-question');
-            questionBlock.querySelector('.difficult-button').classList.toggle('active');
-        });
-    });
-
-    function updateQuestionOptions(questionBlock) {
-        const questionType = questionBlock.querySelector('.question-type-select').value;
-        const optionsContainer = questionBlock.querySelector('.options-container');
-        const questionId = questionBlock.dataset.id;
-        optionsContainer.innerHTML = '';
-
-        if (questionType === 'multiple-choice') {
-            for (let i = 1; i <= 4; i++) {
-                const optionGroup = document.createElement('div');
-                optionGroup.className = 'option-group';
-                optionGroup.innerHTML = `
-                    <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-${i}" class="correct-answer-checkbox">
-                    <input type="text" id="option-text-${questionId}-${i}" class="flex-grow p-2 rounded border" placeholder="خيار ${i}">
-                `;
-                optionsContainer.appendChild(optionGroup);
-            }
-        } else if (questionType === 'true-false') {
-            const trueOption = document.createElement('div');
-            trueOption.className = 'option-group';
-            trueOption.innerHTML = `
-                <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-true" class="correct-answer-checkbox">
-                <label for="correct-option-${questionId}-true" class="text-gray-700">صواب</label>
-            `;
-            optionsContainer.appendChild(trueOption);
-
-            const falseOption = document.createElement('div');
-            falseOption.className = 'option-group';
-            falseOption.innerHTML = `
-                <input type="radio" name="correct-answer-${questionId}" id="correct-option-${questionId}-false" class="correct-answer-checkbox">
-                <label for="correct-option-${questionId}-false" class="text-gray-700">خطأ</label>
-            `;
-            optionsContainer.appendChild(falseOption);
-        } else if (questionType === 'text-answer') {
-            const answerInput = document.createElement('div');
-            answerInput.className = 'option-group';
-            answerInput.innerHTML = `
-                <label for="text-answer-${questionId}" class="flex-grow">الإجابة الصحيحة:</label>
-                <input type="text" id="text-answer-${questionId}" class="p-2 rounded border w-full" placeholder="اكتب الإجابة هنا...">
-            `;
-            optionsContainer.appendChild(answerInput);
-        }
-    }
-
-    saveExamButton.addEventListener('click', async () => {
-        if (!userId) {
-            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
-            return;
-        }
-
-        const exam = {
-            subject: examSubjectInput.value,
-            name: examNameInput.value,
-            time: examTimeInput.value,
-            points: examPointsInput.value,
-            questions: []
-        };
-
-        const questionBlocks = questionsContainer.querySelectorAll('.question-block');
-        if (questionBlocks.length === 0) {
-            showMessage('يجب إضافة سؤال واحد على الأقل.', false);
-            return;
-        }
-
-        questionBlocks.forEach(block => {
-            const questionId = block.dataset.id;
-            const question = {
-                text: block.querySelector(`#question-text-${questionId}`).value,
-                type: block.querySelector(`#question-type-${questionId}`).value,
-                points: block.querySelector(`#question-points-${questionId}`).value,
-                isDifficult: block.classList.contains('difficult-question'),
-                options: [],
-                correctAnswer: ''
-            };
-
-            if (question.type === 'multiple-choice') {
-                const optionsInputs = block.querySelectorAll('.option-group input[type="text"]');
-                const correctOptionInput = block.querySelector('.option-group input[type="radio"]:checked');
-                optionsInputs.forEach(input => {
-                    question.options.push(input.value);
-                });
-                if (correctOptionInput) {
-                    question.correctAnswer = correctOptionInput.nextElementSibling.value;
-                }
-            } else if (question.type === 'true-false') {
-                const correctOptionInput = block.querySelector('.option-group input[type="radio"]:checked');
-                if (correctOptionInput) {
-                    question.correctAnswer = correctOptionInput.id.includes('true') ? 'صواب' : 'خطأ';
-                }
-            } else if (question.type === 'text-answer') {
-                question.correctAnswer = block.querySelector(`#text-answer-${questionId}`).value;
-            }
-
-            exam.questions.push(question);
-        });
-
-        try {
-            await addDoc(collection(db, `artifacts/${appId}/users/${userId}/exams`), exam);
-            showMessage('تم حفظ الاختبار بنجاح.', true);
-            // Reset form
-            examSubjectInput.value = '';
-            examNameInput.value = '';
-            examTimeInput.value = '';
-            examPointsInput.value = '';
-            questionsContainer.innerHTML = '';
-            questionCounter = 0;
-        } catch (e) {
-            console.error("Error adding document: ", e);
-            showMessage('خطأ في حفظ الاختبار.', false);
-        }
-    });
-
-    function createExamCard(id, name, subject, time) {
-        const examCard = document.createElement('div');
-        examCard.className = 'exam-card';
-        examCard.dataset.id = id;
-        examCard.innerHTML = `
-            <div>
-                <h4 class="text-md font-bold text-gray-800">${name}</h4>
-                <p class="text-sm text-gray-600">${subject} - ${time} دقيقة</p>
-            </div>
-            <button class="delete-exam-button"><i class="fas fa-trash-alt"></i></button>
-        `;
-        examCard.querySelector('.delete-exam-button').addEventListener('click', async () => {
-            if (!userId) {
-                showMessage('لم يتم تسجيل الدخول بعد.', false);
-                return;
-            }
-            try {
-                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/exams`, id));
-                showMessage('تم حذف الاختبار بنجاح.', true);
-            } catch (e) {
-            console.error("Error deleting document: ", e);
-            showMessage('خطأ في حذف الاختبار.', false);
-            }
-        });
-        examPublishedList.appendChild(examCard);
-    }
-
-    // Image Upload Section Functions
-    dragDropArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dragDropArea.classList.add('drag-over');
-    });
-
-    dragDropArea.addEventListener('dragleave', () => {
-        dragDropArea.classList.remove('drag-over');
-    });
-
-    dragDropArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dragDropArea.classList.remove('drag-over');
-        handleFiles(e.dataTransfer.files);
-    });
-
-    dragDropArea.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-    });
-
-    function handleFiles(newFiles) {
-        for (const file of newFiles) {
-            if (file.type.startsWith('image/')) {
-                files.push(file);
-            } else {
-                showMessage(`الملف ${file.name} ليس صورة.`, false);
-            }
-        }
-        updateImagePreviews();
-    }
-
-    function updateImagePreviews() {
-        imagePreviewContainer.innerHTML = '';
-        files.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const previewItem = document.createElement('div');
-                previewItem.className = 'image-preview-item';
-                previewItem.innerHTML = `
-                    <img src="${e.target.result}" alt="${file.name}">
-                    <button class="remove-image-button" data-index="${index}"><i class="fas fa-times"></i></button>
-                `;
-                imagePreviewContainer.appendChild(previewItem);
-            };
-            reader.readAsDataURL(file);
-        });
-        updateRemoveButtons();
-    }
-    
-    function updateRemoveButtons() {
-        document.querySelectorAll('.remove-image-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const index = e.target.closest('.remove-image-button').dataset.index;
-                files.splice(index, 1);
-                updateImagePreviews();
-            });
-        });
-    }
-
-    imageUploadButton.addEventListener('click', async () => {
-        if (!userId) {
-            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
-            return;
-        }
-
-        if (files.length === 0) {
-            showMessage('يرجى اختيار صورة واحدة على الأقل.', false);
-            return;
-        }
-
-        // This is a placeholder for file upload logic.
-        // In a real application, you would upload files to a storage service
-        // and then save the returned URL to Firestore.
-        try {
-            for (const file of files) {
-                // Using a placeholder URL for demonstration.
-                const imageUrl = `https://placehold.co/150x150/e2e8f0/4a5568?text=${file.name.substring(0, 10)}`;
-                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/images`), {
-                    url: imageUrl,
-                    filename: file.name,
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/supervisors`), {
+                    name: supervisorName,
+                    uid: supervisorUid,
                     createdAt: new Date()
                 });
-            }
-            showMessage('تم رفع الصور بنجاح.', true);
-            files = [];
-            updateImagePreviews();
-        } catch (e) {
-            console.error("Error uploading images: ", e);
-            showMessage('خطأ في رفع الصور.', false);
-        }
-    });
-
-    function createImagePreview(id, url) {
-        const previewItem = document.createElement('div');
-        previewItem.className = 'image-preview-item';
-        previewItem.dataset.id = id;
-        previewItem.innerHTML = `
-            <img src="${url}" alt="صورة مرفوعة">
-            <button class="remove-image-button" data-id="${id}"><i class="fas fa-times"></i></button>
-        `;
-        
-        previewItem.querySelector('.remove-image-button').addEventListener('click', async (e) => {
-            const imageId = e.target.closest('.remove-image-button').dataset.id;
-            if (!userId) {
-                showMessage('لم يتم تسجيل الدخول بعد.', false);
-                return;
-            }
-            try {
-                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/images`, imageId));
-                showMessage('تم حذف الصورة بنجاح.', true);
+                showMessage('تمت إضافة المشرف بنجاح.', true);
+                supervisorNameInput.value = '';
+                supervisorUidInput.value = '';
             } catch (e) {
-                console.error("Error deleting image: ", e);
-                showMessage('خطأ في حذف الصورة.', false);
+                console.error("Error adding supervisor: ", e);
+                showMessage('خطأ في إضافة المشرف.', false);
             }
         });
-        imagesListContainer.appendChild(previewItem);
-    }
 
-    // Supervisor Section Functions
-    addSupervisorButton.addEventListener('click', async () => {
-        if (!userId) {
-            showMessage('لم يتم تسجيل الدخول بعد. يرجى الانتظار.', false);
-            return;
-        }
-
-        const supervisorName = supervisorNameInput.value;
-        const supervisorUid = supervisorUidInput.value;
-
-        if (supervisorName === '' || supervisorUid === '') {
-            showMessage('يرجى إدخال اسم المشرف ومعرف المستخدم (UID).', false);
-            return;
-        }
-
-        try {
-            await addDoc(collection(db, `artifacts/${appId}/users/${userId}/supervisors`), {
-                name: supervisorName,
-                uid: supervisorUid,
-                createdAt: new Date()
+        function createSupervisorCard(id, name, uid) {
+            const supervisorCard = document.createElement('div');
+            supervisorCard.className = 'supervisor-card card';
+            supervisorCard.dataset.id = id;
+            supervisorCard.innerHTML = `
+                <div>
+                    <h4 class="text-md font-bold text-gray-800">${name}</h4>
+                    <p class="text-sm text-gray-600">UID: ${uid}</p>
+                </div>
+                <button class="delete-card-button" data-id="${id}"><i class="fas fa-trash-alt"></i></button>
+            `;
+            supervisorCard.querySelector('.delete-card-button').addEventListener('click', async (e) => {
+                const supervisorId = e.target.closest('.delete-card-button').dataset.id;
+                if (!userId) {
+                    showMessage('لم يتم تسجيل الدخول بعد.', false);
+                    return;
+                }
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/supervisors`, supervisorId));
+                    showMessage('تم حذف المشرف بنجاح.', true);
+                } catch (e) {
+                    console.error("Error deleting supervisor: ", e);
+                    showMessage('خطأ في حذف المشرف.', false);
+                }
             });
-            showMessage('تمت إضافة المشرف بنجاح.', true);
-            supervisorNameInput.value = '';
-            supervisorUidInput.value = '';
-        } catch (e) {
-            console.error("Error adding supervisor: ", e);
-            showMessage('خطأ في إضافة المشرف.', false);
+            supervisorsList.appendChild(supervisorCard);
         }
-    });
 
-    function createSupervisorCard(id, name, uid) {
-        const supervisorCard = document.createElement('div');
-        supervisorCard.className = 'supervisor-card';
-        supervisorCard.dataset.id = id;
-        supervisorCard.innerHTML = `
-            <div>
-                <h4 class="text-md font-bold text-gray-800">${name}</h4>
-                <p class="text-sm text-gray-600">UID: ${uid}</p>
-            </div>
-            <button class="delete-card-button" data-id="${id}"><i class="fas fa-trash-alt"></i></button>
-        `;
-        supervisorCard.querySelector('.delete-card-button').addEventListener('click', async (e) => {
-            const supervisorId = e.target.closest('.delete-card-button').dataset.id;
-            if (!userId) {
-                showMessage('لم يتم تسجيل الدخول بعد.', false);
-                return;
-            }
+        // Add event listener for default points input
+        defaultPointsInput.addEventListener('input', () => {
+            const newDefaultPoints = defaultPointsInput.value;
+            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+            questionBlocks.forEach(block => {
+                const pointsInput = block.querySelector('input[type="number"]');
+                pointsInput.value = newDefaultPoints;
+            });
+        });
+        
+        // Logout button functionality
+        logoutButton.addEventListener('click', async () => {
             try {
-                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/supervisors`, supervisorId));
-                showMessage('تم حذف المشرف بنجاح.', true);
-            } catch (e) {
-                console.error("Error deleting supervisor: ", e);
-                showMessage('خطأ في حذف المشرف.', false);
+                await signOut(auth);
+                showMessage('تم تسجيل الخروج بنجاح.', true);
+                // Optionally clear UI elements or navigate
+                showSection('exam-section');
+            } catch (error) {
+                console.error("Error during logout:", error);
+                showMessage('خطأ في تسجيل الخروج.', false);
             }
         });
-        supervisorsList.appendChild(supervisorCard);
-    }
 
-    // Add event listener for default points input
-    defaultPointsInput.addEventListener('input', () => {
-        const newDefaultPoints = defaultPointsInput.value;
-        const questionBlocks = questionsContainer.querySelectorAll('.question-block');
-        questionBlocks.forEach(block => {
-            const pointsInput = block.querySelector('input[type="number"]');
-            pointsInput.value = newDefaultPoints;
-        });
-    });
-    
-    // Logout button functionality
-    logoutButton.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            showMessage('تم تسجيل الخروج بنجاح.', true);
-            // Optionally clear UI elements or navigate
+        // Initial setup
+        window.addEventListener('load', () => {
+            initializeFirebase();
             showSection('exam-section');
-        } catch (error) {
-            console.error("Error during logout:", error);
-            showMessage('خطأ في تسجيل الخروج.', false);
-        }
-    });
-
-    // Initial setup
-    window.addEventListener('load', () => {
-        initializeFirebase();
-        showSection('exam-section');
-    });
+        });
     </script>
 </body>
 </html>
