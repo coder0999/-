@@ -608,92 +608,521 @@
             <span>المشرفون</span>
         </div>
     </nav>
+    
     <script type="module">
-    // Import Firestore functions from the external file
-    import { saveExamToFirestore, saveReviewToFirestore } from './firebase-config.js';
+        // Import Firestore functions from the external file
+        import { saveExamToFirestore, saveReviewToFirestore } from './firebase-config.js';
 
-    // ... (باقي الكود كما هو)
+        // Main UI elements
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.main-content-section');
+        const messageBox = document.getElementById('message-box');
+        
+        // Review section elements
+        const addReviewButton = document.getElementById('add-review-button');
+        const subjectSelectionContainer = document.getElementById('subject-selection-container');
+        const subjectButtons = document.querySelectorAll('.subject-button');
+        const reviewWeekContainer = document.getElementById('review-week-container');
+        const reviewWeekTitle = document.getElementById('review-week-title');
+        const reviewWeekNumberInput = document.getElementById('review-week-number');
+        const confirmWeekButton = document.getElementById('confirm-week-button');
+        const cancelWeekButton = document.getElementById('cancel-week-button');
+        const reviewFormContainer = document.getElementById('review-form-container');
+        const reviewText = document.getElementById('review-text');
+        const reviewLink = document.getElementById('review-link');
+        const saveReviewButton = document.getElementById('save-review-button');
+        const cancelReviewButton = document.getElementById('cancel-review-button');
+        const reviewsListContainer = document.getElementById('reviews-list-container');
+        const reviewsPlaceholder = document.getElementById('reviews-placeholder');
+        const reviewsHr = document.getElementById('reviews-hr');
 
-    // Event listener for publishing an exam
-    document.getElementById('publish-exam-button').addEventListener('click', async () => {
-        // Collect exam data
-        const examName = examNameInput.value;
-        const examDuration = examDurationInput.value;
-        const questions = [];
-        questionsContainer.querySelectorAll('.question-block').forEach(questionBlock => {
-            const questionText = questionBlock.querySelector('.question-input').value;
-            const points = questionBlock.querySelector('input[type="number"]').value;
-            const options = [];
-            questionBlock.querySelectorAll('.option-input').forEach(optionInput => {
-                options.push(optionInput.value);
+        // Exam section elements
+        const addExamButton = document.getElementById('add-exam-button');
+        const uploadExamImagesButton = document.getElementById('upload-exam-images-button');
+        const examCreationButtons = document.getElementById('exam-creation-buttons');
+        const examFormSection = document.getElementById('exam-form-section');
+        const imageUploadControls = document.getElementById('image-upload-controls');
+        const cancelExamButton = document.getElementById('cancel-exam-button');
+        const publishExamButton = document.getElementById('publish-exam-button');
+        const questionsContainer = document.getElementById('questions-container');
+        const addQuestionButton = document.getElementById('add-question-button');
+        const examNameInput = document.getElementById('exam-name');
+        const examDurationInput = document.getElementById('exam-duration');
+        const defaultPointsInput = document.getElementById('default-points');
+        const publishedExamsCards = document.getElementById('published-exams-cards');
+        const examsPlaceholder = document.getElementById('exams-placeholder');
+
+        // Image upload elements
+        const imageUploadInput = document.getElementById('image-upload-input');
+        const dragDropArea = document.getElementById('drag-drop-area');
+        const imagePreviewContainer = document = document.getElementById('image-preview-container');
+        const generateQuestionsButton = document.getElementById('generate-questions-button');
+        const cancelUploadButton = document.getElementById('cancel-upload-button');
+        const imageProcessingSpinner = document.getElementById('image-processing-spinner');
+        const imageProcessingMessage = document.getElementById('image-processing-message');
+        const progressBarContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Supervisors section elements
+        const supervisorNameInput = document.getElementById('supervisor-name');
+        const supervisorUidInput = document.getElementById('supervisor-uid'); // Changed from supervisorPasswordInput
+        const addSupervisorButton = document.getElementById('add-supervisor-button');
+        const supervisorsList = document.getElementById('supervisors-list');
+        const supervisorsPlaceholder = document.getElementById('supervisors-placeholder');
+
+        let selectedSubject = ''; 
+        let selectedWeekNumber = ''; 
+        let allUploadedImagesBase64 = []; // Array to store all images
+        let progressInterval;
+
+        // Function to show a floating message
+        const showMessage = (message, isSuccess = true) => {
+            messageBox.textContent = message;
+            messageBox.className = 'message-box'; // Reset classes
+            if (isSuccess) {
+                messageBox.classList.add('success');
+            } else {
+                messageBox.classList.add('error');
+            }
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000); // Hide after 5 seconds
+        };
+
+        // Function to switch between sections
+        const showSection = (sectionId) => {
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+                // Reset scroll position for previously active sections (optional but good practice)
+                section.scrollTop = 0;
             });
-            const correctAnswerIndex = parseInt(questionBlock.querySelector('select').value);
-            const difficult = questionBlock.querySelector('.difficult-button').classList.contains('active');
+            const activeSection = document.getElementById(sectionId);
+            activeSection.classList.add('active');
+            // Scroll the newly active section to the top
+            activeSection.scrollTop = 0;
 
-            questions.push({
-                questionText,
-                points,
-                options,
-                correctAnswerIndex,
-                difficult
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.section === sectionId) {
+                    item.classList.add('active');
+                }
+            });
+        };
+        
+        // Add event listeners for navigation bar
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const sectionId = item.dataset.section;
+                showSection(sectionId);
             });
         });
+
+        // ======================
+        // Reviews Section Logic
+        // ======================
+
+        // Check if there are reviews and update UI
+        const checkReviewsList = () => {
+            if (reviewsListContainer.children.length === 0) {
+                reviewsPlaceholder.classList.remove('hidden');
+                reviewsListContainer.classList.add('hidden');
+                reviewsHr.classList.add('hidden');
+            } else {
+                reviewsPlaceholder.classList.add('hidden');
+                reviewsListContainer.classList.remove('hidden');
+                reviewsHr.classList.remove('hidden');
+            }
+        };
+
+        // Event listener for "Add Review" button
+        addReviewButton.addEventListener('click', () => {
+            addReviewButton.classList.add('hidden');
+            reviewsPlaceholder.classList.add('hidden');
+            subjectSelectionContainer.classList.remove('hidden');
+        });
+
+        // Event listeners for subject buttons
+        subjectButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                selectedSubject = button.dataset.subject;
+                subjectSelectionContainer.classList.add('hidden');
+                reviewWeekTitle.textContent = `أدخل رقم الأسبوع لمادة ${selectedSubject}`;
+                reviewWeekContainer.classList.remove('hidden');
+                reviewWeekNumberInput.focus();
+            });
+        });
+
+        // Event listener for "Confirm Week" button
+        confirmWeekButton.addEventListener('click', () => {
+            const weekNumber = reviewWeekNumberInput.value.trim();
+            if (weekNumber === '') {
+                showMessage('الرجاء إدخال رقم الأسبوع.', false);
+                return;
+            }
+            selectedWeekNumber = weekNumber;
+            reviewWeekContainer.classList.add('hidden');
+            reviewFormContainer.classList.remove('hidden');
+            reviewText.value = `تقييم ${selectedSubject} الأسبوع ${selectedWeekNumber}`;
+        });
         
-        const examData = {
-            name: examName,
-            duration: examDuration,
-            questions: questions,
-            createdAt: new Date().toISOString()
-        };
+        // Event listener for "Cancel Week" button
+        cancelWeekButton.addEventListener('click', () => {
+            reviewWeekContainer.classList.add('hidden');
+            subjectSelectionContainer.classList.remove('hidden');
+            reviewWeekNumberInput.value = '';
+            selectedSubject = '';
+            selectedWeekNumber = '';
+        });
 
-        // Save the exam to Firestore using the imported function
-        const docId = await saveExamToFirestore(examData);
-        if (docId) {
-            showMessage('تم نشر الامتحان بنجاح (معرف: ' + docId + ')', true);
-            // Add to the published list
-            const examCard = createExamCard(examData.name, docId);
-            publishedExamsList.appendChild(examCard);
-            checkPublishedExamsList();
+        // Event listener for "Save Review" button
+        saveReviewButton.addEventListener('click', async () => {
+            const text = reviewText.value.trim();
+            const link = reviewLink.value.trim();
             
-            // Clear form after publishing
-            examNameInput.value = '';
-            examDurationInput.value = '';
-            questionsContainer.innerHTML = '';
-        } else {
-            showMessage('فشل نشر الامتحان.', false);
-        }
-    });
+            if (text === '' || link === '') {
+                showMessage('الرجاء تعبئة جميع الحقول.', false);
+                return;
+            }
+            
+            const reviewData = {
+                subject: selectedSubject,
+                week: selectedWeekNumber,
+                reviewText: text,
+                reviewLink: link,
+                createdAt: new Date().toISOString()
+            };
 
-    // Event listener for adding a review
-    document.getElementById('add-review-button').addEventListener('click', async () => {
-        const reviewText = reviewTextInput.value;
-        if (!reviewText) {
-            showMessage('الرجاء إدخال نص التقييم.', false);
-            return;
-        }
+            const docId = await saveReviewToFirestore(reviewData);
 
-        const reviewData = {
-            reviewText: reviewText,
-            createdAt: new Date().toISOString()
-        };
+            if (docId) {
+                showMessage('تم حفظ التقييم بنجاح.', true);
+                const reviewCard = document.createElement('div');
+                reviewCard.className = 'review-card';
+                reviewCard.innerHTML = `
+                    <h4>${text}</h4>
+                    <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
+                `;
+                
+                reviewCard.addEventListener('click', (e) => {
+                    if (!e.target.closest('.delete-card-button')) {
+                        window.open(link, '_blank');
+                    }
+                });
 
-        // Save the review to Firestore using the imported function
-        const docId = await saveReviewToFirestore(reviewData);
-        if (docId) {
-            showMessage('تم إضافة التقييم بنجاح (معرف: ' + docId + ')', true);
-            // Add to the reviews list
-            const reviewCard = createReviewCard(reviewData.reviewText, docId);
-            reviewsList.appendChild(reviewCard);
+                reviewCard.querySelector('.delete-card-button').addEventListener('click', () => {
+                    reviewCard.remove();
+                    checkReviewsList();
+                    showMessage('تم حذف التقييم بنجاح.', true);
+                });
+
+                reviewsListContainer.appendChild(reviewCard);
+                reviewsHr.classList.remove('hidden');
+                reviewsListContainer.classList.remove('hidden');
+                
+                reviewWeekNumberInput.value = '';
+                reviewText.value = '';
+                reviewLink.value = '';
+                selectedSubject = '';
+                selectedWeekNumber = '';
+                reviewFormContainer.classList.add('hidden');
+                addReviewButton.classList.remove('hidden');
+                checkReviewsList();
+            } else {
+                showMessage('فشل حفظ التقييم.', false);
+            }
+        });
+
+        // Event listener for "Cancel Review" button
+        cancelReviewButton.addEventListener('click', () => {
+            reviewFormContainer.classList.add('hidden');
+            addReviewButton.classList.remove('hidden');
             checkReviewsList();
+            reviewWeekNumberInput.value = '';
+            reviewText.value = '';
+            reviewLink.value = '';
+            selectedSubject = '';
+            selectedWeekNumber = '';
+        });
+
+        // ======================
+        // Exams Section Logic
+        // ======================
+
+        // Function to create a new question element
+        const createQuestionElement = () => {
+            const questionIndex = questionsContainer.children.length + 1;
+            const defaultPoints = defaultPointsInput.value || 10;
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block';
+            questionBlock.innerHTML = `
+                <div class="question-actions"> <!-- New container for action buttons -->
+                    <button class="difficult-button" title="سؤال صعب" data-is-difficult="false">
+                        <svg width="800px" height="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" preserveAspectRatio="xMidYMid meet">
+                            <ellipse cx="64" cy="116.87" rx="12.09" ry="7.13" fill="#424242"></ellipse>
+                            <path d="M64 4C42.92 4 25.82 19.67 25.82 38.99c0 5.04 1.52 10.43 3.75 15.18c3.13 6.68 6.54 11.62 7.54 13.44c2.78 5.06 2.38 10.39 3.15 13.73c1.45 6.24 5.79 8.5 23.73 8.5s21.8-2.15 23.41-7.9c1.1-3.91.03-8.18 2.8-13.23c1-1.82 5.07-7.85 8.21-14.54c2.23-4.75 3.75-10.14 3.75-15.18C102.18 19.67 85.08 4 64 4z" fill="#ffd600"></path>
+                            <ellipse cx="64" cy="86.13" rx="21.94" ry="4.46" fill="#b26500"></ellipse>
+                            <ellipse cx="64" cy="86.13" rx="21.94" ry="4.46" fill="#b26500"></ellipse>
+                            <ellipse cx="64" cy="86.13" rx="15.99" ry="2.06" fill="#ffa000"></ellipse>
+                            <g fill="none" stroke-width="2" stroke-miterlimit="10">
+                                <path d="M53.3 56.77c-.62 1.56-2.23 4.77-1.39 6.21c1.95 3.35 6.6 4.55 6.6 7.63c0 4.7-3.42 19.93-3.42 19.93" stroke="#b26500"></path>
+                                <path d="M74.03 56.21s2.24 4.8 1.29 6.95c-.71 1.6-4.98 4.18-5.53 4.61c-2.55 2 .84 22.78.84 22.78" stroke="#b26500"></path>
+                                <path d="M53.3 56.77c3.44-6.8 5.21-22.32.84-21.53c-7.37 1.33 1.71 26.83 6.18 23.9s10.01-23.85 3.21-23.93c-6.8-.08.46 26.66 5.08 23.69c3.65-2.35 12.56-23.66 5.24-23.66c-6.23 0 .19 20.97.19 20.97" stroke="#ffffff"></path>
+                            </g>
+                            <path d="M85.89 87.06S80.13 89.84 64 89.84s-21.89-2.78-21.89-2.78s-.36 5.14.83 7.47c1.43 2.8 2.53 3.77 2.53 3.77l.6 2.85l-.24.75c-.31.98-.09 2.06.6 2.83l.52.58l.58 2.74l-.2.55c-.38 1.05-.12 2.22.66 3.02l.38.39l.47 2.24s2.38 5.08 15.16 5.08s15.16-5.08 15.16-5.08l.04-.19l.26-.26c.52-.51.69-1.27.44-1.95l-.15-.39l.62-2.96l1.09-1.15c.54-.57.66-1.41.31-2.11l-.5-.99l.63-2.97l.4-.31c.59-.65.6-1.63.34-2.3c-.2-.53-.04-1.13.37-1.52c.63-.6 1.44-1.51 2.04-2.64c1.23-2.29.84-7.45.84-7.45z" fill="#82aec0"></path>
+                            <path d="M45.47 98.3l.54 2.87c5.82-.03 13.59.26 28.5-2.11c2.69-.61 5.92-1.82 2.35-1.32c0-.01-13.69 1.3-31.39.56z" fill="#2f7889"></path>
+                            <path d="M47.47 108.07c6.44-.11 19.6-.75 33.74-3.82l.63-2.97c-14.79 3.36-28.7 3.96-34.95 4.04l.58 2.75z" fill="#2f7889"></path>
+                            <path d="M80.31 108.49c-13.09 2.84-25.34 3.57-31.97 3.73l.43 2.04s.21 6.33 15.16 6.33s15.16-6.33 15.16-6.33s-6.38 1.82-14.23.93a.63.63 0 0 1-.01-1.26c4.69-.62 10.29-1.54 14.84-2.48l.62-2.96z" fill="#2f7889"></path>
+                            <path d="M42.18 87.06s6.46 2.78 21.76 2.78s21.88-2.78 21.88-2.78" fill="none" stroke="#82aec0" stroke-width="3.997" stroke-linecap="round" stroke-miterlimit="10"></path>
+                            <path d="M49.88 10.32c3.91-.96 8-.48 10.8 2.92c.79.96 1.4 2.1 1.54 3.34c.28 2.39-1.2 4.65-2.96 6.31c-5.02 4.74-12.15 7.04-15.39 13.58c-.76 1.53-1.36 3.18-2.52 4.43c-1.16 1.25-3.09 2.01-4.6 1.21c-.8-.42-1.35-1.21-1.8-2c-2.84-5.06-2.63-11.51-.13-16.75c2.75-5.74 8.78-11.5 15.06-13.04z" fill="#ffff8d"></path>
+                            <path d="M46.45 91.93c-.88-.4-.53-1.72.43-1.65c3.22.25 8.7.56 15.95.56c7.64 0 14.36-.57 18.28-.99c.97-.1 1.34 1.23.45 1.64c-3.02 1.42-8.55 3.04-18.03 3.04c-9.25 0-14.35-1.37-17.08-2.6z" fill="#ffd600"></path>
+                            <path d="M51.94 102.03c-.67.24-1.36.57-1.7 1.19c-.12.23-.19.49-.14.75c.08.38.43.65.78.82c.7.34 1.49.43 2.26.44c1.59.02 3.17-.28 4.74-.58c.47-.09.95-.18 1.37-.41c.42-.23.78-.62.85-1.09c.1-.63-.35-1.24-.9-1.54c-1.9-1.05-5.34-.27-7.26.42z" fill="#94d1e0"></path>
+                            <path d="M53.43 108.62c-.67.24-1.36.57-1.7 1.19c-.12.23-.19.49-.14.75c.08.38.43.65.78.82c.7.34 1.49.43 2.26.44c1.59.02 3.17-.28 4.74-.58c.47-.09.95-.18 1.37-.41c.42-.23.78-.62.85-1.09c.1-.63-.35-1.24-.9-1.54c-1.9-1.04-5.35-.26-7.26.42z" fill="#94d1e0"></path>
+                            <path d="M50.01 84.2c.91.09 1.87.01 2.64-.48s1.26-1.49.95-2.35c-.16-.45-.51-.81-.85-1.15c-.75-.74-1.7-1.25-2.91-1.3c-1.7-.06-3.84-.13-5.22.42-1.3.52-2.14 1.25-2.45 2.1-.31.85-.05 1.83.62 2.53s1.77 1.12 3.2 1.42s3.04.41 4.54.41z" fill="#94d1e0"></path>
+                            <path d="M73.47 84.18c-1.4.15-2.8.2-4.14.07c-1.58-.15-2.92-1.07-3.41-2.42c-.22-.59-.14-1.28.27-1.85c.66-.9 1.63-1.43 2.62-1.89c1.99-.94 4.5-.78 6.47-.19c1.87.56 3.1 1.66 3.55 3.01c.47 1.38.22 2.87-1.04 3.91c-1.02.82-2.22 1.09-3.34 1.22z" fill="#94d1e0"></path>
+                        </svg>
+                    </button>
+                    <button class="delete-question-button" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                <div class="input-group">
+                    <label>السؤال ${questionIndex}:</label>
+                    <textarea class="question-input" placeholder="أدخل نص السؤال هنا..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>الدرجة:</label>
+                    <input type="number" value="${defaultPoints}" min="0">
+                </div>
+                <div class="options-container">
+                    <div class="input-group">
+                        <label>الخيار 1:</label>
+                        <input type="text" class="option-input" placeholder="أدخل الخيار 1">
+                    </div>
+                    <div class="input-group">
+                        <label>الخيار 2:</label>
+                        <input type="text" class="option-input" placeholder="أدخل الخيار 2">
+                    </div>
+                    <div class="input-group">
+                        <label>الخيار 3:</label>
+                        <input type="text" class="option-input" placeholder="أدخل الخيار 3">
+                    </div>
+                    <div class="input-group">
+                        <label>الخيار 4:</label>
+                        <input type="text" class="option-input" placeholder="أدخل الخيار 4">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>الإجابة الصحيحة:</label>
+                    <select class="correct-answer">
+                        <option value="0">الخيار 1</option>
+                        <option value="1">الخيار 2</option>
+                        <option value="2">الخيار 3</option>
+                        <option value="3">الخيار 4</option>
+                    </select>
+                </div>
+                <hr>
+            `;
             
-            // Clear the input
-            reviewTextInput.value = '';
-        } else {
-            showMessage('فشل إضافة التقييم.', false);
-        }
-    });
-    
-    // ... (باقي الكود كما هو)
+            // Add event listeners for the new question block
+            questionBlock.querySelector('.delete-question-button').addEventListener('click', () => {
+                questionBlock.remove();
+            });
+
+            questionBlock.querySelector('.difficult-button').addEventListener('click', (e) => {
+                const button = e.currentTarget;
+                const isDifficult = button.dataset.isDifficult === 'true';
+                if (isDifficult) {
+                    button.classList.remove('active');
+                    button.dataset.isDifficult = 'false';
+                } else {
+                    button.classList.add('active');
+                    button.dataset.isDifficult = 'true';
+                }
+            });
+
+            // Update points when default points change
+            defaultPointsInput.addEventListener('input', () => {
+                const pointsInput = questionBlock.querySelector('input[type="number"]');
+                pointsInput.value = defaultPointsInput.value;
+            });
+            
+            return questionBlock;
+        };
+        
+        // Check if there are published exams and update UI
+        const checkPublishedExamsList = () => {
+            if (publishedExamsCards.children.length === 0) {
+                examsPlaceholder.classList.remove('hidden');
+            } else {
+                examsPlaceholder.classList.add('hidden');
+            }
+        };
+
+        // Function to create an exam card
+        const createExamCard = (examName, examId) => {
+            const card = document.createElement('div');
+            card.className = 'exam-card';
+            card.innerHTML = `
+                <div class="exam-info">
+                    <h4>${examName}</h4>
+                </div>
+                <div class="exam-actions">
+                    <button class="edit-exam-button" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button class="delete-exam-button" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `;
+            
+            // Add event listener for delete button
+            card.querySelector('.delete-exam-button').addEventListener('click', () => {
+                card.remove();
+                checkPublishedExamsList();
+                showMessage('تم حذف الامتحان بنجاح (وهمي).', true);
+            });
+
+            return card;
+        };
+
+        // Event listener for "Add Question" button
+        addQuestionButton.addEventListener('click', () => {
+            const newQuestionBlock = createQuestionElement();
+            questionsContainer.appendChild(newQuestionBlock);
+        });
+
+        // Event listener for "Publish Exam" button
+        publishExamButton.addEventListener('click', async () => {
+            const examName = examNameInput.value.trim();
+            const examDuration = examDurationInput.value.trim();
+            if (examName === '' || examDuration === '') {
+                showMessage('الرجاء تعبئة اسم الامتحان ومدته.', false);
+                return;
+            }
+
+            const questions = [];
+            questionsContainer.querySelectorAll('.question-block').forEach(questionBlock => {
+                const questionText = questionBlock.querySelector('.question-input').value;
+                const points = questionBlock.querySelector('input[type="number"]').value;
+                const options = [];
+                questionBlock.querySelectorAll('.option-input').forEach(optionInput => {
+                    options.push(optionInput.value);
+                });
+                const correctAnswerIndex = parseInt(questionBlock.querySelector('select').value);
+                const difficult = questionBlock.querySelector('.difficult-button').classList.contains('active');
+
+                questions.push({
+                    questionText,
+                    points,
+                    options,
+                    correctAnswerIndex,
+                    difficult
+                });
+            });
+            
+            if (questions.length === 0) {
+                showMessage('الرجاء إضافة سؤال واحد على الأقل.', false);
+                return;
+            }
+
+            const examData = {
+                name: examName,
+                duration: examDuration,
+                questions: questions,
+                createdAt: new Date().toISOString()
+            };
+
+            const docId = await saveExamToFirestore(examData);
+            if (docId) {
+                showMessage('تم نشر الامتحان بنجاح (معرف: ' + docId + ')', true);
+                
+                // Add to the published list
+                const examCard = createExamCard(examData.name, docId);
+                publishedExamsCards.appendChild(examCard);
+                checkPublishedExamsList();
+                
+                // Clear form after publishing
+                examNameInput.value = '';
+                examDurationInput.value = '';
+                questionsContainer.innerHTML = '';
+                examFormSection.classList.add('hidden');
+                examCreationButtons.classList.remove('hidden');
+            } else {
+                showMessage('فشل نشر الامتحان.', false);
+            }
+        });
+
+        // Event listener for "Cancel Exam" button
+        cancelExamButton.addEventListener('click', () => {
+            examFormSection.classList.add('hidden');
+            examCreationButtons.classList.remove('hidden');
+        });
+
+        // Event listener for "Create Exam" button
+        document.getElementById('create-exam-button').addEventListener('click', () => {
+            examCreationButtons.classList.add('hidden');
+            examFormSection.classList.remove('hidden');
+            questionsContainer.innerHTML = ''; // Clear previous questions
+            addQuestionButton.click(); // Add a default question
+        });
+
+        // ============================
+        // Supervisors Section Logic
+        // ============================
+
+        // Check if there are supervisors and update UI
+        const checkSupervisorsList = () => {
+            if (supervisorsList.children.length === 0) {
+                supervisorsPlaceholder.classList.remove('hidden');
+            } else {
+                supervisorsPlaceholder.classList.add('hidden');
+            }
+        };
+
+        // Event listener for "Add Supervisor" button
+        addSupervisorButton.addEventListener('click', () => {
+            const supervisorName = supervisorNameInput.value.trim();
+            const supervisorUid = supervisorUidInput.value.trim();
+            
+            if (supervisorName === '' || supervisorUid === '') {
+                showMessage('الرجاء تعبئة جميع حقول المشرف.', false);
+                return;
+            }
+
+            const supervisorCard = document.createElement('div');
+            supervisorCard.className = 'supervisor-card';
+            supervisorCard.innerHTML = `
+                <h4>${supervisorName}</h4>
+                <p>UID: ${supervisorUid}</p>
+                <button class="delete-card-button"><i class="fas fa-trash-alt"></i></button>
+            `;
+            
+            supervisorCard.querySelector('.delete-card-button').addEventListener('click', () => {
+                supervisorCard.remove();
+                checkSupervisorsList();
+                showMessage('تم حذف المشرف بنجاح (وهمي).', true);
+            });
+            
+            supervisorsList.appendChild(supervisorCard); // Append to the card container
+            checkSupervisorsList();
+            
+            supervisorNameInput.value = '';
+            supervisorUidInput.value = ''; // Changed from supervisorPasswordInput
+            
+            showMessage('تمت إضافة المشرف بنجاح. هذه العملية تحتاج إلى ربط بالباك إند للحفظ الفعلي.', true);
+        });
+
+        // Add event listener for default points input
+        defaultPointsInput.addEventListener('input', () => {
+            const newDefaultPoints = defaultPointsInput.value;
+            const questionBlocks = questionsContainer.querySelectorAll('.question-block');
+            questionBlocks.forEach(block => {
+                const pointsInput = block.querySelector('input[type="number"]');
+                pointsInput.value = newDefaultPoints;
+            });
+        });
+
+        // Show initial section on page load
+        showSection('exam-section');
+        checkPublishedExamsList();
+        checkReviewsList();
+        checkSupervisorsList();
     </script>
 </body>
 </html>
