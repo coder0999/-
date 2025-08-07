@@ -608,175 +608,92 @@
             <span>المشرفون</span>
         </div>
     </nav>
-    
     <script type="module">
-    // 1. Importing Firebase services and config from the new file
-    import { app, auth, db, firebaseConfig } from "./firebase-config.js";
-    import { signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    // Import Firestore functions from the external file
+    import { saveExamToFirestore, saveReviewToFirestore } from './firebase-config.js';
 
-    // Global variables
-    let currentUserId = null;
-    let isAuthReady = false;
-    // 2. We now get the app ID directly from the imported config
-    const appId = firebaseConfig.projectId;
+    // ... (باقي الكود كما هو)
 
-    // Initial authentication check
-    async function authenticateAndSetup() {
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-            currentUserId = auth.currentUser.uid;
-            isAuthReady = true;
-            console.log("Admin panel authenticated. User ID:", currentUserId);
-            // After successful auth, load the published exams
-            loadPublishedExams();
-        } catch (e) {
-            console.error("Error during authentication:", e);
-        }
-    }
-    authenticateAndSetup();
-
-    // ... (Your other functions like showMessage, showSection, etc.) ...
-    
-    // Function to add a published exam to Firestore
-    async function addPublishedExam(examData) {
-        if (!isAuthReady) {
-            showMessage('فشل: لم يتم ربط قاعدة البيانات.', false);
-            return;
-        }
-        try {
-            // Path: /artifacts/{appId}/public/data/exams
-            // This collection will be public and accessible by all users
-            const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
-            await addDoc(examsCollectionRef, examData);
-            showMessage('تم نشر الاختبار بنجاح.', true);
-            console.log("Exam published to Firestore:", examData);
-            return true;
-        } catch (e) {
-            showMessage('فشل: خطأ في حفظ الاختبار في قاعدة البيانات.', false);
-            console.error("Error publishing exam to Firestore:", e);
-            return false;
-        }
-    }
-
-    // This is the updated code for the publish button logic.
-    // You should replace the existing logic for the "نشر الاختبار" button with this code.
-    const publishExamButton = document.getElementById('publish-exam-button');
-    const examTitleInput = document.getElementById('exam-title-input');
-    const questionsContainer = document.getElementById('questions-container');
-
-    publishExamButton.addEventListener('click', async () => {
-        const examTitle = examTitleInput.value.trim();
-        if (!examTitle) {
-            showMessage('الرجاء إدخال عنوان الاختبار.', false);
-            return;
-        }
-
+    // Event listener for publishing an exam
+    document.getElementById('publish-exam-button').addEventListener('click', async () => {
+        // Collect exam data
+        const examName = examNameInput.value;
+        const examDuration = examDurationInput.value;
         const questions = [];
-        const questionBlocks = questionsContainer.querySelectorAll('.question-block');
-        questionBlocks.forEach(block => {
-            const questionText = block.querySelector('.question-input').value.trim();
-            const questionPoints = parseInt(block.querySelector('input[type="number"]').value, 10);
-            const answerOptions = Array.from(block.querySelectorAll('.answer-option')).map(option => {
-                return {
-                    text: option.querySelector('.answer-input').value.trim(),
-                    isCorrect: option.querySelector('.correct-answer-radio').checked
-                };
+        questionsContainer.querySelectorAll('.question-block').forEach(questionBlock => {
+            const questionText = questionBlock.querySelector('.question-input').value;
+            const points = questionBlock.querySelector('input[type="number"]').value;
+            const options = [];
+            questionBlock.querySelectorAll('.option-input').forEach(optionInput => {
+                options.push(optionInput.value);
             });
-            const correctAnswer = answerOptions.find(option => option.isCorrect);
+            const correctAnswerIndex = parseInt(questionBlock.querySelector('select').value);
+            const difficult = questionBlock.querySelector('.difficult-button').classList.contains('active');
 
-            if (questionText && correctAnswer) {
-                questions.push({
-                    text: questionText,
-                    points: questionPoints,
-                    options: answerOptions,
-                    correctAnswerText: correctAnswer.text // Storing correct answer text for easy review
-                });
-            }
+            questions.push({
+                questionText,
+                points,
+                options,
+                correctAnswerIndex,
+                difficult
+            });
         });
-
-        if (questions.length === 0) {
-            showMessage('الرجاء إضافة أسئلة للاختبار.', false);
-            return;
-        }
-
+        
         const examData = {
-            title: examTitle,
+            name: examName,
+            duration: examDuration,
             questions: questions,
             createdAt: new Date().toISOString()
         };
 
-        const success = await addPublishedExam(examData);
-        if (success) {
-            // Optional: Clear the form after successful publication
-            examTitleInput.value = '';
+        // Save the exam to Firestore using the imported function
+        const docId = await saveExamToFirestore(examData);
+        if (docId) {
+            showMessage('تم نشر الامتحان بنجاح (معرف: ' + docId + ')', true);
+            // Add to the published list
+            const examCard = createExamCard(examData.name, docId);
+            publishedExamsList.appendChild(examCard);
+            checkPublishedExamsList();
+            
+            // Clear form after publishing
+            examNameInput.value = '';
+            examDurationInput.value = '';
             questionsContainer.innerHTML = '';
-            addQuestionBlock(); // Add an empty question block to start over
-            // Now we can update the list of published exams on the admin page from the database
-            loadPublishedExams(); // Call a new function to fetch and display published exams
+        } else {
+            showMessage('فشل نشر الامتحان.', false);
         }
     });
 
-    // ... (Other existing code) ...
-
-    // New function to load and display published exams from Firestore
-    async function loadPublishedExams() {
-        if (!isAuthReady) {
-            console.warn("Cannot load published exams: Database not ready.");
+    // Event listener for adding a review
+    document.getElementById('add-review-button').addEventListener('click', async () => {
+        const reviewText = reviewTextInput.value;
+        if (!reviewText) {
+            showMessage('الرجاء إدخال نص التقييم.', false);
             return;
         }
 
-        const publishedExamsList = document.getElementById('published-exams-list');
-        publishedExamsList.innerHTML = ''; // Clear the list
+        const reviewData = {
+            reviewText: reviewText,
+            createdAt: new Date().toISOString()
+        };
 
-        try {
-            // Path: /artifacts/{appId}/public/data/exams
-            const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
-            const querySnapshot = await getDocs(examsCollectionRef);
-
-            if (querySnapshot.empty) {
-                publishedExamsList.innerHTML = '<p class="text-gray-500">لا توجد اختبارات منشورة بعد.</p>';
-            } else {
-                querySnapshot.forEach(doc => {
-                    const exam = doc.data();
-                    const examId = doc.id;
-                    const examElement = document.createElement('div');
-                    examElement.className = 'published-item';
-                    examElement.innerHTML = `
-                        <span>${exam.title}</span>
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <button onclick="removeExam('${examId}')" class="remove-button button-danger button-small"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    `;
-                    publishedExamsList.appendChild(examElement);
-                });
-            }
-        } catch (e) {
-            console.error("Error loading published exams:", e);
-            publishedExamsList.innerHTML = '<p class="text-red-500">حدث خطأ أثناء تحميل الاختبارات.</p>';
+        // Save the review to Firestore using the imported function
+        const docId = await saveReviewToFirestore(reviewData);
+        if (docId) {
+            showMessage('تم إضافة التقييم بنجاح (معرف: ' + docId + ')', true);
+            // Add to the reviews list
+            const reviewCard = createReviewCard(reviewData.reviewText, docId);
+            reviewsList.appendChild(reviewCard);
+            checkReviewsList();
+            
+            // Clear the input
+            reviewTextInput.value = '';
+        } else {
+            showMessage('فشل إضافة التقييم.', false);
         }
-    }
-
-    // New function to remove an exam from Firestore
-    window.removeExam = async (examId) => {
-        if (!isAuthReady) {
-            showMessage('فشل: لم يتم ربط قاعدة البيانات.', false);
-            return;
-        }
-        try {
-            const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
-            await deleteDoc(examDocRef);
-            showMessage('تم حذف الاختبار بنجاح.', true);
-            loadPublishedExams(); // Reload the list
-        } catch (e) {
-            showMessage('فشل: خطأ في حذف الاختبار.', false);
-            console.error("Error removing exam:", e);
-        }
-    };
-</script>
+    });
+    
+    // ... (باقي الكود كما هو)
+    </script>
 </body>
 </html>
