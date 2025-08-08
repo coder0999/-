@@ -602,7 +602,8 @@
                 console.log('تم حفظ الامتحان بنجاح في Firestore:', newExamDocRef.id);
             } catch (error) {
                 console.error("فشل حفظ الامتحان:", error);
-                showCustomAlert('فشل في حفظ الامتحان. الرجاء المحاولة مرة أخرى.');
+                // رسالة خطأ أكثر تحديداً لمساعدة المستخدم
+                showCustomAlert(`فشل في حفظ الامتحان. قد تكون قواعد أمان Firestore تمنع عملية الحفظ. الرجاء التحقق من القواعد. (تفاصيل الخطأ: ${error.message})`);
             }
         });
 
