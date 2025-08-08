@@ -333,6 +333,16 @@
             renderQuestions();
         }
 
+        // وظيفة لإضافة خيار جديد لسؤال محدد
+        function addOption(questionId) {
+            const questionIndex = questions.findIndex(q => q.id === questionId);
+            if (questionIndex > -1) {
+                const newOptionText = `خيار ${questions[questionIndex].options.length + 1}`;
+                questions[questionIndex].options.push({ id: Date.now() + Math.random(), text: newOptionText });
+                renderQuestions();
+            }
+        }
+
         // وظيفة لعرض جميع الأسئلة من المصفوفة
         function renderQuestions() {
             questionList.innerHTML = ''; // مسح القائمة الحالية
@@ -359,6 +369,9 @@
                             </div>
                         `).join('')}
                     </div>
+                    <button class="add-option-btn mt-4 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded-lg transition-colors" data-id="${question.id}">
+                        أضف خيار
+                    </button>
                 `;
 
                 questionList.appendChild(questionElement);
@@ -416,6 +429,14 @@
                 button.addEventListener('click', (e) => {
                     const id = parseInt(e.target.dataset.id);
                     deleteQuestion(id);
+                });
+            });
+
+            // مستمعو الأحداث لزر إضافة خيار
+            document.querySelectorAll('.add-option-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    addOption(id);
                 });
             });
         }
@@ -721,6 +742,11 @@
                 questionList.innerHTML = '';
             }
         });
+
+        // مستمع لزر إضافة سؤال
+        addQuestionBtn.addEventListener('click', addQuestion);
+
     </script>
 </body>
 </html>
+
