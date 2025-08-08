@@ -39,145 +39,92 @@
         .custom-alert-box button {
             margin-top: 1rem;
         }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            width: 40px;
-            height: 40px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
         .nav-icon {
             font-size: 1.5rem;
+        }
+        .question-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-page" class="flex-grow flex items-center justify-center">
-        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6">مرحباً بك</h1>
-            <p class="text-gray-600 mb-8">الرجاء تسجيل الدخول للمتابعة</p>
-            <button id="google-signin-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center mx-auto">
-                <i class="fab fa-google ml-2"></i>
-                <span>تسجيل الدخول باستخدام جوجل</span>
-            </button>
-        </div>
+    <!-- شاشة التحميل -->
+    <div id="loading-spinner" class="custom-alert-overlay hidden">
+        <div class="spinner"></div>
     </div>
 
-    <!-- المحتوى الرئيسي للتطبيق (سيتم إظهاره بعد تسجيل الدخول) -->
-    <div id="main-content" class="hidden flex-grow flex flex-col">
-        <!-- صفحة الامتحانات -->
-        <div id="exams-page" class="container mx-auto p-8 bg-white rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
+    <!-- المحتوى الرئيسي للتطبيق -->
+    <div id="main-content" class="flex-grow flex flex-col p-4 md:p-8 hidden">
+        <!-- صفحة الامتحانات (لوحة التحكم) -->
+        <div id="exams-page" class="container mx-auto p-4 md:p-8 bg-white rounded-xl shadow-2xl max-w-4xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">مصمم الامتحانات</h1>
 
-            <!-- أزرار اختيار طريقة الإدخال -->
-            <div class="flex justify-center mb-8 space-x-4 space-x-reverse">
-                <button id="show-manual-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors hover:bg-blue-700">
-                    رفع يدوي
-                </button>
-                <button id="show-image-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors hover:bg-gray-400">
-                    رفع بالصور
-                </button>
+            <div id="exam-content-tabs" class="flex justify-center mb-6">
+                <button id="manual-input-btn" class="py-2 px-4 text-white font-bold rounded-t-lg bg-blue-600">إدخال يدوي</button>
+                <button id="ai-input-btn" class="py-2 px-4 text-gray-700 font-bold rounded-t-lg bg-gray-200">إنشاء بالذكاء الاصطناعي</button>
             </div>
 
             <!-- محتوى الإدخال اليدوي -->
-            <div id="manual-content" class="space-y-6">
+            <div id="manual-content" class="p-6 bg-gray-50 rounded-b-xl shadow-inner border border-gray-200">
                 <div id="question-list">
-                    <!-- سيتم إضافة الأسئلة هنا بواسطة JavaScript -->
+                    <!-- سيتم إضافة الأسئلة هنا -->
                 </div>
-
-                <div class="flex justify-center space-x-4 space-x-reverse mt-8">
-                    <button id="add-question-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                        أضف سؤال جديد يدوياً
+                <div class="mt-6 flex justify-end">
+                    <button id="add-question-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors">
+                        <i class="fas fa-plus ml-2"></i> إضافة سؤال
+                    </button>
+                </div>
+                <div class="mt-8 text-center">
+                    <button id="save-exam-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+                        <i class="fas fa-save ml-2"></i> حفظ الامتحان
                     </button>
                 </div>
             </div>
 
-            <!-- محتوى الإدخال بالصور -->
-            <div id="image-content" class="hidden">
-                <div class="flex items-center justify-center w-full">
-                    <label for="image-upload" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-8 h-8 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4v-1a4 4 0 014-4h4l1.383-2.766A2 2 0 0113 5h2a2 2 0 012 2v2a4 4 0 014 4v1a4 4 0 01-4 4H7z"></path></svg>
-                            <p class="mb-2 text-sm text-gray-500 text-center"><span class="font-semibold">انقر للرفع</span> أو اسحب وأفلت صورة الامتحان هنا</p>
-                            <p class="text-xs text-gray-500 text-center">PNG, JPG</p>
-                        </div>
-                        <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg" />
-                    </label>
-                </div>
-                <div class="mt-4 flex justify-center">
-                    <button id="process-image-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105" disabled>
-                        تحليل الصورة واستخراج الأسئلة
-                    </button>
-                </div>
-            </div>
-
-            <hr class="my-8 border-gray-300">
-
-            <div class="flex justify-center space-x-4 space-x-reverse">
-                <button id="save-exam-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    حفظ الامتحان
-                </button>
-                <button id="load-exam-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    تحميل امتحان
-                </button>
-            </div>
-        </div>
-
-        <!-- صفحة التقييمات -->
-        <div id="evaluations-page" class="hidden container mx-auto p-8 bg-white rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">التقييمات</h1>
-            <p class="text-center text-gray-600">هذه الصفحة قيد الإنشاء. ستكون هنا تقييمات الامتحانات.</p>
-        </div>
-
-        <!-- صفحة الملف الشخصي -->
-        <div id="profile-page" class="hidden container mx-auto p-8 bg-white rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">الملف الشخصي</h1>
-            <div class="flex flex-col items-center justify-center space-y-6">
-                <img id="user-photo" src="" alt="صورة المستخدم" class="w-32 h-32 rounded-full border-4 border-blue-500 shadow-lg hidden">
-                <h2 id="user-name" class="text-2xl font-bold text-gray-800 hidden"></h2>
-                <button id="signout-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">
-                    تسجيل الخروج
-                </button>
+            <!-- محتوى الذكاء الاصطناعي (قيد التطوير) -->
+            <div id="ai-content" class="p-6 bg-gray-50 rounded-b-xl shadow-inner border border-gray-200 hidden">
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">إنشاء بالذكاء الاصطناعي</h2>
+                <p class="text-center text-gray-600">هذه الميزة قيد التطوير حالياً.</p>
             </div>
         </div>
     </div>
 
+    <!-- صفحة تسجيل الدخول -->
+    <div id="login-page" class="flex-grow flex items-center justify-center p-4 md:p-8">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center">
+            <h1 class="text-3xl font-bold mb-4">تسجيل الدخول</h1>
+            <p class="text-gray-600 mb-6">يرجى تسجيل الدخول للبدء في تصميم الامتحانات.</p>
+            <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors">
+                <i class="fab fa-google ml-2"></i> تسجيل الدخول باستخدام جوجل
+            </button>
+        </div>
+    </div>
+    
     <!-- شريط التنقل السفلي -->
     <nav id="bottom-nav" class="fixed bottom-0 left-0 w-full bg-white shadow-2xl z-10 hidden">
         <div class="flex justify-around items-center h-16">
+            <button id="nav-profile-btn" class="flex flex-col items-center text-gray-500 hover:text-blue-600 focus:outline-none p-2">
+                <img id="user-photo" src="" alt="صورة المستخدم" class="w-8 h-8 rounded-full border-2 border-gray-400 hidden">
+                <span id="user-name" class="text-xs mt-1 hidden"></span>
+            </button>
             <button id="nav-exams-btn" class="flex flex-col items-center text-blue-600 focus:outline-none p-2">
                 <i class="fas fa-clipboard-list nav-icon"></i>
                 <span class="text-xs mt-1 font-bold">الامتحانات</span>
             </button>
-            <button id="nav-evaluations-btn" class="flex flex-col items-center text-gray-500 hover:text-blue-600 focus:outline-none p-2">
-                <i class="fas fa-chart-bar nav-icon"></i>
-                <span class="text-xs mt-1">التقييمات</span>
-            </button>
-            <button id="nav-profile-btn" class="flex flex-col items-center text-gray-500 hover:text-blue-600 focus:outline-none p-2">
-                <i class="fas fa-user nav-icon"></i>
-                <span class="text-xs mt-1">الملف الشخصي</span>
+            <button id="signout-btn" class="flex flex-col items-center text-gray-500 hover:text-red-600 focus:outline-none p-2 hidden">
+                <i class="fas fa-sign-out-alt nav-icon"></i>
+                <span class="text-xs mt-1">تسجيل الخروج</span>
             </button>
         </div>
     </nav>
-
+    
     <!-- مربع حواري مخصص لعرض رسائل النظام -->
     <div id="custom-alert" class="custom-alert-overlay hidden">
         <div class="custom-alert-box">
@@ -185,31 +132,16 @@
             <button id="custom-alert-ok" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">موافق</button>
         </div>
     </div>
-
-    <!-- مربع حواري مخصص لاختيار الامتحانات المحفوظة -->
-    <div id="load-exam-modal" class="custom-alert-overlay hidden">
-        <div class="custom-alert-box">
-            <h2 class="text-xl font-bold mb-4">اختيار امتحان محفوظ</h2>
-            <div id="saved-exams-list" class="space-y-2 max-h-64 overflow-y-auto mb-4">
-                <!-- قائمة الامتحانات المحفوظة ستضاف هنا -->
-            </div>
-            <button id="load-exam-modal-cancel" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">إلغاء</button>
-        </div>
-    </div>
-
-    <!-- شاشة التحميل -->
-    <div id="loading-spinner" class="loading-overlay hidden">
-        <div class="spinner"></div>
-    </div>
-
+    
     <script type="module">
         // استيراد وظائف Firebase اللازمة
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // تهيئة Firebase باستخدام التكوين الذي قدمته
-        const firebaseConfig = {
+        // تهيئة Firebase باستخدام التكوين الخاص بك
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyCzXajGeExTVfcMJ9L3fJjRl9TSu0apRZY",
             authDomain: "tanya-thanawey.firebaseapp.com",
             projectId: "tanya-thanawey",
@@ -221,62 +153,34 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
-        
-        // مفتاح API لـ Gemini الذي قدمته
-        const geminiApiKey = "AIzaSyBGyq6bg2_MFYrmxdNRESEt1pRDHO16Kr8";
-        
+        const provider = new GoogleAuthProvider();
+
         // المتغيرات العالمية للوصول إليها
         let userId = null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tanya-thanawey';
-        
-        // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
         const mainContent = document.getElementById('main-content');
         const bottomNav = document.getElementById('bottom-nav');
-        
-        const examsPage = document.getElementById('exams-page');
-        const evaluationsPage = document.getElementById('evaluations-page');
-        const profilePage = document.getElementById('profile-page');
-        
-        const navExamsBtn = document.getElementById('nav-exams-btn');
-        const navEvaluationsBtn = document.getElementById('nav-evaluations-btn');
-        const navProfileBtn = document.getElementById('nav-profile-btn');
-        
-        const googleSigninBtn = document.getElementById('google-signin-btn');
+        const loginBtn = document.getElementById('login-btn');
         const signoutBtn = document.getElementById('signout-btn');
-        
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
-
-        // عناصر التحكم في طريقة الإدخال
-        const showManualBtn = document.getElementById('show-manual-btn');
-        const showImageBtn = document.getElementById('show-image-btn');
-        const manualContent = document.getElementById('manual-content');
-        const imageContent = document.getElementById('image-content');
-        
+        const examsPage = document.getElementById('exams-page');
         const questionList = document.getElementById('question-list');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const saveExamBtn = document.getElementById('save-exam-btn');
-        const loadExamBtn = document.getElementById('load-exam-btn');
-        const imageUploadInput = document.getElementById('image-upload');
-        const processImageBtn = document.getElementById('process-image-btn');
-        const loadingSpinner = document.getElementById('loading-spinner');
-
+        const manualInputBtn = document.getElementById('manual-input-btn');
+        const aiInputBtn = document.getElementById('ai-input-btn');
+        const manualContent = document.getElementById('manual-content');
+        const aiContent = document.getElementById('ai-content');
+        
         // عناصر المربع الحواري المخصص
         const customAlertOverlay = document.getElementById('custom-alert');
         const customAlertMessage = document.getElementById('custom-alert-message');
         const customAlertOkBtn = document.getElementById('custom-alert-ok');
-
-        // عناصر مربع حواري تحميل الامتحان
-        const loadExamModal = document.getElementById('load-exam-modal');
-        const savedExamsList = document.getElementById('saved-exams-list');
-        const loadExamModalCancelBtn = document.getElementById('load-exam-modal-cancel');
-
-
+        
         // دالة لعرض مربع حواري مخصص
         function showCustomAlert(message) {
             customAlertMessage.textContent = message;
@@ -288,432 +192,212 @@
             customAlertOverlay.classList.add('hidden');
         });
 
-        loadExamModalCancelBtn.addEventListener('click', () => {
-            loadExamModal.classList.add('hidden');
-        });
-
-        // دالة لتبديل عرض محتوى الامتحانات
+        // دالة لعرض محتوى معين في صفحة الامتحانات
         function showExamContent(type) {
             if (type === 'manual') {
                 manualContent.classList.remove('hidden');
-                imageContent.classList.add('hidden');
-                showManualBtn.classList.remove('bg-gray-300', 'text-gray-800');
-                showManualBtn.classList.add('bg-blue-600', 'text-white');
-                showImageBtn.classList.remove('bg-blue-600', 'text-white');
-                showImageBtn.classList.add('bg-gray-300', 'text-gray-800');
-            } else if (type === 'image') {
+                aiContent.classList.add('hidden');
+                manualInputBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                manualInputBtn.classList.add('bg-blue-600', 'text-white');
+                aiInputBtn.classList.remove('bg-blue-600', 'text-white');
+                aiInputBtn.classList.add('bg-gray-200', 'text-gray-700');
+            } else if (type === 'ai') {
                 manualContent.classList.add('hidden');
-                imageContent.classList.remove('hidden');
-                showImageBtn.classList.remove('bg-gray-300', 'text-gray-800');
-                showImageBtn.classList.add('bg-blue-600', 'text-white');
-                showManualBtn.classList.remove('bg-blue-600', 'text-white');
-                showManualBtn.classList.add('bg-gray-300', 'text-gray-800');
+                aiContent.classList.remove('hidden');
+                manualInputBtn.classList.remove('bg-blue-600', 'text-white');
+                manualInputBtn.classList.add('bg-gray-200', 'text-gray-700');
+                aiInputBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                aiInputBtn.classList.add('bg-blue-600', 'text-white');
             }
         }
 
-        // مستمعو الأحداث لأزرار تبديل المحتوى
-        showManualBtn.addEventListener('click', () => showExamContent('manual'));
-        showImageBtn.addEventListener('click', () => showExamContent('image'));
+        // مستمع لزر الإدخال اليدوي
+        manualInputBtn.addEventListener('click', () => showExamContent('manual'));
+        // مستمع لزر الذكاء الاصطناعي
+        aiInputBtn.addEventListener('click', () => showExamContent('ai'));
 
-        // وظيفة لإضافة سؤال جديد إلى المصفوفة وعرضه
+        // دالة لعرض سؤال جديد
         function addQuestion() {
-            const newQuestion = {
-                id: Date.now(),
-                text: 'سؤال جديد متعدد الخيارات',
-                type: 'multiple-choice',
-                options: [
-                    { id: 'opt1', text: 'خيار 1' },
-                    { id: 'opt2', text: 'خيار 2' },
-                    { id: 'opt3', text: 'خيار 3' },
-                    { id: 'opt4', text: 'خيار 4' }
-                ],
-                correctAnswer: ''
-            };
-            questions.push(newQuestion);
+            const questionIndex = questions.length;
+            const questionContainer = document.createElement('div');
+            questionContainer.id = `question-container-${questionIndex}`;
+            questionContainer.className = 'p-4 border border-gray-300 rounded-lg mb-4 bg-white shadow-sm';
+            questionContainer.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-700">سؤال جديد</h3>
+                    <button class="remove-question-btn text-red-500 hover:text-red-700" data-index="${questionIndex}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <input type="text" id="question-text-${questionIndex}" placeholder="اكتب نص السؤال هنا" class="w-full p-2 border border-gray-300 rounded-lg mb-4 text-right" required>
+                <div class="space-y-2">
+                    <h4 class="font-semibold text-gray-600">خيارات الإجابة:</h4>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <input type="text" id="option-a-${questionIndex}" placeholder="الخيار الأول" class="w-full p-2 border border-gray-300 rounded-lg text-right" required>
+                        <input type="radio" name="correct-answer-${questionIndex}" value="a" class="form-radio text-green-600" required>
+                    </div>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <input type="text" id="option-b-${questionIndex}" placeholder="الخيار الثاني" class="w-full p-2 border border-gray-300 rounded-lg text-right" required>
+                        <input type="radio" name="correct-answer-${questionIndex}" value="b" class="form-radio text-green-600" required>
+                    </div>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <input type="text" id="option-c-${questionIndex}" placeholder="الخيار الثالث" class="w-full p-2 border border-gray-300 rounded-lg text-right" required>
+                        <input type="radio" name="correct-answer-${questionIndex}" value="c" class="form-radio text-green-600" required>
+                    </div>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <input type="text" id="option-d-${questionIndex}" placeholder="الخيار الرابع" class="w-full p-2 border border-gray-300 rounded-lg text-right" required>
+                        <input type="radio" name="correct-answer-${questionIndex}" value="d" class="form-radio text-green-600" required>
+                    </div>
+                </div>
+            `;
+            questionList.appendChild(questionContainer);
+            questions.push({}); // إضافة كائن فارغ للمصفوفة لتتبع الأسئلة
+
+            // إضافة مستمع لزر الحذف
+            document.querySelector(`.remove-question-btn[data-index="${questionIndex}"]`).addEventListener('click', (e) => {
+                const indexToRemove = e.target.closest('button').dataset.index;
+                removeQuestion(indexToRemove);
+            });
+        }
+
+        // دالة لحذف سؤال
+        function removeQuestion(index) {
+            questions.splice(index, 1);
+            // إعادة بناء قائمة الأسئلة بالكامل
             renderQuestions();
         }
 
-        // وظيفة لإضافة خيار جديد لسؤال محدد
-        function addOption(questionId) {
-            const questionIndex = questions.findIndex(q => q.id === questionId);
-            if (questionIndex > -1) {
-                const newOptionText = `خيار ${questions[questionIndex].options.length + 1}`;
-                questions[questionIndex].options.push({ id: Date.now() + Math.random(), text: newOptionText });
-                renderQuestions();
-            }
-        }
-
-        // وظيفة لعرض جميع الأسئلة من المصفوفة
+        // دالة لإعادة عرض الأسئلة بعد الحذف
         function renderQuestions() {
-            questionList.innerHTML = ''; // مسح القائمة الحالية
-            questions.forEach((question, index) => {
-                const questionElement = document.createElement('div');
-                questionElement.className = 'p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-200';
-                questionElement.dataset.id = question.id;
-
-                questionElement.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="font-bold text-lg text-gray-700">سؤال ${index + 1}</span>
-                        <button class="delete-question-btn bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-full transition-colors" data-id="${question.id}">
-                            حذف
+            questionList.innerHTML = '';
+            questions.forEach((q, index) => {
+                // هنا نقوم بإنشاء السؤال بنفس الطريقة السابقة، مع إعادة تعيين البيانات
+                const questionContainer = document.createElement('div');
+                questionContainer.id = `question-container-${index}`;
+                questionContainer.className = 'p-4 border border-gray-300 rounded-lg mb-4 bg-white shadow-sm';
+                questionContainer.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-700">سؤال ${index + 1}</h3>
+                        <button class="remove-question-btn text-red-500 hover:text-red-700" data-index="${index}">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                    <div class="mb-4">
-                        <textarea class="question-text w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow" rows="3" placeholder="اكتب نص السؤال هنا...">${question.text}</textarea>
+                    <input type="text" id="question-text-${index}" placeholder="اكتب نص السؤال هنا" class="w-full p-2 border border-gray-300 rounded-lg mb-4 text-right" value="${questions[index].text || ''}" required>
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-gray-600">خيارات الإجابة:</h4>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <input type="text" id="option-a-${index}" placeholder="الخيار الأول" class="w-full p-2 border border-gray-300 rounded-lg text-right" value="${questions[index].options ? questions[index].options[0] : ''}" required>
+                            <input type="radio" name="correct-answer-${index}" value="a" class="form-radio text-green-600" ${questions[index].correctAnswer === questions[index].options[0] ? 'checked' : ''} required>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <input type="text" id="option-b-${index}" placeholder="الخيار الثاني" class="w-full p-2 border border-gray-300 rounded-lg text-right" value="${questions[index].options ? questions[index].options[1] : ''}" required>
+                            <input type="radio" name="correct-answer-${index}" value="b" class="form-radio text-green-600" ${questions[index].correctAnswer === questions[index].options[1] ? 'checked' : ''} required>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <input type="text" id="option-c-${index}" placeholder="الخيار الثالث" class="w-full p-2 border border-gray-300 rounded-lg text-right" value="${questions[index].options ? questions[index].options[2] : ''}" required>
+                            <input type="radio" name="correct-answer-${index}" value="c" class="form-radio text-green-600" ${questions[index].correctAnswer === questions[index].options[2] ? 'checked' : ''} required>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <input type="text" id="option-d-${index}" placeholder="الخيار الرابع" class="w-full p-2 border border-gray-300 rounded-lg text-right" value="${questions[index].options ? questions[index].options[3] : ''}" required>
+                            <input type="radio" name="correct-answer-${index}" value="d" class="form-radio text-green-600" ${questions[index].correctAnswer === questions[index].options[3] ? 'checked' : ''} required>
+                        </div>
                     </div>
-                    <div class="space-y-2 options-container">
-                        ${question.options.map((option, optIndex) => `
-                            <div class="flex items-center space-x-2 space-x-reverse">
-                                <input type="radio" name="question-${question.id}" value="${option.text}" class="form-radio text-blue-600 focus:ring-blue-500" ${question.correctAnswer === option.text ? 'checked' : ''}>
-                                <input type="text" class="option-text w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 transition-shadow" placeholder="خيار ${optIndex + 1}" value="${option.text}">
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="add-option-btn mt-4 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded-lg transition-colors" data-id="${question.id}">
-                        أضف خيار
-                    </button>
                 `;
-
-                questionList.appendChild(questionElement);
-            });
-
-            // إعادة ربط المستمعين للأحداث
-            attachEventListeners();
-        }
-
-        // وظيفة لتحديث البيانات في المصفوفة بناءً على الإدخالات
-        function updateQuestion(id, updatedData) {
-            questions = questions.map(q => q.id === id ? { ...q, ...updatedData } : q);
-        }
-
-        // وظيفة لحذف سؤال من المصفوفة
-        function deleteQuestion(id) {
-            questions = questions.filter(q => q.id !== id);
-            renderQuestions();
-        }
-
-        // وظيفة لربط جميع مستمعي الأحداث
-        function attachEventListeners() {
-            // مستمعو الأحداث لتغيير نص السؤال
-            document.querySelectorAll('.question-text').forEach(textarea => {
-                textarea.addEventListener('input', (e) => {
-                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
-                    updateQuestion(id, { text: e.target.value });
-                });
-            });
-
-            // مستمعو الأحداث لتغيير خيارات الإجابة
-            document.querySelectorAll('.option-text').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
-                    const question = questions.find(q => q.id === id);
-                    if (question) {
-                        const options = Array.from(e.target.closest('.options-container').querySelectorAll('.option-text'));
-                        const optionIndex = options.indexOf(e.target);
-                        question.options[optionIndex].text = e.target.value;
-                        updateQuestion(id, { options: question.options });
-                    }
-                });
-            });
-
-            // مستمعو الأحداث لتحديد الإجابة الصحيحة
-            document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
-                    updateQuestion(id, { correctAnswer: e.target.value });
-                });
-            });
-
-            // مستمعو الأحداث لزر الحذف
-            document.querySelectorAll('.delete-question-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = parseInt(e.target.dataset.id);
-                    deleteQuestion(id);
-                });
-            });
-
-            // مستمعو الأحداث لزر إضافة خيار
-            document.querySelectorAll('.add-option-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = parseInt(e.target.dataset.id);
-                    addOption(id);
-                });
-            });
-        }
-        
-        // --- وظيفة معالجة الصورة باستخدام Gemini ---
-        imageUploadInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                processImageBtn.disabled = false;
-                processImageBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-                processImageBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
-            } else {
-                processImageBtn.disabled = true;
-                processImageBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
-                processImageBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-            }
-        });
-
-        processImageBtn.addEventListener('click', async () => {
-            const file = imageUploadInput.files[0];
-            if (!file) {
-                showCustomAlert('الرجاء رفع صورة أولاً.');
-                return;
-            }
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
-
-            loadingSpinner.classList.remove('hidden');
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const base64Data = reader.result.split(',')[1];
-                try {
-                    const prompt = `
-                    You are a helpful assistant for creating exams.
-                    Analyze this image of a multiple-choice exam and extract the questions and their options.
-                    Please return the data in a JSON array format. Each object in the array should have the following structure:
-                    {
-                        "text": "The question text",
-                        "options": [
-                            {"text": "Option 1 text"},
-                            {"text": "Option 2 text"},
-                            {"text": "Option 3 text"},
-                            {"text": "Option 4 text"}
-                        ],
-                        "correctAnswer": "The text of the correct option (leave empty if not specified)"
-                    }
-                    The questions are written in Arabic. Please ensure the output text is also in Arabic.
-                    `;
-
-                    const payload = {
-                        contents: [
-                            {
-                                role: "user",
-                                parts: [
-                                    { text: prompt },
-                                    {
-                                        inlineData: {
-                                            mimeType: file.type,
-                                            data: base64Data
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "text": { "type": "STRING" },
-                                        "options": {
-                                            "type": "ARRAY",
-                                            "items": {
-                                                "type": "OBJECT",
-                                                "properties": {
-                                                    "text": { "type": "STRING" }
-                                                }
-                                            }
-                                        },
-                                        "correctAnswer": { "type": "STRING" }
-                                    }
-                                }
-                            }
-                        }
-                    };
-
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
-
-                    let response;
-                    let retries = 0;
-                    const maxRetries = 5;
-                    const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-                    while (retries < maxRetries) {
-                        try {
-                            response = await fetch(apiUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(payload)
-                            });
-                            if (response.status !== 429) break;
-                            retries++;
-                            await delay(Math.pow(2, retries) * 1000);
-                        } catch (e) {
-                            console.error("Fetch error:", e);
-                            break;
-                        }
-                    }
-
-                    if (!response || !response.ok) {
-                         throw new Error(`API request failed with status: ${response ? response.status : 'Unknown'}`);
-                    }
-
-                    const result = await response.json();
-                    const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (jsonString) {
-                        const parsedQuestions = JSON.parse(jsonString);
-                        questions = parsedQuestions.map(q => ({
-                            id: Date.now() + Math.random(),
-                            text: q.text,
-                            type: 'multiple-choice',
-                            options: q.options,
-                            correctAnswer: q.correctAnswer
-                        }));
-                        renderQuestions();
-                        showCustomAlert('تم تحليل الصورة واستخراج الأسئلة بنجاح!');
-                        showExamContent('manual'); // بعد التحليل، نعود إلى عرض الأسئلة
-                    } else {
-                        showCustomAlert('فشل في استخراج الأسئلة. الرجاء التأكد من أن الصورة واضحة.');
-                    }
-                } catch (error) {
-                    console.error("Gemini API error:", error);
-                    showCustomAlert('حدث خطأ أثناء معالجة الصورة. الرجاء المحاولة مرة أخرى.');
-                } finally {
-                    loadingSpinner.classList.add('hidden');
-                }
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // --- وظيفة الحفظ باستخدام Firestore (تم التعديل) ---
-        saveExamBtn.addEventListener('click', async () => {
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
-            try {
-                // حفظ الامتحان في مجلد عام
-                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
-                const newExamDocRef = doc(publicExamsCollection);
+                questionList.appendChild(questionContainer);
                 
-                await setDoc(newExamDocRef, {
-                    questions: questions,
-                    createdAt: new Date().toISOString(),
-                    creatorId: userId
+                // إعادة ربط مستمع الحذف
+                document.querySelector(`.remove-question-btn[data-index="${index}"]`).addEventListener('click', (e) => {
+                    const indexToRemove = e.target.closest('button').dataset.index;
+                    removeQuestion(indexToRemove);
                 });
-                
-                showCustomAlert('تم حفظ الامتحان بنجاح ليظهر في الموقع العام!');
-                console.log('تم حفظ الامتحان بنجاح في Firestore:', newExamDocRef.id);
-            } catch (error) {
-                console.error("فشل حفظ الامتحان:", error);
-                // رسالة خطأ أكثر تحديداً لمساعدة المستخدم
-                showCustomAlert(`فشل في حفظ الامتحان. قد تكون قواعد أمان Firestore تمنع عملية الحفظ. الرجاء التحقق من القواعد. (تفاصيل الخطأ: ${error.message})`);
-            }
-        });
-
-        // --- وظيفة التحميل باستخدام Firestore (تم التعديل) ---
-        loadExamBtn.addEventListener('click', async () => {
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
-            try {
-                // تحميل الامتحانات التي أنشأها المستخدم فقط من المجلد العام
-                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
-                const q = query(publicExamsCollection); // Fetch all for now to demonstrate
-
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    showCustomAlert('لا توجد امتحانات محفوظة.');
-                    return;
-                }
-
-                savedExamsList.innerHTML = '';
-                querySnapshot.forEach(doc => {
-                    const examData = doc.data();
-                    const examId = doc.id;
-                    const examDate = new Date(examData.createdAt).toLocaleString();
-                    
-                    const examItem = document.createElement('button');
-                    examItem.className = 'w-full text-right p-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors';
-                    examItem.textContent = `امتحان محفوظ بتاريخ: ${examDate}`;
-                    examItem.dataset.id = examId;
-                    
-                    examItem.addEventListener('click', async () => {
-                        const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
-                        const examDoc = await getDoc(examDocRef);
-                        if (examDoc.exists()) {
-                            questions = examDoc.data().questions;
-                            renderQuestions();
-                            loadExamModal.classList.add('hidden');
-                            showCustomAlert('تم تحميل الامتحان بنجاح!');
-                        } else {
-                            showCustomAlert('فشل تحميل الامتحان.');
-                        }
-                    });
-                    savedExamsList.appendChild(examItem);
-                });
-
-                loadExamModal.classList.remove('hidden');
-
-            } catch (error) {
-                console.error("فشل تحميل الامتحانات:", error);
-                showCustomAlert('فشل في تحميل الامتحانات. الرجاء المحاولة مرة أخرى.');
-            }
-        });
-        
-        // --- وظائف التنقل بين الصفحات ---
-        function showPage(pageId) {
-            examsPage.classList.add('hidden');
-            evaluationsPage.classList.add('hidden');
-            profilePage.classList.add('hidden');
-            
-            const activePage = document.getElementById(pageId);
-            if (activePage) activePage.classList.remove('hidden');
-
-            // تحديث أزرار التنقل
-            navExamsBtn.classList.remove('text-blue-600');
-            navExamsBtn.classList.add('text-gray-500');
-            navEvaluationsBtn.classList.remove('text-blue-600');
-            navEvaluationsBtn.classList.add('text-gray-500');
-            navProfileBtn.classList.remove('text-blue-600');
-            navProfileBtn.classList.add('text-gray-500');
-            
-            navExamsBtn.querySelector('span').classList.remove('font-bold');
-            navEvaluationsBtn.querySelector('span').classList.remove('font-bold');
-            navProfileBtn.querySelector('span').classList.remove('font-bold');
-
-            const activeButton = document.querySelector(`#nav-${pageId.replace('-page', '')}-btn`);
-            if (activeButton) {
-                activeButton.classList.remove('text-gray-500');
-                activeButton.classList.add('text-blue-600');
-                activeButton.querySelector('span').classList.add('font-bold');
-            }
+            });
         }
-        
-        // مستمعو أحداث التنقل
-        navExamsBtn.addEventListener('click', () => showPage('exams-page'));
-        navEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
-        navProfileBtn.addEventListener('click', () => showPage('profile-page'));
 
-        // --- وظائف المصادقة ---
-        googleSigninBtn.addEventListener('click', async () => {
+        // مستمع لزر تسجيل الدخول
+        loginBtn.addEventListener('click', async () => {
             try {
-                await signInWithPopup(auth, googleProvider);
+                await signInWithPopup(auth, provider);
             } catch (error) {
-                console.error("Google Sign-In failed:", error);
-                showCustomAlert('فشل تسجيل الدخول باستخدام جوجل. الرجاء المحاولة مرة أخرى.');
+                console.error("فشل تسجيل الدخول:", error);
+                showCustomAlert("فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.");
             }
         });
-        
+
+        // مستمع لزر تسجيل الخروج
         signoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
             } catch (error) {
-                console.error("Sign-Out failed:", error);
-                showCustomAlert('فشل تسجيل الخروج.');
+                console.error("فشل تسجيل الخروج:", error);
+                showCustomAlert("فشل تسجيل الخروج. يرجى المحاولة مرة أخرى.");
             }
         });
-        
+
+        // مستمع لزر حفظ الامتحان
+        saveExamBtn.addEventListener('click', async () => {
+            // التحقق من وجود أسئلة
+            if (questions.length === 0) {
+                showCustomAlert('لا يوجد أسئلة لحفظها.');
+                return;
+            }
+
+            // جمع بيانات الأسئلة
+            const examQuestions = [];
+            let isValid = true;
+            questions.forEach((q, index) => {
+                const questionText = document.getElementById(`question-text-${index}`).value.trim();
+                const optionA = document.getElementById(`option-a-${index}`).value.trim();
+                const optionB = document.getElementById(`option-b-${index}`).value.trim();
+                const optionC = document.getElementById(`option-c-${index}`).value.trim();
+                const optionD = document.getElementById(`option-d-${index}`).value.trim();
+                const correctAnswerRadio = document.querySelector(`input[name="correct-answer-${index}"]:checked`);
+                
+                if (!questionText || !optionA || !optionB || !optionC || !optionD || !correctAnswerRadio) {
+                    isValid = false;
+                    showCustomAlert('يرجى ملء جميع حقول الأسئلة والإجابات واختيار إجابة صحيحة.');
+                    return;
+                }
+
+                const options = [optionA, optionB, optionC, optionD];
+                let correctAnswer;
+                switch (correctAnswerRadio.value) {
+                    case 'a': correctAnswer = optionA; break;
+                    case 'b': correctAnswer = optionB; break;
+                    case 'c': correctAnswer = optionC; break;
+                    case 'd': correctAnswer = optionD; break;
+                }
+
+                examQuestions.push({
+                    text: questionText,
+                    options: options,
+                    correctAnswer: correctAnswer
+                });
+            });
+
+            if (!isValid) return;
+
+            try {
+                // حفظ الامتحان في مجلد عام
+                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
+                await addDoc(publicExamsCollection, {
+                    questions: examQuestions,
+                    createdAt: new Date(), // استخدام كائن Date ليتم تحويله تلقائيًا إلى Timestamp
+                    creatorId: userId
+                });
+                
+                showCustomAlert('تم حفظ الامتحان بنجاح ليظهر في الموقع العام!');
+                // إعادة تعيين المصفوفة والصفحة بعد الحفظ
+                questions = [];
+                questionList.innerHTML = '';
+                addQuestion();
+            } catch (error) {
+                console.error("فشل حفظ الامتحان:", error);
+                showCustomAlert("فشل حفظ الامتحان. يرجى التأكد من صلاحية قواعد الأمان والمحاولة مرة أخرى.");
+            }
+        });
+
         // الاستماع لحالة المصادقة
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // المستخدم قام بتسجيل الدخول
                 userId = user.uid;
@@ -729,8 +413,8 @@
                 userName.classList.remove('hidden');
                 signoutBtn.classList.remove('hidden');
                 
-                showPage('exams-page'); // عرض صفحة الامتحانات افتراضياً
-                showExamContent('manual'); // عرض الإدخال اليدوي افتراضياً
+                // عرض صفحة الامتحانات افتراضياً
+                showExamContent('manual'); 
                 
                 // إضافة سؤال افتراضي إذا لم يكن هناك أسئلة
                 if (questions.length === 0) {
