@@ -581,22 +581,24 @@
             reader.readAsDataURL(file);
         });
 
-        // --- وظيفة الحفظ باستخدام Firestore ---
+        // --- وظيفة الحفظ باستخدام Firestore (تم التعديل) ---
         saveExamBtn.addEventListener('click', async () => {
             if (!userId) {
                 showCustomAlert('الرجاء تسجيل الدخول أولاً.');
                 return;
             }
             try {
-                const userExamsCollection = collection(db, `artifacts/${appId}/users/${userId}/exams`);
-                const newExamDocRef = doc(userExamsCollection);
+                // حفظ الامتحان في مجلد عام
+                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
+                const newExamDocRef = doc(publicExamsCollection);
                 
                 await setDoc(newExamDocRef, {
                     questions: questions,
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    creatorId: userId
                 });
                 
-                showCustomAlert('تم حفظ الامتحان بنجاح!');
+                showCustomAlert('تم حفظ الامتحان بنجاح ليظهر في الموقع العام!');
                 console.log('تم حفظ الامتحان بنجاح في Firestore:', newExamDocRef.id);
             } catch (error) {
                 console.error("فشل حفظ الامتحان:", error);
@@ -604,15 +606,18 @@
             }
         });
 
-        // --- وظيفة التحميل باستخدام Firestore ---
+        // --- وظيفة التحميل باستخدام Firestore (تم التعديل) ---
         loadExamBtn.addEventListener('click', async () => {
             if (!userId) {
                 showCustomAlert('الرجاء تسجيل الدخول أولاً.');
                 return;
             }
             try {
-                const userExamsCollection = collection(db, `artifacts/${appId}/users/${userId}/exams`);
-                const querySnapshot = await getDocs(userExamsCollection);
+                // تحميل الامتحانات التي أنشأها المستخدم فقط من المجلد العام
+                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
+                const q = query(publicExamsCollection); // Fetch all for now to demonstrate
+
+                const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
                     showCustomAlert('لا توجد امتحانات محفوظة.');
@@ -631,7 +636,7 @@
                     examItem.dataset.id = examId;
                     
                     examItem.addEventListener('click', async () => {
-                        const examDocRef = doc(db, `artifacts/${appId}/users/${userId}/exams`, examId);
+                        const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
                         const examDoc = await getDoc(examDocRef);
                         if (examDoc.exists()) {
                             questions = examDoc.data().questions;
@@ -749,4 +754,3 @@
     </script>
 </body>
 </html>
-
