@@ -87,12 +87,31 @@
         <div id="exams-page" class="container mx-auto p-8 bg-white rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">مصمم الامتحانات</h1>
 
-            <div id="question-list" class="space-y-6">
-                <!-- سيتم إضافة الأسئلة هنا بواسطة JavaScript -->
+            <!-- أزرار اختيار طريقة الإدخال -->
+            <div class="flex justify-center mb-8 space-x-4 space-x-reverse">
+                <button id="show-manual-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors hover:bg-blue-700">
+                    رفع يدوي
+                </button>
+                <button id="show-image-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors hover:bg-gray-400">
+                    رفع بالصور
+                </button>
             </div>
 
-            <div class="mt-8">
-                <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">أو قم بإنشاء امتحان من صورة</h2>
+            <!-- محتوى الإدخال اليدوي -->
+            <div id="manual-content" class="space-y-6">
+                <div id="question-list">
+                    <!-- سيتم إضافة الأسئلة هنا بواسطة JavaScript -->
+                </div>
+
+                <div class="flex justify-center space-x-4 space-x-reverse mt-8">
+                    <button id="add-question-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        أضف سؤال جديد يدوياً
+                    </button>
+                </div>
+            </div>
+
+            <!-- محتوى الإدخال بالصور -->
+            <div id="image-content" class="hidden">
                 <div class="flex items-center justify-center w-full">
                     <label for="image-upload" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -113,9 +132,6 @@
             <hr class="my-8 border-gray-300">
 
             <div class="flex justify-center space-x-4 space-x-reverse">
-                <button id="add-question-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                    أضف سؤال جديد يدوياً
-                </button>
                 <button id="save-exam-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
                     حفظ الامتحان
                 </button>
@@ -236,6 +252,12 @@
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
 
+        // عناصر التحكم في طريقة الإدخال
+        const showManualBtn = document.getElementById('show-manual-btn');
+        const showImageBtn = document.getElementById('show-image-btn');
+        const manualContent = document.getElementById('manual-content');
+        const imageContent = document.getElementById('image-content');
+        
         const questionList = document.getElementById('question-list');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const saveExamBtn = document.getElementById('save-exam-btn');
@@ -269,6 +291,29 @@
         loadExamModalCancelBtn.addEventListener('click', () => {
             loadExamModal.classList.add('hidden');
         });
+
+        // دالة لتبديل عرض محتوى الامتحانات
+        function showExamContent(type) {
+            if (type === 'manual') {
+                manualContent.classList.remove('hidden');
+                imageContent.classList.add('hidden');
+                showManualBtn.classList.remove('bg-gray-300', 'text-gray-800');
+                showManualBtn.classList.add('bg-blue-600', 'text-white');
+                showImageBtn.classList.remove('bg-blue-600', 'text-white');
+                showImageBtn.classList.add('bg-gray-300', 'text-gray-800');
+            } else if (type === 'image') {
+                manualContent.classList.add('hidden');
+                imageContent.classList.remove('hidden');
+                showImageBtn.classList.remove('bg-gray-300', 'text-gray-800');
+                showImageBtn.classList.add('bg-blue-600', 'text-white');
+                showManualBtn.classList.remove('bg-blue-600', 'text-white');
+                showManualBtn.classList.add('bg-gray-300', 'text-gray-800');
+            }
+        }
+
+        // مستمعو الأحداث لأزرار تبديل المحتوى
+        showManualBtn.addEventListener('click', () => showExamContent('manual'));
+        showImageBtn.addEventListener('click', () => showExamContent('image'));
 
         // وظيفة لإضافة سؤال جديد إلى المصفوفة وعرضه
         function addQuestion() {
@@ -501,6 +546,7 @@
                         }));
                         renderQuestions();
                         showCustomAlert('تم تحليل الصورة واستخراج الأسئلة بنجاح!');
+                        showExamContent('manual'); // بعد التحليل، نعود إلى عرض الأسئلة
                     } else {
                         showCustomAlert('فشل في استخراج الأسئلة. الرجاء التأكد من أن الصورة واضحة.');
                     }
@@ -657,6 +703,7 @@
                 signoutBtn.classList.remove('hidden');
                 
                 showPage('exams-page'); // عرض صفحة الامتحانات افتراضياً
+                showExamContent('manual'); // عرض الإدخال اليدوي افتراضياً
                 
                 // إضافة سؤال افتراضي إذا لم يكن هناك أسئلة
                 if (questions.length === 0) {
