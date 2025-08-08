@@ -109,11 +109,8 @@
         // دالة للمصادقة والحصول على معرف المستخدم
         async function authenticateUser() {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // تم تعديل هذا الجزء لاستخدام signInAnonymously() فقط لتجنب الخطأ
+                await signInAnonymously(auth);
                 userId = auth.currentUser.uid;
                 console.log('User authenticated with ID:', userId);
             } catch (error) {
