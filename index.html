@@ -172,8 +172,15 @@
 
         <!-- صفحة التقييمات -->
         <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">التقييمات</h1>
-            <p class="text-center text-gray-600">هذه الصفحة قيد الإنشاء. ستكون هنا تقييمات الامتحانات.</p>
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800">التقييمات</h1>
+                <button id="add-evaluation-card-btn" class="bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-3xl transition-transform transform active:scale-105">
+                    +
+                </button>
+            </div>
+            <div id="evaluations-list" class="space-y-6">
+                <!-- سيتم إضافة بطاقات التقييم هنا بواسطة JavaScript -->
+            </div>
         </div>
 
         <!-- صفحة الملف الشخصي -->
@@ -262,6 +269,7 @@
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
         let uploadedImages = []; // مصفوفة جديدة لتخزين الصور التي تم رفعها
+        let evaluations = []; // مصفوفة جديدة لتخزين بطاقات التقييمات
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
@@ -313,6 +321,10 @@
         const loadExamModal = document.getElementById('load-exam-modal');
         const savedExamsList = document.getElementById('saved-exams-list');
         const loadExamModalCancelBtn = document.getElementById('load-exam-modal-cancel');
+
+        // عناصر صفحة التقييمات الجديدة
+        const addEvaluationCardBtn = document.getElementById('add-evaluation-card-btn');
+        const evaluationsList = document.getElementById('evaluations-list');
 
 
         // دالة لعرض مربع حواري مخصص
@@ -615,6 +627,7 @@
             } else if (pageId === 'evaluations-page') {
                 navEvaluationsBtn.classList.add('text-blue-600', 'font-bold');
                 navEvaluationsBtn.classList.remove('text-gray-500');
+                renderEvaluationCards(); // عرض البطاقات عند الانتقال للصفحة
             } else if (pageId === 'profile-page') {
                 navProfileBtn.classList.add('text-blue-600', 'font-bold');
                 navProfileBtn.classList.remove('text-gray-500');
@@ -716,6 +729,50 @@
         signoutBtn.addEventListener('click', signOutUser);
         saveExamBtn.addEventListener('click', saveExam);
         loadExamBtn.addEventListener('click', loadExams);
+
+        // وظائف جديدة لصفحة التقييمات
+        function addEvaluationCard() {
+            const newCard = {
+                id: Date.now(),
+                text: 'سؤال تقييم جديد...',
+            };
+            evaluations.push(newCard);
+            renderEvaluationCards();
+        }
+
+        function deleteEvaluationCard(id) {
+            evaluations = evaluations.filter(card => card.id !== id);
+            renderEvaluationCards();
+        }
+
+        function renderEvaluationCards() {
+            evaluationsList.innerHTML = '';
+            if (evaluations.length === 0) {
+                evaluationsList.innerHTML = `<p class="text-center text-gray-500">لا توجد تقييمات حالياً. اضغط على + لإضافة واحدة.</p>`;
+            } else {
+                evaluations.forEach(card => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'p-6 bg-white rounded-lg border border-gray-200 flex justify-between items-center shadow-sm';
+                    cardElement.innerHTML = `
+                        <p class="text-gray-700">${card.text}</p>
+                        <button class="delete-evaluation-btn text-red-500 hover:text-red-700 transition-colors" data-id="${card.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    `;
+                    evaluationsList.appendChild(cardElement);
+                });
+                
+                // إعادة ربط مستمعي الحذف
+                document.querySelectorAll('.delete-evaluation-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const cardId = parseInt(e.currentTarget.dataset.id);
+                        deleteEvaluationCard(cardId);
+                    });
+                });
+            }
+        }
+
+        addEvaluationCardBtn.addEventListener('click', addEvaluationCard);
 
 
         // مستمع لحالة المصادقة
