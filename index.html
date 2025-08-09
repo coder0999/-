@@ -234,7 +234,8 @@
     <script type="module">
         // استيراد وظائف Firebase اللازمة
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // *** تم التعديل: إضافة 'where' للاستعلام ***
+        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // تهيئة Firebase باستخدام التكوين الذي قدمته
@@ -729,12 +730,13 @@
             try {
                 // تحميل الامتحانات التي أنشأها المستخدم فقط من المجلد العام
                 const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
-                const q = query(publicExamsCollection); // Fetch all for now to demonstrate
+                // *** تم التعديل: إضافة شرط where لتصفية الامتحانات حسب المستخدم الحالي ***
+                const q = query(publicExamsCollection, where("creatorId", "==", userId));
 
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    showCustomAlert('لا توجد امتحانات محفوظة.');
+                    showCustomAlert('لا توجد امتحانات محفوظة قمت بإنشائها.');
                     return;
                 }
 
