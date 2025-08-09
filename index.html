@@ -171,7 +171,7 @@
         </div>
 
         <!-- صفحة التقييمات -->
-        <div id="evaluations-page" class="container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
+        <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <div class="relative mb-8">
                 <h1 class="text-4xl font-bold text-center text-gray-800">التقييمات</h1>
                 <button id="add-subject-btn" class="absolute top-0 left-0 bg-blue-600 text-white w-10 h-10 rounded-full text-2xl font-bold transition-transform transform active:scale-105">
@@ -623,7 +623,7 @@
                 imagePreviewDiv.dataset.id = img.id;
                 imagePreviewDiv.innerHTML = `
                     <img src="${URL.createObjectURL(img.file)}" alt="Image Preview" class="w-full h-full object-cover">
-                    <button class="delete-image-btn absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
+                    <button class="delete-image-btn absolute top-1 left-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
                         &times;
                     </button>
                 `;
@@ -868,15 +868,16 @@
             if (activePage) activePage.classList.remove('hidden');
 
             // تحديث أزرار التنقل
-            navExamsBtn.classList.remove('text-blue-600');
+            navExamsBtn.classList.remove('text-blue-600', 'font-bold');
             navExamsBtn.classList.add('text-gray-500');
-            navEvaluationsBtn.classList.remove('text-blue-600');
-            navEvaluationsBtn.classList.add('text-gray-500');
-            navProfileBtn.classList.remove('text-blue-600');
-            navProfileBtn.classList.add('text-gray-500');
-            
             navExamsBtn.querySelector('span').classList.remove('font-bold');
+
+            navEvaluationsBtn.classList.remove('text-blue-600', 'font-bold');
+            navEvaluationsBtn.classList.add('text-gray-500');
             navEvaluationsBtn.querySelector('span').classList.remove('font-bold');
+
+            navProfileBtn.classList.remove('text-blue-600', 'font-bold');
+            navProfileBtn.classList.add('text-gray-500');
             navProfileBtn.querySelector('span').classList.remove('font-bold');
 
             const activeButton = document.querySelector(`#nav-${pageId.replace('-page', '')}-btn`);
@@ -892,7 +893,7 @@
         navEvaluationsBtn.addEventListener('click', () => {
             showPage('evaluations-page');
             renderSubjects(); // عرض المواد عند الانتقال للصفحة
-            renderPublishedEvaluations(); // عرض التقييمات المنشورة
+            fetchAndRenderPublishedEvaluations(); // عرض التقييمات المنشورة
             subjectsView.classList.remove('hidden');
             createEvaluationView.classList.add('hidden');
             addSubjectForm.classList.add('hidden');
@@ -1052,21 +1053,26 @@
             for (const subjectName in evaluationsBySubject) {
                 const subjectTitle = document.createElement('h3');
                 subjectTitle.className = 'text-xl font-semibold text-gray-800 mt-4 mb-2';
-                subjectTitle.textContent = `تقييمات مادة: ${subjectName}`;
+                subjectTitle.textContent = `${subjectName}`;
                 publishedEvaluationsContainer.appendChild(subjectTitle);
+
+                // إضافة خط تحت اسم المادة
+                const divider = document.createElement('div');
+                divider.className = 'h-1 bg-gray-200 rounded-full mb-3';
+                publishedEvaluationsContainer.appendChild(divider);
 
                 const subjectEvaluations = evaluationsBySubject[subjectName];
                 subjectEvaluations.forEach(eval => {
                     const evaluationLink = document.createElement('a');
                     evaluationLink.href = eval.link;
                     evaluationLink.target = "_blank";
-                    evaluationLink.className = 'block p-3 bg-white rounded-lg shadow-md text-gray-700 transition-colors hover:bg-gray-100';
+                    evaluationLink.className = 'block p-3 bg-white rounded-lg shadow-md text-gray-700 transition-colors hover:bg-gray-100 mb-2';
                     evaluationLink.textContent = eval.name;
                     publishedEvaluationsContainer.appendChild(evaluationLink);
                 });
             }
         }
-
+        
         // --- وظائف المصادقة ---
         googleSigninBtn.addEventListener('click', async () => {
             try {
@@ -1143,18 +1149,23 @@
             }
 
             const allEvaluations = [];
-            for (const subject of subjects) {
-                try {
-                    const evaluationsCollection = collection(db, `artifacts/${appId}/public/data/${subject.name}/evaluations`);
-                    const querySnapshot = await getDocs(evaluationsCollection);
+            // استخدام Promise.all لجلب التقييمات بشكل متوازٍ لتحسين الأداء
+            const fetchPromises = subjects.map(subject => {
+                const evaluationsCollection = collection(db, `artifacts/${appId}/public/data/${subject.name}/evaluations`);
+                return getDocs(evaluationsCollection).then(querySnapshot => {
+                    const subjectEvaluations = [];
                     querySnapshot.forEach(doc => {
-                        allEvaluations.push({ id: doc.id, ...doc.data(), subjectName: subject.name });
+                        subjectEvaluations.push({ id: doc.id, ...doc.data(), subjectName: subject.name });
                     });
-                } catch (e) {
+                    return subjectEvaluations;
+                }).catch(e => {
                     console.error(`فشل في جلب التقييمات لمادة ${subject.name}:`, e);
-                }
-            }
-            publishedEvaluations = allEvaluations;
+                    return [];
+                });
+            });
+            
+            const results = await Promise.all(fetchPromises);
+            publishedEvaluations = results.flat();
             renderPublishedEvaluations();
         }
 
