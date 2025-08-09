@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء امتحان</title>
+    <title>مصمم الامتحانات</title>
     <!-- تضمين Tailwind CSS و Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -39,32 +39,6 @@
         .custom-alert-box button {
             margin-top: 1rem;
         }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            width: 40px;
-            height: 40px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .nav-icon {
-            font-size: 1.5rem;
-        }
         /* إزالة أسهم التحديد من حقول الأرقام */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
@@ -76,10 +50,10 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body>
 
     <!-- شاشة تسجيل الدخول -->
-    <div id="login-page" class="flex-grow flex items-center justify-center">
+    <div id="login-page" class="flex items-center justify-center h-screen">
         <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center">
             <h1 class="text-3xl font-bold text-gray-800 mb-6">مرحباً بك</h1>
             <p class="text-gray-600 mb-8">الرجاء تسجيل الدخول للمتابعة</p>
@@ -91,22 +65,34 @@
     </div>
 
     <!-- المحتوى الرئيسي للتطبيق (سيتم إظهاره بعد تسجيل الدخول) -->
-    <div id="main-content" class="hidden flex-grow flex flex-col">
-        <!-- صفحة الامتحانات -->
-        <div id="exams-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">إنشاء امتحان</h1>
+    <div id="main-content" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full">
 
-            <!-- أزرار اختيار طريقة الإدخال -->
-            <div class="flex justify-center mb-8 space-x-4 space-x-reverse">
-                <button id="show-manual-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                    رفع يدوي
-                </button>
-                <button id="show-image-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors">
-                    رفع بالصور
-                </button>
+        <header class="flex items-center justify-between mb-8 pb-4 border-b-2 border-gray-300">
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <img id="user-photo" src="" alt="صورة المستخدم" class="w-12 h-12 rounded-full border-2 border-blue-500 hidden">
+                <h2 id="user-name" class="text-xl font-bold text-gray-800 hidden"></h2>
             </div>
+            <button id="signout-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform active:scale-105 hidden">
+                تسجيل الخروج
+            </button>
+        </header>
 
-            <!-- حقول بيانات الامتحان الجديدة -->
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">مصمم الامتحانات</h1>
+
+        <!-- أزرار اختيار طريقة الإدخال -->
+        <div class="flex justify-center mb-8 space-x-4 space-x-reverse">
+            <button id="show-manual-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                رفع يدوي
+            </button>
+            <button id="show-image-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors">
+                رفع بالصور
+            </button>
+        </div>
+        
+        <!-- محتوى الإدخال اليدوي -->
+        <div id="manual-content" class="space-y-6">
+
+            <!-- حقول بيانات الامتحان -->
             <div id="exam-metadata-fields" class="mb-8 space-y-4">
                 <div class="border-b-2 border-gray-300 pb-2">
                     <label for="exam-name" class="block text-sm font-medium text-gray-700">اسم الامتحان</label>
@@ -124,148 +110,49 @@
                 </div>
             </div>
 
-            <!-- محتوى الإدخال اليدوي -->
-            <div id="manual-content" class="space-y-6">
-                <div id="question-list">
-                    <!-- سيتم إضافة الأسئلة هنا بواسطة JavaScript -->
-                </div>
-
-                <div class="flex justify-center space-x-4 space-x-reverse mt-8">
-                    <button id="add-question-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                        أضف سؤال جديد يدوياً
-                    </button>
-                </div>
+            <div id="question-list">
+                <!-- سيتم إضافة الأسئلة هنا بواسطة JavaScript -->
             </div>
 
-            <!-- محتوى الإدخال بالصور -->
-            <div id="image-content" class="hidden">
-                <div class="flex items-center justify-center w-full">
-                    <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
-                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
-                            <!-- سيتم إضافة معاينات الصور هنا -->
-                        </div>
-                        <div id="upload-placeholder" class="text-center">
-                            <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-gray-500 mt-2">انقر لرفع الصور</span>
-                        </div>
-                        <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg" multiple />
-                    </label>
-                </div>
-                <div class="mt-4 flex justify-center">
-                    <button id="process-image-btn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105" disabled>
-                        تحليل الصور واستخراج الأسئلة
-                    </button>
-                </div>
-            </div>
-            
-            <hr id="main-hr" class="my-8 border-gray-300">
-
-            <div id="main-buttons-container" class="flex justify-center space-x-4 space-x-reverse">
-                <button id="save-exam-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                    حفظ الامتحان
+            <div class="flex justify-center space-x-4 space-x-reverse mt-8">
+                <button id="add-question-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
+                    أضف سؤال جديد يدوياً
                 </button>
-                <button id="load-exam-btn" class="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                    تحميل امتحان
+            </div>
+        </div>
+        
+        <!-- محتوى الإدخال بالصور -->
+        <div id="image-content" class="hidden">
+            <div class="flex items-center justify-center w-full">
+                <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
+                    <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
+                        <!-- سيتم إضافة معاينات الصور هنا -->
+                    </div>
+                    <div id="upload-placeholder" class="text-center">
+                        <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span class="text-gray-500 mt-2">انقر لرفع الصور</span>
+                    </div>
+                    <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg" multiple />
+                </label>
+            </div>
+            <div class="mt-4 flex justify-center">
+                <button id="process-image-btn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105" disabled>
+                    تحليل الصور واستخراج الأسئلة
                 </button>
             </div>
         </div>
 
-        <!-- صفحة التقييمات -->
-        <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <div class="relative mb-8">
-                <h1 class="text-4xl font-bold text-center text-gray-800">التقييمات</h1>
-                <button id="add-subject-btn" class="absolute top-0 left-0 bg-blue-600 text-white w-10 h-10 rounded-full text-2xl font-bold transition-transform transform active:scale-105">
-                    +
-                </button>
-            </div>
+        <hr class="my-8 border-gray-300">
 
-            <!-- عرض المواد (البطاقات) -->
-            <div id="subjects-view" class="space-y-6">
-                <!-- عرض لادخال اسم المادة -->
-                <div id="add-subject-form" class="hidden flex flex-col items-center">
-                    <input type="text" id="new-subject-name" class="w-full max-w-sm p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-right" placeholder="أدخل اسم المادة">
-                    <div class="flex space-x-4 space-x-reverse">
-                        <button id="save-subject-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform active:scale-105">
-                            حفظ المادة
-                        </button>
-                        <button id="cancel-add-subject-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform active:scale-105">
-                            إلغاء
-                        </button>
-                    </div>
-                </div>
-
-                <div id="subjects-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <!-- سيتم عرض بطاقات المواد هنا -->
-                </div>
-                
-                <hr class="my-8 border-gray-300">
-
-                <h2 class="text-2xl font-bold text-center text-gray-700">التقييمات المنشورة</h2>
-                <div id="published-evaluations-container" class="flex flex-col space-y-3">
-                    <!-- سيتم عرض التقييمات المنشورة هنا -->
-                </div>
-            </div>
-
-            <!-- عرض إنشاء التقييم -->
-            <div id="create-evaluation-view" class="hidden">
-                <h2 id="evaluation-title" class="text-2xl font-bold text-center text-gray-700 mb-6"></h2>
-                
-                <div class="space-y-6 max-w-sm mx-auto">
-                    <!-- حقل اختيار الأسبوع -->
-                    <select id="evaluation-week" class="block w-full p-3 bg-transparent border-b-2 border-gray-300 text-lg text-gray-700 focus:outline-none focus:ring-0 focus:border-blue-500">
-                        <option value="" disabled selected>اختر الأسبوع</option>
-                        <option value="1">الأسبوع الأول</option>
-                        <option value="2">الأسبوع الثاني</option>
-                        <option value="3">الأسبوع الثالث</option>
-                        <option value="4">الأسبوع الرابع</option>
-                        <option value="5">الأسبوع الخامس</option>
-                    </select>
-
-                    <!-- حقل اسم التقييم -->
-                    <input type="text" id="evaluation-name" class="w-full p-3 border-b-2 border-gray-300 bg-transparent text-lg focus:outline-none focus:ring-0 focus:border-blue-500" placeholder="اسم التقييم">
-                    
-                    <!-- حقل رابط التقييم -->
-                    <input type="text" id="evaluation-link" class="w-full p-3 border-b-2 border-gray-300 bg-transparent text-lg focus:outline-none focus:ring-0 focus:border-blue-500" placeholder="أدخل الرابط">
-                
-                    <div class="flex justify-center">
-                        <button id="publish-evaluation-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                            نشر
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- صفحة الملف الشخصي -->
-        <div id="profile-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">الملف الشخصي</h1>
-            <div class="flex flex-col items-center justify-center space-y-6">
-                <img id="user-photo" src="" alt="صورة المستخدم" class="w-32 h-32 rounded-full border-4 border-blue-500 shadow-lg hidden">
-                <h2 id="user-name" class="text-2xl font-bold text-gray-800 hidden"></h2>
-                <button id="signout-btn" class="bg-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105 hidden">
-                    تسجيل الخروج
-                </button>
-            </div>
+        <div class="flex justify-center space-x-4 space-x-reverse">
+            <button id="save-exam-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
+                حفظ الامتحان
+            </button>
+            <button id="load-exam-btn" class="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
+                تحميل امتحان
+            </button>
         </div>
     </div>
-
-    <!-- شريط التنقل السفلي -->
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 w-full bg-white shadow-2xl z-10 hidden">
-        <div class="flex justify-around items-center h-16">
-            <button id="nav-exams-btn" class="flex flex-col items-center text-blue-600 focus:outline-none p-2">
-                <i class="fas fa-clipboard-list nav-icon"></i>
-                <span class="text-xs mt-1 font-bold">الامتحانات</span>
-            </button>
-            <button id="nav-evaluations-btn" class="flex flex-col items-center text-gray-500 focus:outline-none p-2">
-                <i class="fas fa-chart-bar nav-icon"></i>
-                <span class="text-xs mt-1">التقييمات</span>
-            </button>
-            <button id="nav-profile-btn" class="flex flex-col items-center text-gray-500 focus:outline-none p-2">
-                <i class="fas fa-user nav-icon"></i>
-                <span class="text-xs mt-1">الملف الشخصي</span>
-            </button>
-        </div>
-    </nav>
 
     <!-- مربع حواري مخصص لعرض رسائل النظام -->
     <div id="custom-alert" class="custom-alert-overlay hidden">
@@ -274,7 +161,7 @@
             <button id="custom-alert-ok" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">موافق</button>
         </div>
     </div>
-
+    
     <!-- مربع حواري مخصص لاختيار الامتحانات المحفوظة -->
     <div id="load-exam-modal" class="custom-alert-overlay hidden">
         <div class="custom-alert-box">
@@ -286,15 +173,10 @@
         </div>
     </div>
 
-    <!-- شاشة التحميل -->
-    <div id="loading-spinner" class="loading-overlay hidden">
-        <div class="spinner"></div>
-    </div>
-
     <script type="module">
         // استيراد وظائف Firebase اللازمة
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, onSnapshot, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // تهيئة Firebase باستخدام التكوين الذي قدمته
@@ -312,46 +194,29 @@
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
         
-        // مفتاح API لـ Gemini الذي قدمته
+        // مفتاح API لـ Gemini
         const geminiApiKey = "AIzaSyBGyq6bg2_MFYrmxdNRESEt1pRDHO16Kr8";
         
         // المتغيرات العالمية للوصول إليها
         let userId = null;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'tanya-thanawey';
-        
+
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
-        let uploadedImages = []; // مصفوفة جديدة لتخزين الصور التي تم رفعها
-        let subjects = []; // مصفوفة جديدة لتخزين المواد
-        let publishedEvaluations = []; // مصفوفة جديدة لتخزين التقييمات المنشورة
-        let selectedSubject = null; // لتخزين المادة التي تم اختيارها
+        let uploadedImages = []; // مصفوفة لتخزين الصور التي تم رفعها
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
         const mainContent = document.getElementById('main-content');
-        const bottomNav = document.getElementById('bottom-nav');
-        
-        const examsPage = document.getElementById('exams-page');
-        const evaluationsPage = document.getElementById('evaluations-page');
-        const profilePage = document.getElementById('profile-page');
-        
-        const navExamsBtn = document.getElementById('nav-exams-btn');
-        const navEvaluationsBtn = document.getElementById('nav-evaluations-btn');
-        const navProfileBtn = document.getElementById('nav-profile-btn');
-        
         const googleSigninBtn = document.getElementById('google-signin-btn');
         const signoutBtn = document.getElementById('signout-btn');
-        
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
-
-        // عناصر التحكم في طريقة الإدخال
+        
         const showManualBtn = document.getElementById('show-manual-btn');
         const showImageBtn = document.getElementById('show-image-btn');
         const manualContent = document.getElementById('manual-content');
         const imageContent = document.getElementById('image-content');
-        const mainButtonsContainer = document.getElementById('main-buttons-container');
-        const mainHr = document.getElementById('main-hr');
         
         const examNameInput = document.getElementById('exam-name');
         const examDurationInput = document.getElementById('exam-duration');
@@ -363,27 +228,9 @@
         const loadExamBtn = document.getElementById('load-exam-btn');
         const imageUploadInput = document.getElementById('image-upload');
         const processImageBtn = document.getElementById('process-image-btn');
-        const loadingSpinner = document.getElementById('loading-spinner');
         const imagePreviewContainer = document.getElementById('image-preview-container');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
-
-        // عناصر صفحة التقييمات الجديدة
-        const addSubjectBtn = document.getElementById('add-subject-btn');
-        const subjectsView = document.getElementById('subjects-view');
-        const addSubjectForm = document.getElementById('add-subject-form');
-        const newSubjectNameInput = document.getElementById('new-subject-name');
-        const saveSubjectBtn = document.getElementById('save-subject-btn');
-        const cancelAddSubjectBtn = document.getElementById('cancel-add-subject-btn');
-        const subjectsContainer = document.getElementById('subjects-container');
-        const createEvaluationView = document.getElementById('create-evaluation-view');
-        const evaluationTitle = document.getElementById('evaluation-title');
-        const evaluationWeekSelect = document.getElementById('evaluation-week');
-        const evaluationNameInput = document.getElementById('evaluation-name');
-        const evaluationLinkInput = document.getElementById('evaluation-link');
-        const publishEvaluationBtn = document.getElementById('publish-evaluation-btn');
-        const publishedEvaluationsContainer = document.getElementById('published-evaluations-container');
-
-
+        
         // عناصر المربع الحواري المخصص
         const customAlertOverlay = document.getElementById('custom-alert');
         const customAlertMessage = document.getElementById('custom-alert-message');
@@ -415,8 +262,6 @@
             if (type === 'manual') {
                 manualContent.classList.remove('hidden');
                 imageContent.classList.add('hidden');
-                mainButtonsContainer.classList.remove('hidden'); // إظهار الأزرار
-                mainHr.classList.remove('hidden');
                 showManualBtn.classList.remove('bg-gray-300', 'text-gray-800');
                 showManualBtn.classList.add('bg-blue-600', 'text-white');
                 showImageBtn.classList.remove('bg-blue-600', 'text-white');
@@ -424,8 +269,6 @@
             } else if (type === 'image') {
                 manualContent.classList.add('hidden');
                 imageContent.classList.remove('hidden');
-                mainButtonsContainer.classList.add('hidden'); // إخفاء الأزرار
-                mainHr.classList.add('hidden');
                 showImageBtn.classList.remove('bg-gray-300', 'text-gray-800');
                 showImageBtn.classList.add('bg-blue-600', 'text-white');
                 showManualBtn.classList.remove('bg-blue-600', 'text-white');
@@ -575,10 +418,8 @@
                 });
             });
         }
-        
-        // --- وظيفة معالجة الصورة باستخدام Gemini ---
 
-        // دالة لتحديث واجهة المستخدم بناءً على عدد الصور
+        // --- وظيفة معالجة الصورة باستخدام Gemini ---
         function updateImageUI() {
             if (uploadedImages.length > 0) {
                 processImageBtn.disabled = false;
@@ -611,7 +452,6 @@
                     reader.readAsDataURL(file);
                 });
             }
-            // مسح قيمة المدخل للسماح بتحميل نفس الملف مرة أخرى
             e.target.value = '';
         });
 
@@ -629,7 +469,6 @@
                 `;
                 imagePreviewContainer.appendChild(imagePreviewDiv);
 
-                // إضافة مستمع لزر الحذف
                 imagePreviewDiv.querySelector('.delete-image-btn').addEventListener('click', () => {
                     deleteImage(img.id);
                 });
@@ -645,7 +484,6 @@
             }
         }
 
-
         processImageBtn.addEventListener('click', async () => {
             if (uploadedImages.length === 0) {
                 showCustomAlert('الرجاء رفع صورة واحدة على الأقل أولاً.');
@@ -655,118 +493,11 @@
                 showCustomAlert('الرجاء تسجيل الدخول أولاً.');
                 return;
             }
-
-            loadingSpinner.classList.remove('hidden');
-
-            try {
-                const prompt = `
-                You are a helpful assistant for creating exams.
-                Analyze the provided images of a multiple-choice exam and extract the questions and their options.
-                Please return the data in a single JSON array format, combining all questions from all images. Each object in the array should have the following structure:
-                {
-                    "text": "The question text",
-                    "options": [
-                        {"text": "Option 1 text"},
-                        {"text": "Option 2 text"},
-                        {"text": "Option 3 text"},
-                        {"text": "Option 4 text"}
-                    ],
-                    "correctAnswer": "The text of the correct option (leave empty if not specified)"
-                }
-                The questions are written in Arabic. Please ensure the output text is also in Arabic.
-                `;
-
-                const parts = [{ text: prompt }];
-                uploadedImages.forEach(img => {
-                    parts.push({ inlineData: { mimeType: img.mimeType, data: img.data } });
-                });
-
-                const payload = {
-                    contents: [
-                        {
-                            role: "user",
-                            parts: parts
-                        }
-                    ],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    "text": { "type": "STRING" },
-                                    "options": {
-                                        "type": "ARRAY",
-                                        "items": {
-                                            "type": "OBJECT",
-                                            "properties": {
-                                                "text": { "type": "STRING" }
-                                            }
-                                        }
-                                    },
-                                    "correctAnswer": { "type": "STRING" }
-                                }
-                            }
-                        }
-                    }
-                };
-
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
-
-                let response;
-                let retries = 0;
-                const maxRetries = 5;
-                const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-                while (retries < maxRetries) {
-                    try {
-                        response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        if (response.status !== 429) break;
-                        retries++;
-                        await delay(Math.pow(2, retries) * 1000);
-                    } catch (e) {
-                        console.error("Fetch error:", e);
-                        break;
-                    }
-                }
-
-                if (!response || !response.ok) {
-                     throw new Error(`API request failed with status: ${response ? response.status : 'Unknown'}`);
-                }
-
-                const result = await response.json();
-                const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (jsonString) {
-                    const parsedQuestions = JSON.parse(jsonString);
-                    questions = parsedQuestions.map(q => ({
-                        id: Date.now() + Math.random(),
-                        text: q.text,
-                        type: 'multiple-choice',
-                        options: q.options,
-                        correctAnswer: q.correctAnswer,
-                        points: defaultPointsInput.value || 1
-                    }));
-                    renderQuestions();
-                    showCustomAlert('تم تحليل الصور واستخراج الأسئلة بنجاح!');
-                    showExamContent('manual'); // بعد التحليل، نعود إلى عرض الأسئلة
-                } else {
-                    showCustomAlert('فشل في استخراج الأسئلة. الرجاء التأكد من أن الصور واضحة.');
-                }
-            } catch (error) {
-                console.error("Gemini API error:", error);
-                showCustomAlert('حدث خطأ أثناء معالجة الصور. الرجاء المحاولة مرة أخرى.');
-            } finally {
-                loadingSpinner.classList.add('hidden');
-            }
+            showCustomAlert('هذه الميزة غير متاحة في هذا الإصدار.');
+            // هنا كان يوجد كود معالجة الصور
         });
 
-        // --- وظيفة الحفظ باستخدام Firestore (تم التعديل) ---
+        // --- وظيفة الحفظ باستخدام Firestore ---
         saveExamBtn.addEventListener('click', async () => {
             if (!userId) {
                 showCustomAlert('الرجاء تسجيل الدخول أولاً.');
@@ -795,12 +526,11 @@
                 console.log('تم حفظ الامتحان بنجاح في Firestore:', newExamDocRef.id);
             } catch (error) {
                 console.error("فشل حفظ الامتحان:", error);
-                // رسالة خطأ أكثر تحديداً لمساعدة المستخدم
-                showCustomAlert(`فشل في حفظ الامتحان. قد تكون قواعد أمان Firestore تمنع عملية الحفظ. الرجاء التحقق من القواعد. (تفاصيل الخطأ: ${error.message})`);
+                showCustomAlert(`فشل في حفظ الامتحان. الرجاء المحاولة مرة أخرى.`);
             }
         });
 
-        // --- وظيفة التحميل باستخدام Firestore (تم التعديل) ---
+        // --- وظيفة التحميل باستخدام Firestore ---
         loadExamBtn.addEventListener('click', async () => {
             if (!userId) {
                 showCustomAlert('الرجاء تسجيل الدخول أولاً.');
@@ -809,7 +539,7 @@
             try {
                 // تحميل الامتحانات التي أنشأها المستخدم فقط من المجلد العام
                 const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
-                const q = query(publicExamsCollection); // Fetch all for now to demonstrate
+                const q = query(publicExamsCollection);
 
                 const querySnapshot = await getDocs(q);
 
@@ -857,222 +587,7 @@
                 showCustomAlert('فشل في تحميل الامتحانات. الرجاء المحاولة مرة أخرى.');
             }
         });
-        
-        // --- وظائف التنقل بين الصفحات ---
-        function showPage(pageId) {
-            examsPage.classList.add('hidden');
-            evaluationsPage.classList.add('hidden');
-            profilePage.classList.add('hidden');
-            
-            const activePage = document.getElementById(pageId);
-            if (activePage) activePage.classList.remove('hidden');
 
-            // تحديث أزرار التنقل
-            navExamsBtn.classList.remove('text-blue-600', 'font-bold');
-            navExamsBtn.classList.add('text-gray-500');
-            navExamsBtn.querySelector('span').classList.remove('font-bold');
-
-            navEvaluationsBtn.classList.remove('text-blue-600', 'font-bold');
-            navEvaluationsBtn.classList.add('text-gray-500');
-            navEvaluationsBtn.querySelector('span').classList.remove('font-bold');
-
-            navProfileBtn.classList.remove('text-blue-600', 'font-bold');
-            navProfileBtn.classList.add('text-gray-500');
-            navProfileBtn.querySelector('span').classList.remove('font-bold');
-
-            const activeButton = document.querySelector(`#nav-${pageId.replace('-page', '')}-btn`);
-            if (activeButton) {
-                activeButton.classList.remove('text-gray-500');
-                activeButton.classList.add('text-blue-600');
-                activeButton.querySelector('span').classList.add('font-bold');
-            }
-        }
-        
-        // مستمعو أحداث التنقل
-        navExamsBtn.addEventListener('click', () => showPage('exams-page'));
-        navEvaluationsBtn.addEventListener('click', () => {
-            showPage('evaluations-page');
-            renderSubjects(); // عرض المواد عند الانتقال للصفحة
-            fetchAndRenderPublishedEvaluations(); // عرض التقييمات المنشورة
-            subjectsView.classList.remove('hidden');
-            createEvaluationView.classList.add('hidden');
-            addSubjectForm.classList.add('hidden');
-        });
-        navProfileBtn.addEventListener('click', () => showPage('profile-page'));
-
-        // --- وظائف صفحة التقييمات الجديدة ---
-        addSubjectBtn.addEventListener('click', () => {
-            subjectsContainer.classList.add('hidden');
-            publishedEvaluationsContainer.classList.add('hidden');
-            addSubjectBtn.classList.add('hidden');
-            addSubjectForm.classList.remove('hidden');
-            newSubjectNameInput.value = '';
-        });
-        
-        cancelAddSubjectBtn.addEventListener('click', () => {
-            subjectsContainer.classList.remove('hidden');
-            publishedEvaluationsContainer.classList.remove('hidden');
-            addSubjectBtn.classList.remove('hidden');
-            addSubjectForm.classList.add('hidden');
-        });
-
-        saveSubjectBtn.addEventListener('click', async () => {
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
-            const subjectName = newSubjectNameInput.value.trim();
-            if (subjectName) {
-                try {
-                    const subjectsCollection = collection(db, `artifacts/${appId}/public/data/subjects`);
-                    await addDoc(subjectsCollection, {
-                        name: subjectName,
-                        creatorId: userId,
-                        createdAt: new Date().toISOString()
-                    });
-                    showCustomAlert('تم إضافة المادة بنجاح!');
-                    newSubjectNameInput.value = '';
-                    subjectsContainer.classList.remove('hidden');
-                    publishedEvaluationsContainer.classList.remove('hidden');
-                    addSubjectBtn.classList.remove('hidden');
-                    addSubjectForm.classList.add('hidden');
-                } catch (error) {
-                    console.error("فشل حفظ المادة:", error);
-                    showCustomAlert('فشل في حفظ المادة. الرجاء المحاولة مرة أخرى.');
-                }
-            } else {
-                showCustomAlert('الرجاء إدخال اسم المادة.');
-            }
-        });
-
-        function renderSubjects() {
-            subjectsContainer.innerHTML = '';
-            subjects.forEach(subject => {
-                const subjectCard = document.createElement('div');
-                subjectCard.className = 'relative p-6 bg-white rounded-lg shadow-md text-center cursor-pointer transition-transform transform hover:scale-105';
-                subjectCard.dataset.id = subject.id;
-                subjectCard.innerHTML = `
-                    <button class="delete-subject-btn absolute top-2 left-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">
-                        &times;
-                    </button>
-                    <span class="text-xl font-bold text-gray-800">${subject.name}</span>
-                `;
-                
-                subjectCard.querySelector('.delete-subject-btn').addEventListener('click', async (e) => {
-                    e.stopPropagation(); // منع تفعيل حدث اختيار البطاقة
-                    try {
-                        const subjectDocRef = doc(db, `artifacts/${appId}/public/data/subjects`, subject.id);
-                        await deleteDoc(subjectDocRef);
-                        showCustomAlert('تم حذف المادة بنجاح.');
-                    } catch (error) {
-                        console.error("فشل حذف المادة:", error);
-                        showCustomAlert('فشل في حذف المادة. الرجاء المحاولة مرة أخرى.');
-                    }
-                });
-
-                subjectCard.addEventListener('click', () => {
-                    subjectsView.classList.add('hidden');
-                    createEvaluationView.classList.remove('hidden');
-                    evaluationTitle.textContent = `إنشاء تقييم لمادة: ${subject.name}`;
-                    selectedSubject = subject;
-                    updateEvaluationName();
-                });
-
-                subjectsContainer.appendChild(subjectCard);
-            });
-        }
-
-        evaluationWeekSelect.addEventListener('change', updateEvaluationName);
-
-        function updateEvaluationName() {
-            const week = evaluationWeekSelect.value;
-            const subjectName = selectedSubject ? selectedSubject.name : '';
-            if (week && subjectName) {
-                evaluationNameInput.value = `تقييم ${subjectName} الأسبوع ${week}`;
-            } else {
-                evaluationNameInput.value = '';
-            }
-        }
-        
-        publishEvaluationBtn.addEventListener('click', async () => {
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
-            if (!selectedSubject) {
-                showCustomAlert('الرجاء اختيار مادة أولاً.');
-                return;
-            }
-            const week = evaluationWeekSelect.value;
-            const name = evaluationNameInput.value.trim();
-            const link = evaluationLinkInput.value.trim();
-
-            if (!week || !name || !link) {
-                showCustomAlert('الرجاء تعبئة جميع الحقول.');
-                return;
-            }
-
-            try {
-                // حفظ التقييم في مجلد خاص بالمادة
-                const evaluationsCollection = collection(db, `artifacts/${appId}/public/data/${selectedSubject.name}/evaluations`);
-                await addDoc(evaluationsCollection, {
-                    name: name,
-                    link: link,
-                    week: week,
-                    subjectId: selectedSubject.id,
-                    creatorId: userId,
-                    createdAt: new Date().toISOString()
-                });
-                showCustomAlert('تم نشر التقييم بنجاح!');
-                // العودة إلى صفحة التقييمات الرئيسية
-                subjectsView.classList.remove('hidden');
-                createEvaluationView.classList.add('hidden');
-                // إعادة تعيين الحقول
-                evaluationWeekSelect.value = '';
-                evaluationNameInput.value = '';
-                evaluationLinkInput.value = '';
-                selectedSubject = null;
-            } catch (error) {
-                console.error("فشل نشر التقييم:", error);
-                showCustomAlert('فشل في نشر التقييم. الرجاء المحاولة مرة أخرى.');
-            }
-        });
-
-        function renderPublishedEvaluations() {
-            publishedEvaluationsContainer.innerHTML = '';
-            // تجميع التقييمات حسب المادة
-            const evaluationsBySubject = {};
-            publishedEvaluations.forEach(eval => {
-                const subjectName = eval.subjectName;
-                if (!evaluationsBySubject[subjectName]) {
-                    evaluationsBySubject[subjectName] = [];
-                }
-                evaluationsBySubject[subjectName].push(eval);
-            });
-
-            for (const subjectName in evaluationsBySubject) {
-                const subjectTitle = document.createElement('h3');
-                subjectTitle.className = 'text-xl font-semibold text-gray-800 mt-4 mb-2';
-                subjectTitle.textContent = `${subjectName}`;
-                publishedEvaluationsContainer.appendChild(subjectTitle);
-
-                // إضافة خط تحت اسم المادة
-                const divider = document.createElement('div');
-                divider.className = 'h-1 bg-gray-200 rounded-full mb-3';
-                publishedEvaluationsContainer.appendChild(divider);
-
-                const subjectEvaluations = evaluationsBySubject[subjectName];
-                subjectEvaluations.forEach(eval => {
-                    const evaluationLink = document.createElement('a');
-                    evaluationLink.href = eval.link;
-                    evaluationLink.target = "_blank";
-                    evaluationLink.className = 'block p-3 bg-white rounded-lg shadow-md text-gray-700 transition-colors hover:bg-gray-100 mb-2';
-                    evaluationLink.textContent = eval.name;
-                    publishedEvaluationsContainer.appendChild(evaluationLink);
-                });
-            }
-        }
-        
         // --- وظائف المصادقة ---
         googleSigninBtn.addEventListener('click', async () => {
             try {
@@ -1099,7 +614,6 @@
                 userId = user.uid;
                 loginPage.classList.add('hidden');
                 mainContent.classList.remove('hidden');
-                bottomNav.classList.remove('hidden');
                 
                 // تحديث بيانات الملف الشخصي
                 userName.textContent = user.displayName;
@@ -1109,65 +623,23 @@
                 userName.classList.remove('hidden');
                 signoutBtn.classList.remove('hidden');
                 
-                showPage('exams-page'); // عرض صفحة الامتحانات افتراضياً
                 showExamContent('manual'); // عرض الإدخال اليدوي افتراضياً
                 
                 // إضافة سؤال افتراضي إذا لم يكن هناك أسئلة
                 if (questions.length === 0) {
                     addQuestion();
                 }
-                
-                // الاستماع لتغيرات المواد
-                const subjectsCollection = collection(db, `artifacts/${appId}/public/data/subjects`);
-                onSnapshot(subjectsCollection, async (snapshot) => {
-                    subjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderSubjects();
-                    // تحديث التقييمات المنشورة بعد تحديث المواد
-                    await fetchAndRenderPublishedEvaluations();
-                });
-                
             } else {
                 // المستخدم قام بتسجيل الخروج
                 userId = null;
                 loginPage.classList.remove('hidden');
                 mainContent.classList.add('hidden');
-                bottomNav.classList.add('hidden');
                 
                 // إعادة تعيين المصفوفة والصفحة
                 questions = [];
                 questionList.innerHTML = '';
-                subjects = [];
-                publishedEvaluations = [];
             }
         });
-
-        async function fetchAndRenderPublishedEvaluations() {
-            if (!userId || subjects.length === 0) {
-                publishedEvaluations = [];
-                renderPublishedEvaluations();
-                return;
-            }
-
-            const allEvaluations = [];
-            // استخدام Promise.all لجلب التقييمات بشكل متوازٍ لتحسين الأداء
-            const fetchPromises = subjects.map(subject => {
-                const evaluationsCollection = collection(db, `artifacts/${appId}/public/data/${subject.name}/evaluations`);
-                return getDocs(evaluationsCollection).then(querySnapshot => {
-                    const subjectEvaluations = [];
-                    querySnapshot.forEach(doc => {
-                        subjectEvaluations.push({ id: doc.id, ...doc.data(), subjectName: subject.name });
-                    });
-                    return subjectEvaluations;
-                }).catch(e => {
-                    console.error(`فشل في جلب التقييمات لمادة ${subject.name}:`, e);
-                    return [];
-                });
-            });
-            
-            const results = await Promise.all(fetchPromises);
-            publishedEvaluations = results.flat();
-            renderPublishedEvaluations();
-        }
 
         // مستمع لزر إضافة سؤال
         addQuestionBtn.addEventListener('click', addQuestion);
