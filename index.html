@@ -114,17 +114,16 @@
             <div id="image-content" class="hidden">
                 <div class="flex items-center justify-center w-full">
                     <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors overflow-hidden">
-                        <!-- هذا العنصر سيحتوي على معاينة الصورة أو الأيقونة الافتراضية -->
-                        <div id="image-preview-container" class="absolute inset-0 flex items-center justify-center">
-                            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
+                            <!-- سيتم إضافة معاينات الصور هنا -->
                         </div>
                         <span class="absolute bottom-4 right-4 text-blue-600 font-bold text-sm z-10">رفع صور</span>
-                        <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg" />
+                        <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg" multiple />
                     </label>
                 </div>
                 <div class="mt-4 flex justify-center">
                     <button id="process-image-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105" disabled>
-                        تحليل الصورة واستخراج الأسئلة
+                        تحليل الصور واستخراج الأسئلة
                     </button>
                 </div>
             </div>
@@ -232,6 +231,7 @@
         
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
+        let uploadedImages = []; // مصفوفة جديدة لتخزين الصور التي تم رفعها
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
@@ -452,33 +452,43 @@
         const imagePreviewContainer = document.getElementById('image-preview-container');
 
         imageUploadInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
+            const files = e.target.files;
+            if (files.length > 0) {
                 processImageBtn.disabled = false;
                 processImageBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
                 processImageBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
                 
-                // عرض معاينة الصورة
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = () => {
-                    imagePreviewContainer.innerHTML = `<img src="${reader.result}" alt="Image Preview" class="w-full h-full object-contain rounded-lg">`;
-                };
-                reader.readAsDataURL(file);
+                imagePreviewContainer.innerHTML = '';
+                uploadedImages = [];
+
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const imagePreviewDiv = document.createElement('div');
+                        imagePreviewDiv.className = 'relative w-full h-24 overflow-hidden rounded-lg shadow-md';
+                        imagePreviewDiv.innerHTML = `<img src="${reader.result}" alt="Image Preview" class="w-full h-full object-cover">`;
+                        imagePreviewContainer.appendChild(imagePreviewDiv);
+                        uploadedImages.push({
+                            mimeType: file.type,
+                            data: reader.result.split(',')[1]
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
 
             } else {
                 processImageBtn.disabled = true;
                 processImageBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
                 processImageBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
                 
-                // إعادة الأيقونة الافتراضية
-                imagePreviewContainer.innerHTML = `<svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
+                imagePreviewContainer.innerHTML = `<svg class="w-16 h-16 text-gray-400 absolute inset-0 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
+                uploadedImages = [];
             }
         });
 
         processImageBtn.addEventListener('click', async () => {
-            const file = imageUploadInput.files[0];
-            if (!file) {
-                showCustomAlert('الرجاء رفع صورة أولاً.');
+            if (uploadedImages.length === 0) {
+                showCustomAlert('الرجاء رفع صورة واحدة على الأقل أولاً.');
                 return;
             }
             if (!userId) {
@@ -487,119 +497,112 @@
             }
 
             loadingSpinner.classList.remove('hidden');
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const base64Data = reader.result.split(',')[1];
-                try {
-                    const prompt = `
-                    You are a helpful assistant for creating exams.
-                    Analyze this image of a multiple-choice exam and extract the questions and their options.
-                    Please return the data in a JSON array format. Each object in the array should have the following structure:
-                    {
-                        "text": "The question text",
-                        "options": [
-                            {"text": "Option 1 text"},
-                            {"text": "Option 2 text"},
-                            {"text": "Option 3 text"},
-                            {"text": "Option 4 text"}
-                        ],
-                        "correctAnswer": "The text of the correct option (leave empty if not specified)"
-                    }
-                    The questions are written in Arabic. Please ensure the output text is also in Arabic.
-                    `;
 
-                    const payload = {
-                        contents: [
-                            {
-                                role: "user",
-                                parts: [
-                                    { text: prompt },
-                                    {
-                                        inlineData: {
-                                            mimeType: file.type,
-                                            data: base64Data
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "text": { "type": "STRING" },
-                                        "options": {
-                                            "type": "ARRAY",
-                                            "items": {
-                                                "type": "OBJECT",
-                                                "properties": {
-                                                    "text": { "type": "STRING" }
-                                                }
+            try {
+                const prompt = `
+                You are a helpful assistant for creating exams.
+                Analyze the provided images of a multiple-choice exam and extract the questions and their options.
+                Please return the data in a single JSON array format, combining all questions from all images. Each object in the array should have the following structure:
+                {
+                    "text": "The question text",
+                    "options": [
+                        {"text": "Option 1 text"},
+                        {"text": "Option 2 text"},
+                        {"text": "Option 3 text"},
+                        {"text": "Option 4 text"}
+                    ],
+                    "correctAnswer": "The text of the correct option (leave empty if not specified)"
+                }
+                The questions are written in Arabic. Please ensure the output text is also in Arabic.
+                `;
+
+                const parts = [{ text: prompt }];
+                uploadedImages.forEach(img => {
+                    parts.push({ inlineData: img });
+                });
+
+                const payload = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: parts
+                        }
+                    ],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "text": { "type": "STRING" },
+                                    "options": {
+                                        "type": "ARRAY",
+                                        "items": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "text": { "type": "STRING" }
                                             }
-                                        },
-                                        "correctAnswer": { "type": "STRING" }
-                                    }
+                                        }
+                                    },
+                                    "correctAnswer": { "type": "STRING" }
                                 }
                             }
                         }
-                    };
-
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
-
-                    let response;
-                    let retries = 0;
-                    const maxRetries = 5;
-                    const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-                    while (retries < maxRetries) {
-                        try {
-                            response = await fetch(apiUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(payload)
-                            });
-                            if (response.status !== 429) break;
-                            retries++;
-                            await delay(Math.pow(2, retries) * 1000);
-                        } catch (e) {
-                            console.error("Fetch error:", e);
-                            break;
-                        }
                     }
+                };
 
-                    if (!response || !response.ok) {
-                         throw new Error(`API request failed with status: ${response ? response.status : 'Unknown'}`);
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
+
+                let response;
+                let retries = 0;
+                const maxRetries = 5;
+                const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+                while (retries < maxRetries) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.status !== 429) break;
+                        retries++;
+                        await delay(Math.pow(2, retries) * 1000);
+                    } catch (e) {
+                        console.error("Fetch error:", e);
+                        break;
                     }
-
-                    const result = await response.json();
-                    const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (jsonString) {
-                        const parsedQuestions = JSON.parse(jsonString);
-                        questions = parsedQuestions.map(q => ({
-                            id: Date.now() + Math.random(),
-                            text: q.text,
-                            type: 'multiple-choice',
-                            options: q.options,
-                            correctAnswer: q.correctAnswer
-                        }));
-                        renderQuestions();
-                        showCustomAlert('تم تحليل الصورة واستخراج الأسئلة بنجاح!');
-                        showExamContent('manual'); // بعد التحليل، نعود إلى عرض الأسئلة
-                    } else {
-                        showCustomAlert('فشل في استخراج الأسئلة. الرجاء التأكد من أن الصورة واضحة.');
-                    }
-                } catch (error) {
-                    console.error("Gemini API error:", error);
-                    showCustomAlert('حدث خطأ أثناء معالجة الصورة. الرجاء المحاولة مرة أخرى.');
-                } finally {
-                    loadingSpinner.classList.add('hidden');
                 }
-            };
-            reader.readAsDataURL(file);
+
+                if (!response || !response.ok) {
+                     throw new Error(`API request failed with status: ${response ? response.status : 'Unknown'}`);
+                }
+
+                const result = await response.json();
+                const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonString) {
+                    const parsedQuestions = JSON.parse(jsonString);
+                    questions = parsedQuestions.map(q => ({
+                        id: Date.now() + Math.random(),
+                        text: q.text,
+                        type: 'multiple-choice',
+                        options: q.options,
+                        correctAnswer: q.correctAnswer
+                    }));
+                    renderQuestions();
+                    showCustomAlert('تم تحليل الصور واستخراج الأسئلة بنجاح!');
+                    showExamContent('manual'); // بعد التحليل، نعود إلى عرض الأسئلة
+                } else {
+                    showCustomAlert('فشل في استخراج الأسئلة. الرجاء التأكد من أن الصور واضحة.');
+                }
+            } catch (error) {
+                console.error("Gemini API error:", error);
+                showCustomAlert('حدث خطأ أثناء معالجة الصور. الرجاء المحاولة مرة أخرى.');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
         });
 
         // --- وظيفة الحفظ باستخدام Firestore (تم التعديل) ---
