@@ -458,13 +458,13 @@
         function updateImageUI() {
             if (uploadedImages.length > 0) {
                 processImageBtn.disabled = false;
-                processImageBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-                processImageBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
+                processImageBtn.classList.remove('bg-indigo-600');
+                processImageBtn.classList.add('bg-indigo-500');
                 uploadPlaceholder.classList.add('hidden');
             } else {
                 processImageBtn.disabled = true;
-                processImageBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
-                processImageBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                processImageBtn.classList.remove('bg-indigo-500');
+                processImageBtn.classList.add('bg-indigo-600');
                 uploadPlaceholder.classList.remove('hidden');
             }
         }
@@ -499,7 +499,7 @@
                 imagePreviewDiv.dataset.id = img.id;
                 imagePreviewDiv.innerHTML = `
                     <img src="${URL.createObjectURL(img.file)}" alt="Image Preview" class="w-full h-full object-cover">
-                    <button class="delete-image-btn absolute top-1 left-1 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors">
+                    <button class="delete-image-btn absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
                         &times;
                     </button>
                 `;
