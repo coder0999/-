@@ -74,40 +74,6 @@
         input[type="number"] {
             -moz-appearance: textfield;
         }
-        .image-preview-item {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            padding-top: 100%; /* للحفاظ على نسبة العرض إلى الارتفاع 1:1 */
-            overflow: hidden;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .image-preview-item img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .image-preview-item .delete-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ef4444;
-            transition: background-color 0.2s;
-        }
-        .image-preview-item .delete-btn:hover {
-            background-color: rgba(255, 255, 255, 1);
-        }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -174,11 +140,11 @@
             <!-- محتوى الإدخال بالصور -->
             <div id="image-content" class="hidden">
                 <div class="flex items-center justify-center w-full">
-                    <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full min-h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
-                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
+                    <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
+                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
                             <!-- سيتم إضافة معاينات الصور هنا -->
                         </div>
-                        <div id="upload-placeholder" class="text-center p-4">
+                        <div id="upload-placeholder" class="text-center">
                             <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <span class="text-gray-500 mt-2">انقر لرفع الصور</span>
                         </div>
@@ -206,15 +172,8 @@
 
         <!-- صفحة التقييمات -->
         <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800">التقييمات</h1>
-                <button id="add-evaluation-card-btn" class="bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-3xl transition-transform transform active:scale-105">
-                    +
-                </button>
-            </div>
-            <div id="evaluations-list" class="space-y-6">
-                <!-- سيتم إضافة بطاقات التقييم هنا بواسطة JavaScript -->
-            </div>
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">التقييمات</h1>
+            <p class="text-center text-gray-600">هذه الصفحة قيد الإنشاء. ستكون هنا تقييمات الامتحانات.</p>
         </div>
 
         <!-- صفحة الملف الشخصي -->
@@ -303,7 +262,6 @@
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
         let uploadedImages = []; // مصفوفة جديدة لتخزين الصور التي تم رفعها
-        let evaluations = []; // مصفوفة جديدة لتخزين بطاقات التقييمات
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
@@ -356,10 +314,6 @@
         const savedExamsList = document.getElementById('saved-exams-list');
         const loadExamModalCancelBtn = document.getElementById('load-exam-modal-cancel');
 
-        // عناصر صفحة التقييمات الجديدة
-        const addEvaluationCardBtn = document.getElementById('add-evaluation-card-btn');
-        const evaluationsList = document.getElementById('evaluations-list');
-
 
         // دالة لعرض مربع حواري مخصص
         function showCustomAlert(message) {
@@ -398,7 +352,7 @@
                 showManualBtn.classList.add('bg-gray-300', 'text-gray-800');
             }
         }
-        
+
         // مستمعو الأحداث لأزرار تبديل المحتوى
         showManualBtn.addEventListener('click', () => showExamContent('manual'));
         showImageBtn.addEventListener('click', () => showExamContent('image'));
@@ -431,7 +385,7 @@
                 renderQuestions();
             }
         }
-        
+
         // وظيفة لعرض جميع الأسئلة من المصفوفة
         function renderQuestions() {
             questionList.innerHTML = ''; // مسح القائمة الحالية
@@ -439,6 +393,7 @@
                 const questionElement = document.createElement('div');
                 questionElement.className = 'p-6 bg-white rounded-lg border border-gray-200';
                 questionElement.dataset.id = question.id;
+
                 questionElement.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
                         <span class="font-bold text-lg text-gray-700">سؤال ${index + 1}</span>
@@ -465,6 +420,7 @@
                         أضف خيار
                     </button>
                 `;
+
                 questionList.appendChild(questionElement);
             });
 
@@ -483,398 +439,398 @@
             renderQuestions();
         }
 
-        // وظيفة لربط المستمعين للأحداث بالعناصر الجديدة
+        // وظيفة لربط جميع مستمعي الأحداث
         function attachEventListeners() {
-            // مستمعو الأحداث لحذف الأسئلة
-            document.querySelectorAll('.delete-question-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const questionId = parseInt(e.currentTarget.dataset.id);
-                    deleteQuestion(questionId);
-                });
-            });
-
-            // مستمعو الأحداث لإضافة خيارات
-            document.querySelectorAll('.add-option-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const questionId = parseInt(e.currentTarget.dataset.id);
-                    addOption(questionId);
-                });
-            });
-
-            // مستمعو الأحداث لتحديث نص السؤال
+            // مستمعو الأحداث لتغيير نص السؤال
             document.querySelectorAll('.question-text').forEach(textarea => {
                 textarea.addEventListener('input', (e) => {
-                    const questionId = parseInt(e.currentTarget.closest('[data-id]').dataset.id);
-                    updateQuestion(questionId, { text: e.target.value });
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    updateQuestion(id, { text: e.target.value });
                 });
             });
-            
-            // مستمعو الأحداث لتحديث نص الخيار
+
+            // مستمعو الأحداث لتغيير خيارات الإجابة
             document.querySelectorAll('.option-text').forEach(input => {
                 input.addEventListener('input', (e) => {
-                    const questionId = parseInt(e.currentTarget.closest('[data-id]').dataset.id);
-                    const optionIndex = Array.from(e.currentTarget.closest('.options-container').querySelectorAll('.option-text')).indexOf(e.currentTarget);
-                    const updatedOptions = [...questions.find(q => q.id === questionId).options];
-                    updatedOptions[optionIndex].text = e.target.value;
-                    updateQuestion(questionId, { options: updatedOptions });
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    const question = questions.find(q => q.id === id);
+                    if (question) {
+                        const options = Array.from(e.target.closest('.options-container').querySelectorAll('.option-text'));
+                        const optionIndex = options.indexOf(e.target);
+                        question.options[optionIndex].text = e.target.value;
+                        updateQuestion(id, { options: question.options });
+                    }
+                });
+            });
+
+            // مستمعو الأحداث لتغيير النقاط
+            document.querySelectorAll('.points-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    updateQuestion(id, { points: parseInt(e.target.value) || 0 });
                 });
             });
 
             // مستمعو الأحداث لتحديد الإجابة الصحيحة
-            document.querySelectorAll('.options-container input[type="radio"]').forEach(radio => {
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    const questionId = parseInt(e.currentTarget.closest('[data-id]').dataset.id);
-                    const correctAnswer = e.target.value;
-                    updateQuestion(questionId, { correctAnswer });
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    updateQuestion(id, { correctAnswer: e.target.value });
                 });
             });
 
-            // مستمعو الأحداث لتحديث النقاط
-            document.querySelectorAll('.points-input').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const questionId = parseInt(e.currentTarget.closest('[data-id]').dataset.id);
-                    updateQuestion(questionId, { points: e.target.value });
+            // مستمعو الأحداث لزر الحذف
+            document.querySelectorAll('.delete-question-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    deleteQuestion(id);
+                });
+            });
+
+            // مستمعو الأحداث لزر إضافة خيار
+            document.querySelectorAll('.add-option-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    addOption(id);
                 });
             });
         }
         
-        // دالة لحفظ بيانات الامتحان في Firestore
-        async function saveExam() {
+        // --- وظيفة معالجة الصورة باستخدام Gemini ---
+
+        // دالة لتحديث واجهة المستخدم بناءً على عدد الصور
+        function updateImageUI() {
+            if (uploadedImages.length > 0) {
+                processImageBtn.disabled = false;
+                processImageBtn.classList.remove('bg-indigo-600');
+                processImageBtn.classList.add('bg-indigo-500');
+                uploadPlaceholder.classList.add('hidden');
+            } else {
+                processImageBtn.disabled = true;
+                processImageBtn.classList.remove('bg-indigo-500');
+                processImageBtn.classList.add('bg-indigo-600');
+                uploadPlaceholder.classList.remove('hidden');
+            }
+        }
+
+        imageUploadInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const newImage = {
+                            id: Date.now() + Math.random(),
+                            file: file,
+                            mimeType: file.type,
+                            data: reader.result.split(',')[1]
+                        };
+                        uploadedImages.push(newImage);
+                        renderImagePreviews();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            // مسح قيمة المدخل للسماح بتحميل نفس الملف مرة أخرى
+            e.target.value = '';
+        });
+
+        function renderImagePreviews() {
+            imagePreviewContainer.innerHTML = '';
+            uploadedImages.forEach((img, index) => {
+                const imagePreviewDiv = document.createElement('div');
+                imagePreviewDiv.className = 'relative w-full h-32 overflow-hidden rounded-lg shadow-md';
+                imagePreviewDiv.dataset.id = img.id;
+                imagePreviewDiv.innerHTML = `
+                    <img src="${URL.createObjectURL(img.file)}" alt="Image Preview" class="w-full h-full object-cover">
+                    <button class="delete-image-btn absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
+                        &times;
+                    </button>
+                `;
+                imagePreviewContainer.appendChild(imagePreviewDiv);
+
+                // إضافة مستمع لزر الحذف
+                imagePreviewDiv.querySelector('.delete-image-btn').addEventListener('click', () => {
+                    deleteImage(img.id);
+                });
+            });
+            updateImageUI();
+        }
+
+        // --- التعديل الوحيد المطلوب ---
+        // تم تغيير هذه الدالة لاستخدام .filter() لضمان الحذف بشكل صحيح
+        function deleteImage(imageId) {
+            uploadedImages = uploadedImages.filter(img => img.id !== imageId);
+            renderImagePreviews();
+        }
+
+
+        processImageBtn.addEventListener('click', async () => {
+            if (uploadedImages.length === 0) {
+                showCustomAlert('الرجاء رفع صورة واحدة على الأقل أولاً.');
+                return;
+            }
             if (!userId) {
                 showCustomAlert('الرجاء تسجيل الدخول أولاً.');
                 return;
             }
 
-            // إظهار شاشة التحميل
             loadingSpinner.classList.remove('hidden');
 
-            const examName = examNameInput.value.trim();
-            if (!examName) {
-                showCustomAlert('الرجاء إدخال اسم للامتحان.');
-                loadingSpinner.classList.add('hidden');
-                return;
-            }
-
-            const examData = {
-                name: examName,
-                duration: examDurationInput.value,
-                defaultPoints: defaultPointsInput.value,
-                questions: questions
-            };
-
-            const userExamsCollection = collection(db, `artifacts/${appId}/users/${userId}/exams`);
             try {
-                // حفظ البيانات
-                const newDocRef = await setDoc(doc(userExamsCollection, examName), examData);
-                console.log("تم حفظ الامتحان بنجاح!");
-                showCustomAlert('تم حفظ الامتحان بنجاح!');
-            } catch (error) {
-                console.error("خطأ في حفظ الامتحان:", error);
-                showCustomAlert('حدث خطأ أثناء حفظ الامتحان.');
-            } finally {
-                loadingSpinner.classList.add('hidden');
-            }
-        }
-        
-        // دالة لتحميل الامتحانات المحفوظة
-        async function loadExams() {
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
+                const prompt = `
+                You are a helpful assistant for creating exams.
+                Analyze the provided images of a multiple-choice exam and extract the questions and their options.
+                Please return the data in a single JSON array format, combining all questions from all images. Each object in the array should have the following structure:
+                {
+                    "text": "The question text",
+                    "options": [
+                        {"text": "Option 1 text"},
+                        {"text": "Option 2 text"},
+                        {"text": "Option 3 text"},
+                        {"text": "Option 4 text"}
+                    ],
+                    "correctAnswer": "The text of the correct option (leave empty if not specified)"
+                }
+                The questions are written in Arabic. Please ensure the output text is also in Arabic.
+                `;
 
-            loadingSpinner.classList.remove('hidden');
+                const parts = [{ text: prompt }];
+                uploadedImages.forEach(img => {
+                    parts.push({ inlineData: { mimeType: img.mimeType, data: img.data } });
+                });
 
-            const userExamsCollection = collection(db, `artifacts/${appId}/users/${userId}/exams`);
-            try {
-                const querySnapshot = await getDocs(userExamsCollection);
-                savedExamsList.innerHTML = '';
-                if (querySnapshot.empty) {
-                    savedExamsList.innerHTML = `<p class="text-center text-gray-500">لا توجد امتحانات محفوظة.</p>`;
-                } else {
-                    querySnapshot.forEach(doc => {
-                        const exam = doc.data();
-                        const examName = doc.id;
-                        const button = document.createElement('button');
-                        button.textContent = examName;
-                        button.className = 'w-full p-3 bg-gray-100 rounded-lg text-gray-800 text-right hover:bg-gray-200 transition-colors';
-                        button.addEventListener('click', async () => {
-                            await loadSpecificExam(examName);
-                            loadExamModal.classList.add('hidden');
+                const payload = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: parts
+                        }
+                    ],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "text": { "type": "STRING" },
+                                    "options": {
+                                        "type": "ARRAY",
+                                        "items": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "text": { "type": "STRING" }
+                                            }
+                                        }
+                                    },
+                                    "correctAnswer": { "type": "STRING" }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
+
+                let response;
+                let retries = 0;
+                const maxRetries = 5;
+                const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+                while (retries < maxRetries) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
                         });
-                        savedExamsList.appendChild(button);
-                    });
+                        if (response.status !== 429) break;
+                        retries++;
+                        await delay(Math.pow(2, retries) * 1000);
+                    } catch (e) {
+                        console.error("Fetch error:", e);
+                        break;
+                    }
                 }
-                loadExamModal.classList.remove('hidden');
-            } catch (error) {
-                console.error("خطأ في تحميل الامتحانات:", error);
-                showCustomAlert('حدث خطأ أثناء تحميل الامتحانات.');
-            } finally {
-                loadingSpinner.classList.add('hidden');
-            }
-        }
-        
-        // دالة لتحميل امتحان محدد
-        async function loadSpecificExam(examName) {
-            loadingSpinner.classList.remove('hidden');
 
-            const examDocRef = doc(db, `artifacts/${appId}/users/${userId}/exams`, examName);
-            try {
-                const docSnap = await getDoc(examDocRef);
-                if (docSnap.exists()) {
-                    const examData = docSnap.data();
-                    examNameInput.value = examData.name;
-                    examDurationInput.value = examData.duration;
-                    defaultPointsInput.value = examData.defaultPoints;
-                    questions = examData.questions;
+                if (!response || !response.ok) {
+                     throw new Error(`API request failed with status: ${response ? response.status : 'Unknown'}`);
+                }
+
+                const result = await response.json();
+                const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonString) {
+                    const parsedQuestions = JSON.parse(jsonString);
+                    questions = parsedQuestions.map(q => ({
+                        id: Date.now() + Math.random(),
+                        text: q.text,
+                        type: 'multiple-choice',
+                        options: q.options,
+                        correctAnswer: q.correctAnswer,
+                        points: defaultPointsInput.value || 1
+                    }));
                     renderQuestions();
-                    showCustomAlert(`تم تحميل امتحان "${examName}" بنجاح!`);
+                    showCustomAlert('تم تحليل الصور واستخراج الأسئلة بنجاح!');
+                    showExamContent('manual'); // بعد التحليل، نعود إلى عرض الأسئلة
                 } else {
-                    showCustomAlert('الامتحان المطلوب غير موجود.');
+                    showCustomAlert('فشل في استخراج الأسئلة. الرجاء التأكد من أن الصور واضحة.');
                 }
             } catch (error) {
-                console.error("خطأ في تحميل الامتحان المحدد:", error);
-                showCustomAlert('حدث خطأ أثناء تحميل الامتحان.');
+                console.error("Gemini API error:", error);
+                showCustomAlert('حدث خطأ أثناء معالجة الصور. الرجاء المحاولة مرة أخرى.');
             } finally {
                 loadingSpinner.classList.add('hidden');
             }
-        }
+        });
 
-        // دالة لتبديل عرض الصفحات الرئيسية
+        // --- وظيفة الحفظ باستخدام Firestore (تم التعديل) ---
+        saveExamBtn.addEventListener('click', async () => {
+            if (!userId) {
+                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
+                return;
+            }
+            try {
+                // حفظ الامتحان في مجلد عام
+                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
+                const newExamDocRef = doc(publicExamsCollection);
+                
+                // إضافة بيانات الامتحان الجديدة
+                const examMetadata = {
+                    name: examNameInput.value,
+                    duration: examDurationInput.value,
+                    defaultPoints: defaultPointsInput.value
+                };
+
+                await setDoc(newExamDocRef, {
+                    metadata: examMetadata,
+                    questions: questions,
+                    createdAt: new Date().toISOString(),
+                    creatorId: userId
+                });
+                
+                showCustomAlert('تم حفظ الامتحان بنجاح ليظهر في الموقع العام!');
+                console.log('تم حفظ الامتحان بنجاح في Firestore:', newExamDocRef.id);
+            } catch (error) {
+                console.error("فشل حفظ الامتحان:", error);
+                // رسالة خطأ أكثر تحديداً لمساعدة المستخدم
+                showCustomAlert(`فشل في حفظ الامتحان. قد تكون قواعد أمان Firestore تمنع عملية الحفظ. الرجاء التحقق من القواعد. (تفاصيل الخطأ: ${error.message})`);
+            }
+        });
+
+        // --- وظيفة التحميل باستخدام Firestore (تم التعديل) ---
+        loadExamBtn.addEventListener('click', async () => {
+            if (!userId) {
+                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
+                return;
+            }
+            try {
+                // تحميل الامتحانات التي أنشأها المستخدم فقط من المجلد العام
+                const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
+                const q = query(publicExamsCollection); // Fetch all for now to demonstrate
+
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    showCustomAlert('لا توجد امتحانات محفوظة.');
+                    return;
+                }
+
+                savedExamsList.innerHTML = '';
+                querySnapshot.forEach(doc => {
+                    const examData = doc.data();
+                    const examId = doc.id;
+                    const examDate = new Date(examData.createdAt).toLocaleString();
+                    const examName = examData.metadata.name || 'امتحان بدون اسم';
+                    
+                    const examItem = document.createElement('button');
+                    examItem.className = 'w-full text-right p-3 bg-gray-200 active:bg-gray-300 rounded-lg transition-colors';
+                    examItem.textContent = `${examName} - محفوظ بتاريخ: ${examDate}`;
+                    examItem.dataset.id = examId;
+                    
+                    examItem.addEventListener('click', async () => {
+                        const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
+                        const examDoc = await getDoc(examDocRef);
+                        if (examDoc.exists()) {
+                            const data = examDoc.data();
+                            questions = data.questions;
+                            const metadata = data.metadata;
+                            examNameInput.value = metadata.name || '';
+                            examDurationInput.value = metadata.duration || '';
+                            defaultPointsInput.value = metadata.defaultPoints || '';
+                            renderQuestions();
+                            loadExamModal.classList.add('hidden');
+                            showCustomAlert('تم تحميل الامتحان بنجاح!');
+                        } else {
+                            showCustomAlert('فشل تحميل الامتحان.');
+                        }
+                    });
+                    savedExamsList.appendChild(examItem);
+                });
+
+                loadExamModal.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("فشل تحميل الامتحانات:", error);
+                showCustomAlert('فشل في تحميل الامتحانات. الرجاء المحاولة مرة أخرى.');
+            }
+        });
+        
+        // --- وظائف التنقل بين الصفحات ---
         function showPage(pageId) {
             examsPage.classList.add('hidden');
             evaluationsPage.classList.add('hidden');
             profilePage.classList.add('hidden');
             
-            navExamsBtn.classList.remove('text-blue-600', 'font-bold');
-            navExamsBtn.classList.add('text-gray-500');
-            navEvaluationsBtn.classList.remove('text-blue-600', 'font-bold');
-            navEvaluationsBtn.classList.add('text-gray-500');
-            navProfileBtn.classList.remove('text-blue-600', 'font-bold');
-            navProfileBtn.classList.add('text-gray-500');
+            const activePage = document.getElementById(pageId);
+            if (activePage) activePage.classList.remove('hidden');
 
-            document.getElementById(pageId).classList.remove('hidden');
+            // تحديث أزرار التنقل
+            navExamsBtn.classList.remove('text-blue-600');
+            navExamsBtn.classList.add('text-gray-500');
+            navEvaluationsBtn.classList.remove('text-blue-600');
+            navEvaluationsBtn.classList.add('text-gray-500');
+            navProfileBtn.classList.remove('text-blue-600');
+            navProfileBtn.classList.add('text-gray-500');
             
-            if (pageId === 'exams-page') {
-                navExamsBtn.classList.add('text-blue-600', 'font-bold');
-                navExamsBtn.classList.remove('text-gray-500');
-            } else if (pageId === 'evaluations-page') {
-                navEvaluationsBtn.classList.add('text-blue-600', 'font-bold');
-                navEvaluationsBtn.classList.remove('text-gray-500');
-                renderEvaluationCards(); // عرض البطاقات عند الانتقال للصفحة
-            } else if (pageId === 'profile-page') {
-                navProfileBtn.classList.add('text-blue-600', 'font-bold');
-                navProfileBtn.classList.remove('text-gray-500');
+            navExamsBtn.querySelector('span').classList.remove('font-bold');
+            navEvaluationsBtn.querySelector('span').classList.remove('font-bold');
+            navProfileBtn.querySelector('span').classList.remove('font-bold');
+
+            const activeButton = document.querySelector(`#nav-${pageId.replace('-page', '')}-btn`);
+            if (activeButton) {
+                activeButton.classList.remove('text-gray-500');
+                activeButton.classList.add('text-blue-600');
+                activeButton.querySelector('span').classList.add('font-bold');
             }
         }
         
-        // دالة لتسجيل الدخول باستخدام جوجل
-        async function signInWithGoogle() {
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                // يتم التعامل مع حالة تسجيل الدخول في مستمع onAuthStateChanged
-            } catch (error) {
-                console.error("خطأ في تسجيل الدخول:", error);
-                showCustomAlert('حدث خطأ أثناء تسجيل الدخول باستخدام جوجل.');
-            }
-        }
-
-        // دالة لتسجيل الخروج
-        async function signOutUser() {
-            try {
-                await signOut(auth);
-                // يتم التعامل مع حالة تسجيل الخروج في مستمع onAuthStateChanged
-            } catch (error) {
-                console.error("خطأ في تسجيل الخروج:", error);
-                showCustomAlert('حدث خطأ أثناء تسجيل الخروج.');
-            }
-        }
-
-        // دالة لتحويل البيانات من base64 إلى ArrayBuffer
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        // دالة لتحويل PCM إلى WAV
-        function pcmToWav(pcmData, sampleRate) {
-            const dataLength = pcmData.length * 2; // 2 bytes per sample
-            const buffer = new ArrayBuffer(44 + dataLength);
-            const view = new DataView(buffer);
-            let offset = 0;
-
-            function writeString(str) {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset++, str.charCodeAt(i));
-                }
-            }
-
-            function writeUint32(num) {
-                view.setUint32(offset, num, true);
-                offset += 4;
-            }
-
-            function writeUint16(num) {
-                view.setUint16(offset, num, true);
-                offset += 2;
-            }
-
-            // RIFF header
-            writeString('RIFF');
-            writeUint32(36 + dataLength);
-            writeString('WAVE');
-
-            // fmt chunk
-            writeString('fmt ');
-            writeUint32(16); // Chunk size
-            writeUint16(1); // Audio format (1 = PCM)
-            writeUint16(1); // Number of channels (1 for mono)
-            writeUint32(sampleRate);
-            writeUint32(sampleRate * 2); // Byte rate
-            writeUint16(2); // Block align
-            writeUint16(16); // Bits per sample
-
-            // data chunk
-            writeString('data');
-            writeUint32(dataLength);
-
-            // Write PCM data
-            for (let i = 0; i < pcmData.length; i++) {
-                view.setInt16(offset, pcmData[i], true);
-                offset += 2;
-            }
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-
         // مستمعو أحداث التنقل
         navExamsBtn.addEventListener('click', () => showPage('exams-page'));
         navEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
         navProfileBtn.addEventListener('click', () => showPage('profile-page'));
 
-        // مستمعو أحداث الأزرار الرئيسية
-        googleSigninBtn.addEventListener('click', signInWithGoogle);
-        signoutBtn.addEventListener('click', signOutUser);
-        saveExamBtn.addEventListener('click', saveExam);
-        loadExamBtn.addEventListener('click', loadExams);
-
-        // وظائف جديدة لصفحة التقييمات
-        function addEvaluationCard() {
-            const newCard = {
-                id: Date.now(),
-                name: 'تقييم جديد',
-            };
-            evaluations.push(newCard);
-            renderEvaluationCards();
-        }
-
-        function deleteEvaluationCard(id) {
-            evaluations = evaluations.filter(card => card.id !== id);
-            renderEvaluationCards();
-        }
-        
-        // دالة لتحديث اسم بطاقة التقييم
-        function updateEvaluationCardName(id, newName) {
-            evaluations = evaluations.map(card => card.id === id ? { ...card, name: newName } : card);
-        }
-
-        function renderEvaluationCards() {
-            evaluationsList.innerHTML = '';
-            if (evaluations.length === 0) {
-                evaluationsList.innerHTML = `<p class="text-center text-gray-500">لا توجد تقييمات حالياً. اضغط على + لإضافة واحدة.</p>`;
-            } else {
-                evaluations.forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.className = 'p-6 bg-white rounded-lg border border-gray-200 flex justify-between items-center shadow-sm';
-                    cardElement.innerHTML = `
-                        <input type="text" class="evaluation-name-input text-lg font-semibold w-full bg-transparent border-none focus:outline-none focus:ring-0" value="${card.name}" placeholder="اسم التقييم" data-id="${card.id}">
-                        <button class="delete-evaluation-btn text-red-500 hover:text-red-700 transition-colors" data-id="${card.id}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    `;
-                    evaluationsList.appendChild(cardElement);
-                });
-                
-                // إعادة ربط مستمعي الحذف
-                document.querySelectorAll('.delete-evaluation-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const cardId = parseInt(e.currentTarget.dataset.id);
-                        deleteEvaluationCard(cardId);
-                    });
-                });
-                
-                // إضافة مستمعي حدث التغيير لحقول الإدخال الجديدة
-                document.querySelectorAll('.evaluation-name-input').forEach(input => {
-                    input.addEventListener('input', (e) => {
-                        const cardId = parseInt(e.target.dataset.id);
-                        const newName = e.target.value;
-                        updateEvaluationCardName(cardId, newName);
-                    });
-                });
+        // --- وظائف المصادقة ---
+        googleSigninBtn.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) {
+                console.error("Google Sign-In failed:", error);
+                showCustomAlert('فشل تسجيل الدخول باستخدام جوجل. الرجاء المحاولة مرة أخرى.');
             }
-        }
-
-        addEvaluationCardBtn.addEventListener('click', addEvaluationCard);
-
-        // وظيفة لحذف صورة من المعاينة والمصفوفة
-        function deleteImage(index) {
-            URL.revokeObjectURL(uploadedImages[index].url);
-            uploadedImages.splice(index, 1);
-            renderImagePreviews();
-        }
-
-        // وظيفة لعرض معاينات الصور المرفوعة
-        function renderImagePreviews() {
-            imagePreviewContainer.innerHTML = '';
-            if (uploadedImages.length === 0) {
-                uploadPlaceholder.classList.remove('hidden');
-                imageUploadLabel.style.height = '24rem'; // إعادة الارتفاع الافتراضي
-                processImageBtn.disabled = true;
-            } else {
-                uploadPlaceholder.classList.add('hidden');
-                imageUploadLabel.style.height = 'auto'; // السماح للارتفاع بالتعديل
-                processImageBtn.disabled = false;
-                uploadedImages.forEach((image, index) => {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'image-preview-item';
-                    previewItem.innerHTML = `
-                        <img src="${image.url}" alt="معاينة الصورة ${index + 1}">
-                        <button class="delete-btn" data-index="${index}"><i class="fas fa-times"></i></button>
-                    `;
-                    imagePreviewContainer.appendChild(previewItem);
-                });
-
-                // إعادة ربط مستمعي الحذف
-                document.querySelectorAll('.image-preview-item .delete-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const index = parseInt(e.currentTarget.dataset.index);
-                        deleteImage(index);
-                        e.stopPropagation(); // منع النقر على زر الحذف من فتح مربع الحوار مرة أخرى
-                    });
-                });
-            }
-        }
-
-        // مستمع حدث لـ image-upload input
-        imageUploadInput.addEventListener('change', (e) => {
-            const files = e.target.files;
-            if (files.length > 0) {
-                for (const file of files) {
-                    const url = URL.createObjectURL(file);
-                    uploadedImages.push({ file, url });
-                }
-            }
-            renderImagePreviews();
         });
-
-
-        // مستمع لحالة المصادقة
+        
+        signoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign-Out failed:", error);
+                showCustomAlert('فشل تسجيل الخروج.');
+            }
+        });
+        
+        // الاستماع لحالة المصادقة
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 // المستخدم قام بتسجيل الدخول
