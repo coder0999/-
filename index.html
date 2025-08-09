@@ -65,6 +65,15 @@
         .nav-icon {
             font-size: 1.5rem;
         }
+        /* إزالة أسهم التحديد من حقول الأرقام */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -84,7 +93,7 @@
     <!-- المحتوى الرئيسي للتطبيق (سيتم إظهاره بعد تسجيل الدخول) -->
     <div id="main-content" class="hidden flex-grow flex flex-col">
         <!-- صفحة الامتحانات -->
-        <div id="exams-page" class="container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
+        <div id="exams-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">إنشاء امتحان</h1>
 
             <!-- أزرار اختيار طريقة الإدخال -->
@@ -162,9 +171,69 @@
         </div>
 
         <!-- صفحة التقييمات -->
-        <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">التقييمات</h1>
-            <p class="text-center text-gray-600">هذه الصفحة قيد الإنشاء. ستكون هنا تقييمات الامتحانات.</p>
+        <div id="evaluations-page" class="container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
+            <div class="relative mb-8">
+                <h1 class="text-4xl font-bold text-center text-gray-800">التقييمات</h1>
+                <button id="add-subject-btn" class="absolute top-0 left-0 bg-blue-600 text-white w-10 h-10 rounded-full text-2xl font-bold transition-transform transform active:scale-105">
+                    +
+                </button>
+            </div>
+
+            <!-- عرض المواد (البطاقات) -->
+            <div id="subjects-view" class="space-y-6">
+                <!-- عرض لادخال اسم المادة -->
+                <div id="add-subject-form" class="hidden flex flex-col items-center">
+                    <input type="text" id="new-subject-name" class="w-full max-w-sm p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-right" placeholder="أدخل اسم المادة">
+                    <div class="flex space-x-4 space-x-reverse">
+                        <button id="save-subject-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform active:scale-105">
+                            حفظ المادة
+                        </button>
+                        <button id="cancel-add-subject-btn" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform active:scale-105">
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+
+                <div id="subjects-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- سيتم عرض بطاقات المواد هنا -->
+                </div>
+                
+                <hr class="my-8 border-gray-300">
+
+                <h2 class="text-2xl font-bold text-center text-gray-700">التقييمات المنشورة</h2>
+                <div id="published-evaluations-container" class="flex flex-col space-y-3">
+                    <!-- سيتم عرض التقييمات المنشورة هنا -->
+                </div>
+            </div>
+
+            <!-- عرض إنشاء التقييم -->
+            <div id="create-evaluation-view" class="hidden">
+                <h2 id="evaluation-title" class="text-2xl font-bold text-center text-gray-700 mb-6"></h2>
+                
+                <div class="space-y-6 max-w-sm mx-auto">
+                    <!-- حقل اختيار الأسبوع -->
+                    <select id="evaluation-week" class="block w-full p-3 bg-transparent border-b-2 border-gray-300 text-lg text-gray-700 focus:outline-none focus:ring-0 focus:border-blue-500">
+                        <option value="" disabled selected>اختر الأسبوع</option>
+                        <option value="1">الأسبوع الأول</option>
+                        <option value="2">الأسبوع الثاني</option>
+                        <option value="3">الأسبوع الثالث</option>
+                        <option value="4">الأسبوع الرابع</option>
+                        <option value="5">الأسبوع الخامس</option>
+                    </select>
+
+                    <!-- حقل اسم التقييم -->
+                    <input type="text" id="evaluation-name" class="w-full p-3 border-b-2 border-gray-300 bg-transparent text-lg focus:outline-none focus:ring-0 focus:border-blue-500" placeholder="اسم التقييم">
+                    
+                    <!-- حقل رابط التقييم -->
+                    <input type="text" id="evaluation-link" class="w-full p-3 border-b-2 border-gray-300 bg-transparent text-lg focus:outline-none focus:ring-0 focus:border-blue-500" placeholder="أدخل الرابط">
+                
+                    <div class="flex justify-center">
+                        <button id="publish-evaluation-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
+                            نشر
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- صفحة الملف الشخصي -->
@@ -225,7 +294,7 @@
     <script type="module">
         // استيراد وظائف Firebase اللازمة
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, onSnapshot, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // تهيئة Firebase باستخدام التكوين الذي قدمته
@@ -253,6 +322,9 @@
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
         let uploadedImages = []; // مصفوفة جديدة لتخزين الصور التي تم رفعها
+        let subjects = []; // مصفوفة جديدة لتخزين المواد
+        let publishedEvaluations = []; // مصفوفة جديدة لتخزين التقييمات المنشورة
+        let selectedSubject = null; // لتخزين المادة التي تم اختيارها
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
@@ -294,6 +366,23 @@
         const loadingSpinner = document.getElementById('loading-spinner');
         const imagePreviewContainer = document.getElementById('image-preview-container');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
+
+        // عناصر صفحة التقييمات الجديدة
+        const addSubjectBtn = document.getElementById('add-subject-btn');
+        const subjectsView = document.getElementById('subjects-view');
+        const addSubjectForm = document.getElementById('add-subject-form');
+        const newSubjectNameInput = document.getElementById('new-subject-name');
+        const saveSubjectBtn = document.getElementById('save-subject-btn');
+        const cancelAddSubjectBtn = document.getElementById('cancel-add-subject-btn');
+        const subjectsContainer = document.getElementById('subjects-container');
+        const createEvaluationView = document.getElementById('create-evaluation-view');
+        const evaluationTitle = document.getElementById('evaluation-title');
+        const evaluationWeekSelect = document.getElementById('evaluation-week');
+        const evaluationNameInput = document.getElementById('evaluation-name');
+        const evaluationLinkInput = document.getElementById('evaluation-link');
+        const publishEvaluationBtn = document.getElementById('publish-evaluation-btn');
+        const publishedEvaluationsContainer = document.getElementById('published-evaluations-container');
+
 
         // عناصر المربع الحواري المخصص
         const customAlertOverlay = document.getElementById('custom-alert');
@@ -800,8 +889,183 @@
         
         // مستمعو أحداث التنقل
         navExamsBtn.addEventListener('click', () => showPage('exams-page'));
-        navEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
+        navEvaluationsBtn.addEventListener('click', () => {
+            showPage('evaluations-page');
+            renderSubjects(); // عرض المواد عند الانتقال للصفحة
+            renderPublishedEvaluations(); // عرض التقييمات المنشورة
+            subjectsView.classList.remove('hidden');
+            createEvaluationView.classList.add('hidden');
+            addSubjectForm.classList.add('hidden');
+        });
         navProfileBtn.addEventListener('click', () => showPage('profile-page'));
+
+        // --- وظائف صفحة التقييمات الجديدة ---
+        addSubjectBtn.addEventListener('click', () => {
+            subjectsContainer.classList.add('hidden');
+            publishedEvaluationsContainer.classList.add('hidden');
+            addSubjectBtn.classList.add('hidden');
+            addSubjectForm.classList.remove('hidden');
+            newSubjectNameInput.value = '';
+        });
+        
+        cancelAddSubjectBtn.addEventListener('click', () => {
+            subjectsContainer.classList.remove('hidden');
+            publishedEvaluationsContainer.classList.remove('hidden');
+            addSubjectBtn.classList.remove('hidden');
+            addSubjectForm.classList.add('hidden');
+        });
+
+        saveSubjectBtn.addEventListener('click', async () => {
+            if (!userId) {
+                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
+                return;
+            }
+            const subjectName = newSubjectNameInput.value.trim();
+            if (subjectName) {
+                try {
+                    const subjectsCollection = collection(db, `artifacts/${appId}/public/data/subjects`);
+                    await addDoc(subjectsCollection, {
+                        name: subjectName,
+                        creatorId: userId,
+                        createdAt: new Date().toISOString()
+                    });
+                    showCustomAlert('تم إضافة المادة بنجاح!');
+                    newSubjectNameInput.value = '';
+                    subjectsContainer.classList.remove('hidden');
+                    publishedEvaluationsContainer.classList.remove('hidden');
+                    addSubjectBtn.classList.remove('hidden');
+                    addSubjectForm.classList.add('hidden');
+                } catch (error) {
+                    console.error("فشل حفظ المادة:", error);
+                    showCustomAlert('فشل في حفظ المادة. الرجاء المحاولة مرة أخرى.');
+                }
+            } else {
+                showCustomAlert('الرجاء إدخال اسم المادة.');
+            }
+        });
+
+        function renderSubjects() {
+            subjectsContainer.innerHTML = '';
+            subjects.forEach(subject => {
+                const subjectCard = document.createElement('div');
+                subjectCard.className = 'relative p-6 bg-white rounded-lg shadow-md text-center cursor-pointer transition-transform transform hover:scale-105';
+                subjectCard.dataset.id = subject.id;
+                subjectCard.innerHTML = `
+                    <button class="delete-subject-btn absolute top-2 left-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">
+                        &times;
+                    </button>
+                    <span class="text-xl font-bold text-gray-800">${subject.name}</span>
+                `;
+                
+                subjectCard.querySelector('.delete-subject-btn').addEventListener('click', async (e) => {
+                    e.stopPropagation(); // منع تفعيل حدث اختيار البطاقة
+                    try {
+                        const subjectDocRef = doc(db, `artifacts/${appId}/public/data/subjects`, subject.id);
+                        await deleteDoc(subjectDocRef);
+                        showCustomAlert('تم حذف المادة بنجاح.');
+                    } catch (error) {
+                        console.error("فشل حذف المادة:", error);
+                        showCustomAlert('فشل في حذف المادة. الرجاء المحاولة مرة أخرى.');
+                    }
+                });
+
+                subjectCard.addEventListener('click', () => {
+                    subjectsView.classList.add('hidden');
+                    createEvaluationView.classList.remove('hidden');
+                    evaluationTitle.textContent = `إنشاء تقييم لمادة: ${subject.name}`;
+                    selectedSubject = subject;
+                    updateEvaluationName();
+                });
+
+                subjectsContainer.appendChild(subjectCard);
+            });
+        }
+
+        evaluationWeekSelect.addEventListener('change', updateEvaluationName);
+
+        function updateEvaluationName() {
+            const week = evaluationWeekSelect.value;
+            const subjectName = selectedSubject ? selectedSubject.name : '';
+            if (week && subjectName) {
+                evaluationNameInput.value = `تقييم ${subjectName} الأسبوع ${week}`;
+            } else {
+                evaluationNameInput.value = '';
+            }
+        }
+        
+        publishEvaluationBtn.addEventListener('click', async () => {
+            if (!userId) {
+                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
+                return;
+            }
+            if (!selectedSubject) {
+                showCustomAlert('الرجاء اختيار مادة أولاً.');
+                return;
+            }
+            const week = evaluationWeekSelect.value;
+            const name = evaluationNameInput.value.trim();
+            const link = evaluationLinkInput.value.trim();
+
+            if (!week || !name || !link) {
+                showCustomAlert('الرجاء تعبئة جميع الحقول.');
+                return;
+            }
+
+            try {
+                // حفظ التقييم في مجلد خاص بالمادة
+                const evaluationsCollection = collection(db, `artifacts/${appId}/public/data/${selectedSubject.name}/evaluations`);
+                await addDoc(evaluationsCollection, {
+                    name: name,
+                    link: link,
+                    week: week,
+                    subjectId: selectedSubject.id,
+                    creatorId: userId,
+                    createdAt: new Date().toISOString()
+                });
+                showCustomAlert('تم نشر التقييم بنجاح!');
+                // العودة إلى صفحة التقييمات الرئيسية
+                subjectsView.classList.remove('hidden');
+                createEvaluationView.classList.add('hidden');
+                // إعادة تعيين الحقول
+                evaluationWeekSelect.value = '';
+                evaluationNameInput.value = '';
+                evaluationLinkInput.value = '';
+                selectedSubject = null;
+            } catch (error) {
+                console.error("فشل نشر التقييم:", error);
+                showCustomAlert('فشل في نشر التقييم. الرجاء المحاولة مرة أخرى.');
+            }
+        });
+
+        function renderPublishedEvaluations() {
+            publishedEvaluationsContainer.innerHTML = '';
+            // تجميع التقييمات حسب المادة
+            const evaluationsBySubject = {};
+            publishedEvaluations.forEach(eval => {
+                const subjectName = eval.subjectName;
+                if (!evaluationsBySubject[subjectName]) {
+                    evaluationsBySubject[subjectName] = [];
+                }
+                evaluationsBySubject[subjectName].push(eval);
+            });
+
+            for (const subjectName in evaluationsBySubject) {
+                const subjectTitle = document.createElement('h3');
+                subjectTitle.className = 'text-xl font-semibold text-gray-800 mt-4 mb-2';
+                subjectTitle.textContent = `تقييمات مادة: ${subjectName}`;
+                publishedEvaluationsContainer.appendChild(subjectTitle);
+
+                const subjectEvaluations = evaluationsBySubject[subjectName];
+                subjectEvaluations.forEach(eval => {
+                    const evaluationLink = document.createElement('a');
+                    evaluationLink.href = eval.link;
+                    evaluationLink.target = "_blank";
+                    evaluationLink.className = 'block p-3 bg-white rounded-lg shadow-md text-gray-700 transition-colors hover:bg-gray-100';
+                    evaluationLink.textContent = eval.name;
+                    publishedEvaluationsContainer.appendChild(evaluationLink);
+                });
+            }
+        }
 
         // --- وظائف المصادقة ---
         googleSigninBtn.addEventListener('click', async () => {
@@ -846,6 +1110,16 @@
                 if (questions.length === 0) {
                     addQuestion();
                 }
+                
+                // الاستماع لتغيرات المواد
+                const subjectsCollection = collection(db, `artifacts/${appId}/public/data/subjects`);
+                onSnapshot(subjectsCollection, async (snapshot) => {
+                    subjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderSubjects();
+                    // تحديث التقييمات المنشورة بعد تحديث المواد
+                    await fetchAndRenderPublishedEvaluations();
+                });
+                
             } else {
                 // المستخدم قام بتسجيل الخروج
                 userId = null;
@@ -856,8 +1130,33 @@
                 // إعادة تعيين المصفوفة والصفحة
                 questions = [];
                 questionList.innerHTML = '';
+                subjects = [];
+                publishedEvaluations = [];
             }
         });
+
+        async function fetchAndRenderPublishedEvaluations() {
+            if (!userId || subjects.length === 0) {
+                publishedEvaluations = [];
+                renderPublishedEvaluations();
+                return;
+            }
+
+            const allEvaluations = [];
+            for (const subject of subjects) {
+                try {
+                    const evaluationsCollection = collection(db, `artifacts/${appId}/public/data/${subject.name}/evaluations`);
+                    const querySnapshot = await getDocs(evaluationsCollection);
+                    querySnapshot.forEach(doc => {
+                        allEvaluations.push({ id: doc.id, ...doc.data(), subjectName: subject.name });
+                    });
+                } catch (e) {
+                    console.error(`فشل في جلب التقييمات لمادة ${subject.name}:`, e);
+                }
+            }
+            publishedEvaluations = allEvaluations;
+            renderPublishedEvaluations();
+        }
 
         // مستمع لزر إضافة سؤال
         addQuestionBtn.addEventListener('click', addQuestion);
