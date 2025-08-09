@@ -557,11 +557,12 @@
             updateImageUI();
         }
 
-        // --- التعديل الوحيد المطلوب ---
-        // تم تغيير هذه الدالة لاستخدام .filter() لضمان الحذف بشكل صحيح
         function deleteImage(imageId) {
-            uploadedImages = uploadedImages.filter(img => img.id !== imageId);
-            renderImagePreviews();
+            const imageIndex = uploadedImages.findIndex(img => img.id === imageId);
+            if (imageIndex > -1) {
+                uploadedImages.splice(imageIndex, 1);
+                renderImagePreviews();
+            }
         }
 
 
