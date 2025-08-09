@@ -74,6 +74,40 @@
         input[type="number"] {
             -moz-appearance: textfield;
         }
+        .image-preview-item {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding-top: 100%; /* للحفاظ على نسبة العرض إلى الارتفاع 1:1 */
+            overflow: hidden;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .image-preview-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-preview-item .delete-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            transition: background-color 0.2s;
+        }
+        .image-preview-item .delete-btn:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -140,11 +174,11 @@
             <!-- محتوى الإدخال بالصور -->
             <div id="image-content" class="hidden">
                 <div class="flex items-center justify-center w-full">
-                    <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
-                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
+                    <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full min-h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
+                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
                             <!-- سيتم إضافة معاينات الصور هنا -->
                         </div>
-                        <div id="upload-placeholder" class="text-center">
+                        <div id="upload-placeholder" class="text-center p-4">
                             <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <span class="text-gray-500 mt-2">انقر لرفع الصور</span>
                         </div>
@@ -734,7 +768,7 @@
         function addEvaluationCard() {
             const newCard = {
                 id: Date.now(),
-                text: 'سؤال تقييم جديد...',
+                name: 'تقييم جديد',
             };
             evaluations.push(newCard);
             renderEvaluationCards();
@@ -743,6 +777,11 @@
         function deleteEvaluationCard(id) {
             evaluations = evaluations.filter(card => card.id !== id);
             renderEvaluationCards();
+        }
+        
+        // دالة لتحديث اسم بطاقة التقييم
+        function updateEvaluationCardName(id, newName) {
+            evaluations = evaluations.map(card => card.id === id ? { ...card, name: newName } : card);
         }
 
         function renderEvaluationCards() {
@@ -754,7 +793,7 @@
                     const cardElement = document.createElement('div');
                     cardElement.className = 'p-6 bg-white rounded-lg border border-gray-200 flex justify-between items-center shadow-sm';
                     cardElement.innerHTML = `
-                        <p class="text-gray-700">${card.text}</p>
+                        <input type="text" class="evaluation-name-input text-lg font-semibold w-full bg-transparent border-none focus:outline-none focus:ring-0" value="${card.name}" placeholder="اسم التقييم" data-id="${card.id}">
                         <button class="delete-evaluation-btn text-red-500 hover:text-red-700 transition-colors" data-id="${card.id}">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -769,10 +808,70 @@
                         deleteEvaluationCard(cardId);
                     });
                 });
+                
+                // إضافة مستمعي حدث التغيير لحقول الإدخال الجديدة
+                document.querySelectorAll('.evaluation-name-input').forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        const cardId = parseInt(e.target.dataset.id);
+                        const newName = e.target.value;
+                        updateEvaluationCardName(cardId, newName);
+                    });
+                });
             }
         }
 
         addEvaluationCardBtn.addEventListener('click', addEvaluationCard);
+
+        // وظيفة لحذف صورة من المعاينة والمصفوفة
+        function deleteImage(index) {
+            URL.revokeObjectURL(uploadedImages[index].url);
+            uploadedImages.splice(index, 1);
+            renderImagePreviews();
+        }
+
+        // وظيفة لعرض معاينات الصور المرفوعة
+        function renderImagePreviews() {
+            imagePreviewContainer.innerHTML = '';
+            if (uploadedImages.length === 0) {
+                uploadPlaceholder.classList.remove('hidden');
+                imageUploadLabel.style.height = '24rem'; // إعادة الارتفاع الافتراضي
+                processImageBtn.disabled = true;
+            } else {
+                uploadPlaceholder.classList.add('hidden');
+                imageUploadLabel.style.height = 'auto'; // السماح للارتفاع بالتعديل
+                processImageBtn.disabled = false;
+                uploadedImages.forEach((image, index) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'image-preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${image.url}" alt="معاينة الصورة ${index + 1}">
+                        <button class="delete-btn" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    imagePreviewContainer.appendChild(previewItem);
+                });
+
+                // إعادة ربط مستمعي الحذف
+                document.querySelectorAll('.image-preview-item .delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const index = parseInt(e.currentTarget.dataset.index);
+                        deleteImage(index);
+                        e.stopPropagation(); // منع النقر على زر الحذف من فتح مربع الحوار مرة أخرى
+                    });
+                });
+            }
+        }
+
+        // مستمع حدث لـ image-upload input
+        imageUploadInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                for (const file of files) {
+                    const url = URL.createObjectURL(file);
+                    uploadedImages.push({ file, url });
+                }
+            }
+            renderImagePreviews();
+        });
 
 
         // مستمع لحالة المصادقة
