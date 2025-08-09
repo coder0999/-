@@ -84,7 +84,7 @@
     <!-- المحتوى الرئيسي للتطبيق (سيتم إظهاره بعد تسجيل الدخول) -->
     <div id="main-content" class="hidden flex-grow flex flex-col">
         <!-- صفحة الامتحانات -->
-        <div id="exams-page" class="container mx-auto p-4 md:p-8 rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto bg-gray-100">
+        <div id="exams-page" class="container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">إنشاء امتحان</h1>
 
             <!-- أزرار اختيار طريقة الإدخال -->
@@ -162,13 +162,13 @@
         </div>
 
         <!-- صفحة التقييمات -->
-        <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto bg-gray-100">
+        <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">التقييمات</h1>
             <p class="text-center text-gray-600">هذه الصفحة قيد الإنشاء. ستكون هنا تقييمات الامتحانات.</p>
         </div>
 
         <!-- صفحة الملف الشخصي -->
-        <div id="profile-page" class="hidden container mx-auto p-4 md:p-8 rounded-xl shadow-2xl max-w-3xl w-full flex-grow mb-20 overflow-y-auto bg-gray-100">
+        <div id="profile-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">الملف الشخصي</h1>
             <div class="flex flex-col items-center justify-center space-y-6">
                 <img id="user-photo" src="" alt="صورة المستخدم" class="w-32 h-32 rounded-full border-4 border-blue-500 shadow-lg hidden">
@@ -360,7 +360,8 @@
                     { id: 'opt3', text: '' },
                     { id: 'opt4', text: '' }
                 ],
-                correctAnswer: ''
+                correctAnswer: '',
+                points: defaultPointsInput.value || 1 // استخدام النقاط الافتراضية
             };
             questions.push(newQuestion);
             renderQuestions();
@@ -381,15 +382,19 @@
             questionList.innerHTML = ''; // مسح القائمة الحالية
             questions.forEach((question, index) => {
                 const questionElement = document.createElement('div');
-                questionElement.className = 'p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-200';
+                questionElement.className = 'p-6 bg-white rounded-lg border border-gray-200';
                 questionElement.dataset.id = question.id;
 
                 questionElement.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
                         <span class="font-bold text-lg text-gray-700">سؤال ${index + 1}</span>
-                        <button class="delete-question-btn bg-red-500 text-white text-sm px-3 py-1 rounded-full transition-colors active:bg-red-600" data-id="${question.id}">
-                            حذف
-                        </button>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <label for="points-${question.id}" class="text-sm font-medium text-gray-700">النقاط:</label>
+                            <input type="number" id="points-${question.id}" class="points-input w-16 text-center border-b-2 border-gray-300 bg-transparent focus:outline-none focus:border-blue-500" value="${question.points}">
+                            <button class="delete-question-btn bg-red-500 text-white text-sm px-3 py-1 rounded-full transition-colors active:bg-red-600" data-id="${question.id}">
+                                حذف
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <textarea class="question-text w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow" rows="3">${question.text}</textarea>
@@ -446,6 +451,14 @@
                         question.options[optionIndex].text = e.target.value;
                         updateQuestion(id, { options: question.options });
                     }
+                });
+            });
+
+            // مستمعو الأحداث لتغيير النقاط
+            document.querySelectorAll('.points-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const id = parseInt(e.target.closest('[data-id]').dataset.id);
+                    updateQuestion(id, { points: parseInt(e.target.value) || 0 });
                 });
             });
 
@@ -647,7 +660,8 @@
                         text: q.text,
                         type: 'multiple-choice',
                         options: q.options,
-                        correctAnswer: q.correctAnswer
+                        correctAnswer: q.correctAnswer,
+                        points: defaultPointsInput.value || 1
                     }));
                     renderQuestions();
                     showCustomAlert('تم تحليل الصور واستخراج الأسئلة بنجاح!');
@@ -731,8 +745,9 @@
                         const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
                         const examDoc = await getDoc(examDocRef);
                         if (examDoc.exists()) {
-                            questions = examDoc.data().questions;
-                            const metadata = examDoc.data().metadata;
+                            const data = examDoc.data();
+                            questions = data.questions;
+                            const metadata = data.metadata;
                             examNameInput.value = metadata.name || '';
                             examDurationInput.value = metadata.duration || '';
                             defaultPointsInput.value = metadata.defaultPoints || '';
