@@ -160,13 +160,18 @@
             
             <hr id="main-hr" class="my-8 border-gray-300">
 
-            <div id="main-buttons-container" class="flex justify-center space-x-4 space-x-reverse">
+            <div id="main-buttons-container" class="flex justify-center">
                 <button id="save-exam-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
                     حفظ الامتحان
                 </button>
-                <button id="load-exam-btn" class="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                    تحميل امتحان
-                </button>
+            </div>
+
+            <!-- *** قسم الامتحانات المنشورة الجديد *** -->
+            <div id="published-exams-section" class="mt-12">
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">امتحاناتك المنشورة</h2>
+                <div id="published-exams-list" class="space-y-4">
+                    <!-- سيتم عرض قائمة الامتحانات هنا -->
+                </div>
             </div>
         </div>
 
@@ -215,14 +220,14 @@
         </div>
     </div>
 
-    <!-- مربع حواري مخصص لاختيار الامتحانات المحفوظة -->
-    <div id="load-exam-modal" class="custom-alert-overlay hidden">
+    <!-- *** مربع حواري جديد لتأكيد الحذف *** -->
+    <div id="confirm-delete-modal" class="custom-alert-overlay hidden">
         <div class="custom-alert-box">
-            <h2 class="text-xl font-bold mb-4">اختيار امتحان محفوظ</h2>
-            <div id="saved-exams-list" class="space-y-2 max-h-64 overflow-y-auto mb-4">
-                <!-- قائمة الامتحانات المحفوظة ستضاف هنا -->
+            <p id="confirm-delete-message" class="text-lg text-gray-700">هل أنت متأكد أنك تريد حذف هذا الامتحان؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            <div class="mt-6 flex justify-center space-x-4 space-x-reverse">
+                 <button id="confirm-delete-yes" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg">نعم, حذف</button>
+                 <button id="confirm-delete-no" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
             </div>
-            <button id="load-exam-modal-cancel" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg">إلغاء</button>
         </div>
     </div>
 
@@ -234,8 +239,8 @@
     <script type="module">
         // استيراد وظائف Firebase اللازمة
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // *** تم التعديل: إضافة 'where' للاستعلام ***
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // *** تم التعديل: إضافة 'deleteDoc' ***
+        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // تهيئة Firebase باستخدام التكوين الذي قدمته
@@ -263,6 +268,7 @@
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
         let uploadedImages = []; // مصفوفة جديدة لتخزين الصور التي تم رفعها
+        let examToDeleteId = null; // متغير لتخزين هوية الامتحان المراد حذفه
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
@@ -298,7 +304,7 @@
         const questionList = document.getElementById('question-list');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const saveExamBtn = document.getElementById('save-exam-btn');
-        const loadExamBtn = document.getElementById('load-exam-btn');
+        // *** تم حذف زر التحميل ***
         const imageUploadInput = document.getElementById('image-upload');
         const processImageBtn = document.getElementById('process-image-btn');
         const loadingSpinner = document.getElementById('loading-spinner');
@@ -310,10 +316,11 @@
         const customAlertMessage = document.getElementById('custom-alert-message');
         const customAlertOkBtn = document.getElementById('custom-alert-ok');
 
-        // عناصر مربع حواري تحميل الامتحان
-        const loadExamModal = document.getElementById('load-exam-modal');
-        const savedExamsList = document.getElementById('saved-exams-list');
-        const loadExamModalCancelBtn = document.getElementById('load-exam-modal-cancel');
+        // *** عناصر جديدة لقائمة الامتحانات ومربع الحذف ***
+        const publishedExamsList = document.getElementById('published-exams-list');
+        const confirmDeleteModal = document.getElementById('confirm-delete-modal');
+        const confirmDeleteYesBtn = document.getElementById('confirm-delete-yes');
+        const confirmDeleteNoBtn = document.getElementById('confirm-delete-no');
 
 
         // دالة لعرض مربع حواري مخصص
@@ -327,9 +334,29 @@
             customAlertOverlay.classList.add('hidden');
         });
 
-        loadExamModalCancelBtn.addEventListener('click', () => {
-            loadExamModal.classList.add('hidden');
+        // *** وظائف جديدة لمربع تأكيد الحذف ***
+        confirmDeleteNoBtn.addEventListener('click', () => {
+            confirmDeleteModal.classList.add('hidden');
+            examToDeleteId = null;
         });
+
+        confirmDeleteYesBtn.addEventListener('click', async () => {
+            if (examToDeleteId) {
+                try {
+                    const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examToDeleteId);
+                    await deleteDoc(examDocRef);
+                    showCustomAlert('تم حذف الامتحان بنجاح.');
+                    renderPublishedExams(); // إعادة عرض القائمة المحدثة
+                } catch (error) {
+                    console.error("فشل حذف الامتحان:", error);
+                    showCustomAlert('حدث خطأ أثناء حذف الامتحان.');
+                } finally {
+                    confirmDeleteModal.classList.add('hidden');
+                    examToDeleteId = null;
+                }
+            }
+        });
+
 
         // دالة لتبديل عرض محتوى الامتحانات
         function showExamContent(type) {
@@ -712,7 +739,8 @@
                     creatorId: userId
                 });
                 
-                showCustomAlert('تم حفظ الامتحان بنجاح ليظهر في الموقع العام!');
+                showCustomAlert('تم حفظ الامتحان بنجاح!');
+                renderPublishedExams(); // *** تحديث القائمة بعد الحفظ ***
                 console.log('تم حفظ الامتحان بنجاح في Firestore:', newExamDocRef.id);
             } catch (error) {
                 console.error("فشل حفظ الامتحان:", error);
@@ -721,64 +749,87 @@
             }
         });
 
-        // --- وظيفة التحميل باستخدام Firestore (تم التعديل) ---
-        loadExamBtn.addEventListener('click', async () => {
-            if (!userId) {
-                showCustomAlert('الرجاء تسجيل الدخول أولاً.');
-                return;
-            }
+        // --- وظيفة عرض الامتحانات المنشورة الجديدة ---
+        async function renderPublishedExams() {
+            if (!userId) return;
+            
+            publishedExamsList.innerHTML = '<div class="text-center text-gray-500">جاري تحميل الامتحانات...</div>';
+            
             try {
-                // تحميل الامتحانات التي أنشأها المستخدم فقط من المجلد العام
                 const publicExamsCollection = collection(db, `artifacts/${appId}/public/data/exams`);
-                // *** تم التعديل: إضافة شرط where لتصفية الامتحانات حسب المستخدم الحالي ***
                 const q = query(publicExamsCollection, where("creatorId", "==", userId));
-
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    showCustomAlert('لا توجد امتحانات محفوظة قمت بإنشائها.');
+                    publishedExamsList.innerHTML = '<div class="text-center text-gray-500">لم تقم بإنشاء أي امتحانات بعد.</div>';
                     return;
                 }
 
-                savedExamsList.innerHTML = '';
+                publishedExamsList.innerHTML = ''; // مسح القائمة
                 querySnapshot.forEach(doc => {
                     const examData = doc.data();
                     const examId = doc.id;
-                    const examDate = new Date(examData.createdAt).toLocaleString();
+                    const examDate = new Date(examData.createdAt).toLocaleDateString('ar-EG');
                     const examName = examData.metadata.name || 'امتحان بدون اسم';
-                    
-                    const examItem = document.createElement('button');
-                    examItem.className = 'w-full text-right p-3 bg-gray-200 active:bg-gray-300 rounded-lg transition-colors';
-                    examItem.textContent = `${examName} - محفوظ بتاريخ: ${examDate}`;
-                    examItem.dataset.id = examId;
-                    
-                    examItem.addEventListener('click', async () => {
-                        const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
-                        const examDoc = await getDoc(examDocRef);
-                        if (examDoc.exists()) {
-                            const data = examDoc.data();
-                            questions = data.questions;
-                            const metadata = data.metadata;
-                            examNameInput.value = metadata.name || '';
-                            examDurationInput.value = metadata.duration || '';
-                            defaultPointsInput.value = metadata.defaultPoints || '';
-                            renderQuestions();
-                            loadExamModal.classList.add('hidden');
-                            showCustomAlert('تم تحميل الامتحان بنجاح!');
-                        } else {
-                            showCustomAlert('فشل تحميل الامتحان.');
-                        }
-                    });
-                    savedExamsList.appendChild(examItem);
+
+                    const examItem = document.createElement('div');
+                    examItem.className = 'bg-white p-4 rounded-lg shadow-md flex justify-between items-center';
+                    examItem.innerHTML = `
+                        <div>
+                            <p class="font-bold text-gray-800">${examName}</p>
+                            <p class="text-sm text-gray-500">تاريخ الإنشاء: ${examDate}</p>
+                        </div>
+                        <div class="flex space-x-2 space-x-reverse">
+                            <button data-id="${examId}" class="edit-exam-btn bg-blue-500 text-white px-3 py-1 rounded-lg text-sm">تعديل</button>
+                            <button data-id="${examId}" class="delete-exam-btn bg-red-500 text-white px-3 py-1 rounded-lg text-sm">حذف</button>
+                        </div>
+                    `;
+                    publishedExamsList.appendChild(examItem);
                 });
 
-                loadExamModal.classList.remove('hidden');
+                // ربط الأحداث لأزرار التعديل والحذف الجديدة
+                document.querySelectorAll('.edit-exam-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        loadExamForEditing(e.target.dataset.id);
+                    });
+                });
+
+                document.querySelectorAll('.delete-exam-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        examToDeleteId = e.target.dataset.id;
+                        confirmDeleteModal.classList.remove('hidden');
+                    });
+                });
 
             } catch (error) {
-                console.error("فشل تحميل الامتحانات:", error);
-                showCustomAlert('فشل في تحميل الامتحانات. الرجاء المحاولة مرة أخرى.');
+                console.error("فشل تحميل الامتحانات المنشورة:", error);
+                publishedExamsList.innerHTML = '<div class="text-center text-red-500">فشل في تحميل الامتحانات.</div>';
             }
-        });
+        }
+
+        // --- وظيفة جديدة لتحميل الامتحان للتعديل ---
+        async function loadExamForEditing(examId) {
+            try {
+                const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examId);
+                const examDoc = await getDoc(examDocRef);
+                if (examDoc.exists()) {
+                    const data = examDoc.data();
+                    questions = data.questions;
+                    const metadata = data.metadata;
+                    examNameInput.value = metadata.name || '';
+                    examDurationInput.value = metadata.duration || '';
+                    defaultPointsInput.value = metadata.defaultPoints || '';
+                    renderQuestions();
+                    showCustomAlert('تم تحميل الامتحان للتعديل.');
+                    window.scrollTo(0, 0); // الانتقال لأعلى الصفحة
+                } else {
+                    showCustomAlert('فشل تحميل الامتحان.');
+                }
+            } catch (error) {
+                console.error("فشل تحميل الامتحان للتعديل:", error);
+                showCustomAlert('حدث خطأ أثناء تحميل الامتحان.');
+            }
+        }
         
         // --- وظائف التنقل بين الصفحات ---
         function showPage(pageId) {
@@ -853,6 +904,9 @@
                 showPage('exams-page'); // عرض صفحة الامتحانات افتراضياً
                 showExamContent('manual'); // عرض الإدخال اليدوي افتراضياً
                 
+                // *** عرض الامتحانات المنشورة عند تسجيل الدخول ***
+                renderPublishedExams();
+
                 // إضافة سؤال افتراضي إذا لم يكن هناك أسئلة
                 if (questions.length === 0) {
                     addQuestion();
@@ -867,6 +921,7 @@
                 // إعادة تعيين المصفوفة والصفحة
                 questions = [];
                 questionList.innerHTML = '';
+                publishedExamsList.innerHTML = ''; // مسح قائمة الامتحانات المنشورة
             }
         });
 
