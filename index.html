@@ -673,7 +673,7 @@
             navButtons[pageId].classList.add('text-blue-600', 'font-bold');
 
             // تحميل المواد عند الانتقال إلى صفحة التقييمات
-            if (pageId === 'evaluations-page') {
+            if (pageId === 'evaluations-page' && userId) {
                 renderSubjects();
             }
         }
@@ -851,22 +851,6 @@
         addQuestionBtn.addEventListener('click', addQuestion);
         saveExamBtn.addEventListener('click', saveExam);
 
-        // وظيفة تهيئة التطبيق
-        async function initializeApp() {
-            // تسجيل الدخول بالرمز المخصص أو كمجهول
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialAuthToken) {
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } catch (error) {
-                    console.error("Custom token sign-in failed:", error);
-                    await signInAnonymously(auth);
-                }
-            } else {
-                await signInAnonymously(auth);
-            }
-        }
-
         // المستمع لحالة المصادقة
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -896,7 +880,20 @@
         });
 
         // تهيئة التطبيق عند التحميل
-        window.onload = initializeApp;
+        window.onload = async () => {
+            // تسجيل الدخول بالرمز المخصص أو كمجهول
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } catch (error) {
+                    console.error("Custom token sign-in failed:", error);
+                    await signInAnonymously(auth);
+                }
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
     </script>
 </body>
 </html>
