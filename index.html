@@ -30,963 +30,243 @@
         .custom-alert-box {
             background-color: white;
             padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%;
+            border-radius: 0.75rem;
             text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+        .custom-alert-box h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .custom-alert-box p {
+            margin-bottom: 1.5rem;
         }
         .custom-alert-box button {
-            margin-top: 1rem;
-        }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            width: 40px;
-            height: 40px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .nav-icon {
-            font-size: 1.5rem;
-        }
-        /* إزالة أسهم التحديد من حقول الأرقام */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 700;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body>
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-page" class="flex-grow flex items-center justify-center">
-        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6">مرحباً بك</h1>
-            <p class="text-gray-600 mb-8">الرجاء تسجيل الدخول للمتابعة</p>
-            <button id="google-signin-btn" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105 flex items-center justify-center mx-auto">
-                <i class="fab fa-google ml-2"></i>
-                <span>تسجيل الدخول باستخدام جوجل</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- المحتوى الرئيسي للتطبيق (سيتم إظهاره بعد تسجيل الدخول) -->
-    <div id="main-content" class="hidden flex-grow flex flex-col">
-        <!-- صفحة الامتحانات -->
-        <div id="exams-page" class="container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">إنشاء امتحان</h1>
-
-            <!-- أزرار اختيار طريقة الإدخال -->
-            <div class="flex justify-center mb-8 space-x-4 space-x-reverse">
-                <button id="show-manual-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                    رفع يدوي
-                </button>
-                <button id="show-image-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition-colors">
-                    رفع بالصور
-                </button>
-            </div>
-
-            <!-- حقول بيانات الامتحان الجديدة -->
-            <div id="exam-metadata-fields" class="mb-8 space-y-4">
-                <div class="border-b-2 border-gray-300 pb-2">
-                    <label for="exam-name" class="block text-sm font-medium text-gray-700">اسم الامتحان</label>
-                    <input type="text" id="exam-name" class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-lg">
-                </div>
-                <div class="flex space-x-4 space-x-reverse">
-                    <div class="border-b-2 border-gray-300 pb-2 w-1/2">
-                        <label for="exam-duration" class="block text-sm font-medium text-gray-700">المدة الزمنية (دقيقة)</label>
-                        <input type="number" id="exam-duration" class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-lg">
-                    </div>
-                    <div class="border-b-2 border-gray-300 pb-2 w-1/2">
-                        <label for="default-points" class="block text-sm font-medium text-gray-700">النقاط الافتراضية</label>
-                        <input type="number" id="default-points" class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-lg">
-                    </div>
-                </div>
-            </div>
-
-            <!-- محتوى الإدخال اليدوي -->
-            <div id="manual-content" class="space-y-6">
-                <div id="question-list">
-                    <!-- سيتم إضافة الأسئلة هنا بواسطة JavaScript -->
-                </div>
-
-                <div class="flex justify-center space-x-4 space-x-reverse mt-8">
-                    <button id="add-question-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                        أضف سؤال جديد يدوياً
-                    </button>
-                </div>
-            </div>
-
-            <!-- محتوى الإدخال بالصور -->
-            <div id="image-content" class="hidden">
-                <div class="flex items-center justify-center w-full">
-                    <label id="image-upload-label" for="image-upload" class="relative flex flex-col items-center justify-center w-full h-96 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 transition-colors">
-                        <div id="image-preview-container" class="absolute inset-0 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto">
-                            <!-- سيتم إضافة معاينات الصور هنا -->
-                        </div>
-                        <div id="upload-placeholder" class="text-center">
-                            <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-gray-500 mt-2">انقر لرفع الصور</span>
-                        </div>
-                        <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg" multiple />
-                    </label>
-                </div>
-                <div class="mt-4 flex justify-center">
-                    <button id="process-image-btn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105" disabled>
-                        تحليل الصور واستخراج الأسئلة
-                    </button>
-                </div>
-            </div>
-            
-            <hr id="main-hr" class="my-8 border-gray-300">
-
-            <div id="main-buttons-container" class="flex justify-center space-x-4 space-x-reverse">
-                <button id="save-exam-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                    حفظ الامتحان
-                </button>
-                <button id="new-exam-btn" class="bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105 hidden">
-                    امتحان جديد
-                </button>
-            </div>
-
-            <!-- *** قسم الامتحانات المنشورة الجديد *** -->
-            <div id="published-exams-section" class="mt-12">
-                <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">امتحاناتك المنشورة</h2>
-                <div id="published-exams-list" class="space-y-4">
-                    <!-- سيتم عرض قائمة الامتحانات هنا -->
-                </div>
-            </div>
-        </div>
-
-        <!-- صفحة التقييمات -->
-        <div id="evaluations-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800">التقييمات</h1>
-                <button id="add-subject-btn" class="bg-blue-600 text-white text-2xl w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-transform transform active:scale-105">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-            <!-- هذا هو المكان الذي سيتم فيه عرض بطاقات المواد -->
-            <div id="subjects-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <!-- سيتم إضافة بطاقات المواد هنا بواسطة JavaScript -->
-            </div>
-            <p id="no-subjects-message" class="text-center text-gray-600 hidden">لم يتم إضافة أي مواد بعد.</p>
-        </div>
-
-        <!-- صفحة تفاصيل المادة الجديدة (مخفية افتراضياً) -->
-        <div id="subject-details-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <div class="flex items-center mb-8">
-                <button id="back-to-evaluations-btn" class="bg-gray-300 text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform transform active:scale-105">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-                <h1 id="subject-details-title" class="text-3xl font-bold text-gray-800 mr-4"></h1>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-md space-y-6">
-                <div>
-                    <label for="week-input" class="block text-sm font-medium text-gray-700">الأسبوع</label>
-                    <input type="text" id="week-input" class="mt-1 block w-full bg-transparent border-b-2 border-gray-300 p-0 focus:ring-0 focus:outline-none text-lg">
-                </div>
-                <div>
-                    <label for="link-input" class="block text-sm font-medium text-gray-700">الرابط</label>
-                    <input type="text" id="link-input" class="mt-1 block w-full bg-transparent border-b-2 border-gray-300 p-0 focus:ring-0 focus:outline-none text-lg">
-                </div>
-                <div>
-                    <label for="display-name-input" class="block text-sm font-medium text-gray-700">الاسم الظاهر</label>
-                    <input type="text" id="display-name-input" class="mt-1 block w-full bg-transparent border-b-2 border-gray-300 p-0 focus:ring-0 focus:outline-none text-lg text-gray-500" readonly>
-                </div>
-                <div class="flex justify-center mt-6">
-                    <button id="save-subject-details-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
-                        حفظ
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- صفحة الملف الشخصي -->
-        <div id="profile-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
-            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">الملف الشخصي</h1>
-            <div class="flex flex-col items-center justify-center space-y-6">
-                <img id="user-photo" src="" alt="صورة المستخدم" class="w-32 h-32 rounded-full border-4 border-blue-500 shadow-lg hidden">
-                <h2 id="user-name" class="text-2xl font-bold text-gray-800 hidden"></h2>
-                <button id="signout-btn" class="bg-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105 hidden">
-                    تسجيل الخروج
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- شريط التنقل السفلي -->
-    <nav id="bottom-nav" class="fixed bottom-0 left-0 w-full bg-white shadow-2xl z-10 hidden">
-        <div class="flex justify-around items-center h-16">
-            <button id="nav-exams-btn" class="flex flex-col items-center text-blue-600 focus:outline-none p-2">
-                <i class="fas fa-clipboard-list nav-icon"></i>
-                <span class="text-xs mt-1 font-bold">الامتحانات</span>
-            </button>
-            <button id="nav-evaluations-btn" class="flex flex-col items-center text-gray-500 focus:outline-none p-2">
-                <i class="fas fa-chart-bar nav-icon"></i>
-                <span class="text-xs mt-1">التقييمات</span>
-            </button>
-            <button id="nav-profile-btn" class="flex flex-col items-center text-gray-500 focus:outline-none p-2">
-                <i class="fas fa-user nav-icon"></i>
-                <span class="text-xs mt-1">الملف الشخصي</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- مربع حواري مخصص لعرض رسائل النظام -->
-    <div id="custom-alert" class="custom-alert-overlay hidden">
-        <div class="custom-alert-box">
-            <p id="custom-alert-message" class="text-lg text-gray-700"></p>
-            <button id="custom-alert-ok" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">موافق</button>
-        </div>
-    </div>
-
-    <!-- *** مربع حواري جديد لتأكيد الحذف *** -->
-    <div id="confirm-delete-modal" class="custom-alert-overlay hidden">
-        <div class="custom-alert-box">
-            <p id="confirm-delete-message" class="text-lg text-gray-700">هل أنت متأكد أنك تريد حذف هذا الامتحان؟ لا يمكن التراجع عن هذا الإجراء.</p>
-            <div class="mt-6 flex justify-center space-x-4 space-x-reverse">
-                 <button id="confirm-delete-yes" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg">نعم, حذف</button>
-                 <button id="confirm-delete-no" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- مربع حوار إضافة مادة -->
-    <div id="add-subject-modal" class="custom-alert-overlay hidden">
-        <div class="custom-alert-box text-right">
-            <h2 class="text-xl font-bold mb-4">إضافة مادة جديدة</h2>
-            <label for="subject-name-input" class="block text-sm font-medium text-gray-700 mb-2">اسم المادة</label>
-            <input type="text" id="subject-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <div class="mt-6 flex justify-center space-x-4 space-x-reverse">
-                <button id="save-subject-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg">حفظ</button>
-                <button id="cancel-subject-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- شاشة التحميل -->
-    <div id="loading-spinner" class="loading-overlay hidden">
-        <div class="spinner"></div>
-    </div>
-
+    <!-- Firebase SDKs -->
     <script type="module">
-        // استيراد وظائف Firebase اللازمة
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        
-        // Your web app's Firebase configuration
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, addDoc, getDoc, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Firebase configuration (تم تحديث مفتاح API هنا)
         const firebaseConfig = {
-            apiKey: "AIzaSyCzXajGeExTVfcMJ9L3fJjRl9TSu0apRZY",
-            authDomain: "tanya-thanawey.firebaseapp.com",
-            projectId: "tanya-thanawey",
-            storageBucket: "tanya-thanawey.firebasestorage.app",
-            messagingSenderId: "963147710003",
-            appId: "1:963147710003:web:355267be9545ee8f1fad46",
-            measurementId: "G-QJ6TK546YK"
+            apiKey: "AIzaSyCzXajGeExTVfcMJ9L3fJjRl9TSu0apRZY", // هذا هو المفتاح الجديد
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
+        const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
-        
-        // مفتاح API لـ Gemini
-        const geminiApiKey = "AIzaSyBGyq6bg2_MFYrmxdNRESEt1pRDHO16Kr8";
-        
-        // المتغيرات العالمية للوصول إليها
-        let userId = null;
-        const appId = "tanya-thanawey"; // استخدام Project ID كمُعرّف للتطبيق
-        
-        // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
-        let questions = [];
-        let uploadedImages = [];
-        let examToDeleteId = null;
-        let subjects = []; // مصفوفة لتخزين المواد
-        let currentSubjectId = null; // لتخزين معرف المادة الحالية
-        let currentSubjectName = null; // لتخزين اسم المادة الحالية
 
-        // الحصول على عناصر DOM الرئيسية
+        let userId = null;
+        let questions = [];
+
+        // تعريف العناصر الرئيسية
         const loginPage = document.getElementById('login-page');
         const mainContent = document.getElementById('main-content');
         const bottomNav = document.getElementById('bottom-nav');
-        const examsPage = document.getElementById('exams-page');
-        const evaluationsPage = document.getElementById('evaluations-page');
-        const profilePage = document.getElementById('profile-page');
-        const navExamsBtn = document.getElementById('nav-exams-btn');
-        const navEvaluationsBtn = document.getElementById('nav-evaluations-btn');
-        const navProfileBtn = document.getElementById('nav-profile-btn');
         const googleSigninBtn = document.getElementById('google-signin-btn');
         const signoutBtn = document.getElementById('signout-btn');
-        const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
-        const showManualBtn = document.getElementById('show-manual-btn');
-        const showImageBtn = document.getElementById('show-image-btn');
-        const manualContent = document.getElementById('manual-content');
-        const imageContent = document.getElementById('image-content');
-        const mainButtonsContainer = document.getElementById('main-buttons-container');
-        const mainHr = document.getElementById('main-hr');
-        const examNameInput = document.getElementById('exam-name');
-        const examDurationInput = document.getElementById('exam-duration');
-        const defaultPointsInput = document.getElementById('default-points');
-        const questionList = document.getElementById('question-list');
+        const userPhoto = document.getElementById('user-photo');
         const addQuestionBtn = document.getElementById('add-question-btn');
-        const saveExamBtn = document.getElementById('save-exam-btn');
-        const newExamBtn = document.getElementById('new-exam-btn'); // زر امتحان جديد
-        const imageUploadInput = document.getElementById('image-upload');
-        const processImageBtn = document.getElementById('process-image-btn');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const imagePreviewContainer = document.getElementById('image-preview-container');
-        const uploadPlaceholder = document.getElementById('upload-placeholder');
-        const customAlertOverlay = document.getElementById('custom-alert');
-        const customAlertMessage = document.getElementById('custom-alert-message');
-        const customAlertOkBtn = document.getElementById('custom-alert-ok');
+        const questionList = document.getElementById('question-list');
+        const publishExamBtn = document.getElementById('publish-exam-btn');
         const publishedExamsList = document.getElementById('published-exams-list');
-        const confirmDeleteModal = document.getElementById('confirm-delete-modal');
-        const confirmDeleteYesBtn = document.getElementById('confirm-delete-yes');
-        const confirmDeleteNoBtn = document.getElementById('confirm-delete-no');
-        // عناصر صفحة التقييمات
-        const addSubjectBtn = document.getElementById('add-subject-btn');
-        const addSubjectModal = document.getElementById('add-subject-modal');
-        const subjectNameInput = document.getElementById('subject-name-input');
-        const saveSubjectBtn = document.getElementById('save-subject-btn');
-        const cancelSubjectBtn = document.getElementById('cancel-subject-btn');
-        const subjectsList = document.getElementById('subjects-list'); // إضافة عنصر قائمة المواد
-        const noSubjectsMessage = document.getElementById('no-subjects-message'); // رسالة عدم وجود مواد
-        const subjectDetailsPage = document.getElementById('subject-details-page'); // الصفحة الجديدة
-        const backToEvaluationsBtn = document.getElementById('back-to-evaluations-btn');
-        const subjectDetailsTitle = document.getElementById('subject-details-title');
-        const weekInput = document.getElementById('week-input');
-        const linkInput = document.getElementById('link-input');
-        const displayNameInput = document.getElementById('display-name-input');
-        const saveSubjectDetailsBtn = document.getElementById('save-subject-details-btn');
 
-
-        // دالة لعرض مربع حواري مخصص
+        // الدوال المساعدة
         function showCustomAlert(message) {
-            customAlertMessage.textContent = message;
-            customAlertOverlay.classList.remove('hidden');
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-alert-overlay';
+            const alertBox = document.createElement('div');
+            alertBox.className = 'custom-alert-box';
+            alertBox.innerHTML = `
+                <h3>تنبيه</h3>
+                <p>${message}</p>
+                <button id="alert-ok-btn">موافق</button>
+            `;
+            overlay.appendChild(alertBox);
+            document.body.appendChild(overlay);
+
+            document.getElementById('alert-ok-btn').addEventListener('click', () => {
+                document.body.removeChild(overlay);
+            });
         }
 
-        // دالة لإغلاق مربع حواري مخصص
-        customAlertOkBtn.addEventListener('click', () => {
-            customAlertOverlay.classList.add('hidden');
-        });
-
-        // وظائف مربع تأكيد الحذف
-        confirmDeleteNoBtn.addEventListener('click', () => {
-            confirmDeleteModal.classList.add('hidden');
-            examToDeleteId = null;
-        });
-
-        confirmDeleteYesBtn.addEventListener('click', async () => {
-            if (!db) { showCustomAlert('فشل الاتصال بقاعدة البيانات.'); return; }
-            if (examToDeleteId) {
-                try {
-                    const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examToDeleteId);
-                    await deleteDoc(examDocRef);
-                    showCustomAlert('تم حذف الامتحان بنجاح.');
-                    renderPublishedExams(); // إعادة عرض القائمة المحدثة
-                } catch (error) {
-                    console.error("فشل حذف الامتحان:", error);
-                    showCustomAlert('حدث خطأ أثناء حذف الامتحان.');
-                } finally {
-                    confirmDeleteModal.classList.add('hidden');
-                    examToDeleteId = null;
-                }
-            }
-        });
-
-        // وظائف مربع حوار إضافة المادة
-        addSubjectBtn.addEventListener('click', () => {
-            subjectNameInput.value = '';
-            addSubjectModal.classList.remove('hidden');
-        });
-
-        cancelSubjectBtn.addEventListener('click', () => {
-            addSubjectModal.classList.add('hidden');
-        });
-
-        saveSubjectBtn.addEventListener('click', async () => {
-            if (!db || !auth) { showCustomAlert('فشل الاتصال بقاعدة البيانات أو المصادقة.'); return; }
-            const subjectName = subjectNameInput.value.trim();
-            if (subjectName === '') {
-                showCustomAlert('الرجاء إدخال اسم المادة.');
-                return;
-            }
-            if (!userId) {
-                showCustomAlert('يجب عليك تسجيل الدخول لإضافة مادة.');
-                return;
-            }
-            try {
-                const subjectData = {
-                    name: subjectName,
-                    creatorId: userId,
-                    createdAt: new Date().toISOString()
-                };
-                const subjectCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects`);
-                await addDoc(subjectCollectionRef, subjectData);
-                showCustomAlert('تم إضافة المادة بنجاح.');
-                addSubjectModal.classList.add('hidden');
-                renderSubjects(); // تحديث عرض المواد
-            } catch (error) {
-                console.error("فشل إضافة المادة:", error);
-                showCustomAlert('حدث خطأ أثناء إضافة المادة.');
-            }
-        });
-
-        // دالة لحفظ تفاصيل المادة
-        saveSubjectDetailsBtn.addEventListener('click', async () => {
-            if (!db) { showCustomAlert('فشل الاتصال بقاعدة البيانات.'); return; }
-            const week = weekInput.value.trim();
-            const link = linkInput.value.trim();
-            const displayName = displayNameInput.value.trim();
-
-            if (!week || !link || !displayName) {
-                showCustomAlert('الرجاء تعبئة جميع الحقول.');
-                return;
-            }
-            if (!currentSubjectId) {
-                 showCustomAlert('لم يتم تحديد مادة للحفظ.');
-                 return;
-            }
-            
-            loadingSpinner.classList.remove('hidden');
-
-            try {
-                const docRef = doc(db, `artifacts/${appId}/public/data/subjects`, currentSubjectId);
-                const evaluationData = {
-                    week: week,
-                    link: link,
-                    displayName: displayName,
-                    createdAt: new Date().toISOString()
-                };
-
-                // حفظ البيانات كخريطة داخل وثيقة المادة
-                await setDoc(docRef, { evaluations: evaluationData }, { merge: true });
-                showCustomAlert('تم حفظ التفاصيل بنجاح!');
-                showPage('evaluations-page');
-            } catch (error) {
-                console.error("فشل حفظ التفاصيل:", error);
-                showCustomAlert('حدث خطأ أثناء حفظ التفاصيل.');
-            } finally {
-                loadingSpinner.classList.add('hidden');
-            }
-        });
-
-        // دالة لتبديل عرض محتوى الامتحانات
-        function showExamContent(type) {
-            if (type === 'manual') {
-                manualContent.classList.remove('hidden');
-                imageContent.classList.add('hidden');
-                mainButtonsContainer.classList.remove('hidden');
-                mainHr.classList.remove('hidden');
-                showManualBtn.classList.add('bg-blue-600', 'text-white');
-                showManualBtn.classList.remove('bg-gray-300', 'text-gray-800');
-                showImageBtn.classList.add('bg-gray-300', 'text-gray-800');
-                showImageBtn.classList.remove('bg-blue-600', 'text-white');
-            } else if (type === 'image') {
-                manualContent.classList.add('hidden');
-                imageContent.classList.remove('hidden');
-                mainButtonsContainer.classList.add('hidden');
-                mainHr.classList.add('hidden');
-                showImageBtn.classList.add('bg-blue-600', 'text-white');
-                showImageBtn.classList.remove('bg-gray-300', 'text-gray-800');
-                showManualBtn.classList.add('bg-gray-300', 'text-gray-800');
-                showManualBtn.classList.remove('bg-blue-600', 'text-white');
-            }
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+            document.querySelectorAll('#bottom-nav button').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'font-bold');
+            });
+            document.querySelector(`#bottom-nav button[onclick="showPage('${pageId}')"]`).classList.add('text-indigo-600', 'font-bold');
         }
 
-        // دالة لإضافة سؤال جديد
+        function showExamContent(contentType) {
+            document.querySelectorAll('.exam-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${contentType}-exam`).classList.remove('hidden');
+            document.querySelectorAll('#exam-tabs button').forEach(btn => {
+                btn.classList.remove('border-b-2', 'border-indigo-500');
+            });
+            document.querySelector(`#exam-tabs button[onclick="showExamContent('${contentType}')"]`).classList.add('border-b-2', 'border-indigo-500');
+        }
+
         function addQuestion() {
-            const questionId = 'q-' + questions.length;
-            const newQuestion = {
-                id: questionId,
-                text: '',
+            const questionIndex = questions.length;
+            questions.push({
+                questionText: '',
                 options: ['', '', '', ''],
-                correctAnswer: 0,
-                points: parseInt(defaultPointsInput.value) || 1
-            };
-            questions.push(newQuestion);
-            renderQuestion(newQuestion);
+                correctAnswer: 0
+            });
+            renderQuestion(questionIndex);
         }
 
-        // دالة لعرض سؤال واحد في القائمة
-        function renderQuestion(question) {
-            const questionElement = document.createElement('div');
-            questionElement.id = question.id;
-            questionElement.className = 'bg-white p-6 rounded-xl shadow-md space-y-4 border-l-4 border-blue-500';
-            questionElement.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-gray-800">سؤال ${questions.indexOf(question) + 1}</h3>
-                    <button class="remove-question-btn text-gray-500 hover:text-red-600 transition-colors">
-                        <i class="fas fa-trash-alt"></i>
+        function renderQuestion(index) {
+            const question = questions[index];
+            const li = document.createElement('li');
+            li.id = `question-${index}`;
+            li.className = 'bg-white p-4 rounded-lg shadow-md mb-4';
+            li.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-bold">السؤال رقم ${index + 1}</h4>
+                    <button class="text-red-500 hover:text-red-700" onclick="removeQuestion(${index})">
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
-                <input type="text" placeholder="نص السؤال" value="${question.text}" class="question-text w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <div class="options-container space-y-2">
-                    ${question.options.map((option, index) => `
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <input type="radio" name="correct-${question.id}" class="correct-option-radio text-blue-600" value="${index}" ${question.correctAnswer === index ? 'checked' : ''}>
-                            <input type="text" placeholder="خيار ${index + 1}" value="${option}" class="option-text w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" placeholder="اكتب السؤال هنا" class="w-full p-2 border rounded mb-2" oninput="updateQuestionText(${index}, this.value)" value="${question.questionText}">
+                <div class="space-y-2">
+                    ${question.options.map((option, i) => `
+                        <div class="flex items-center">
+                            <input type="radio" name="correct-${index}" id="correct-${index}-${i}" class="form-radio text-indigo-600" onchange="updateCorrectAnswer(${index}, ${i})" ${question.correctAnswer === i ? 'checked' : ''}>
+                            <input type="text" placeholder="خيار ${i + 1}" class="flex-grow p-2 border rounded mr-2" oninput="updateOptionText(${index}, ${i}, this.value)" value="${option}">
                         </div>
                     `).join('')}
                 </div>
-                <div class="flex items-center space-x-2 space-x-reverse">
-                    <label class="font-medium text-gray-700">النقاط:</label>
-                    <input type="number" class="points-input w-20 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="${question.points}">
-                </div>
             `;
-            questionList.appendChild(questionElement);
-
-            // إضافة المستمعين للأحداث
-            questionElement.querySelector('.remove-question-btn').addEventListener('click', () => {
-                const index = questions.indexOf(question);
-                if (index > -1) {
-                    questions.splice(index, 1);
-                    questionElement.remove();
-                    // تحديث أرقام الأسئلة بعد الحذف
-                    questionList.querySelectorAll('h3').forEach((h3, i) => {
-                        h3.textContent = `سؤال ${i + 1}`;
-                    });
-                }
-            });
-
-            questionElement.querySelector('.question-text').addEventListener('input', (e) => {
-                question.text = e.target.value;
-            });
-
-            questionElement.querySelectorAll('.option-text').forEach((input, index) => {
-                input.addEventListener('input', (e) => {
-                    question.options[index] = e.target.value;
-                });
-            });
-
-            questionElement.querySelectorAll('.correct-option-radio').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    question.correctAnswer = parseInt(e.target.value);
-                });
-            });
-
-            questionElement.querySelector('.points-input').addEventListener('input', (e) => {
-                question.points = parseInt(e.target.value) || 0;
-            });
+            questionList.appendChild(li);
         }
 
-        // دالة لحفظ الامتحان في Firestore
-        async function saveExam() {
-            if (!db) { showCustomAlert('فشل الاتصال بقاعدة البيانات.'); return; }
-            if (!userId) {
-                showCustomAlert('يجب عليك تسجيل الدخول لحفظ الامتحان.');
-                return;
-            }
+        function removeQuestion(index) {
+            questions.splice(index, 1);
+            questionList.innerHTML = ''; // إعادة رسم القائمة بالكامل
+            questions.forEach((q, i) => renderQuestion(i));
+        }
 
-            const examName = examNameInput.value.trim();
-            const examDuration = parseInt(examDurationInput.value);
+        function updateQuestionText(index, value) {
+            questions[index].questionText = value;
+        }
 
-            if (!examName || isNaN(examDuration)) {
-                showCustomAlert('الرجاء إدخال اسم الامتحان والمدة الزمنية بشكل صحيح.');
-                return;
-            }
+        function updateOptionText(questionIndex, optionIndex, value) {
+            questions[questionIndex].options[optionIndex] = value;
+        }
 
+        function updateCorrectAnswer(questionIndex, optionIndex) {
+            questions[questionIndex].correctAnswer = optionIndex;
+        }
+        
+        async function publishExam() {
             if (questions.length === 0) {
-                showCustomAlert('الرجاء إضافة سؤال واحد على الأقل.');
+                showCustomAlert('لا يمكنك نشر امتحان فارغ.');
                 return;
             }
 
-            loadingSpinner.classList.remove('hidden');
+            const examTitle = document.getElementById('exam-title').value || `امتحان ${new Date().toLocaleDateString('ar-EG')}`;
 
             try {
-                const examData = {
-                    name: examName,
-                    duration: examDuration,
+                const examRef = await addDoc(collection(db, "exams"), {
+                    userId: userId,
+                    title: examTitle,
                     questions: questions,
-                    creatorId: userId,
-                    createdAt: new Date().toISOString()
-                };
-
-                const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
-                await addDoc(examsCollectionRef, examData);
-                showCustomAlert('تم حفظ الامتحان بنجاح!');
-                renderPublishedExams(); // تحديث قائمة الامتحانات المنشورة
-            } catch (error) {
-                console.error("فشل حفظ الامتحان:", error);
-                showCustomAlert('حدث خطأ أثناء حفظ الامتحان.');
-            } finally {
-                loadingSpinner.classList.add('hidden');
+                    createdAt: new Date()
+                });
+                showCustomAlert('تم نشر الامتحان بنجاح!');
+                document.getElementById('exam-title').value = '';
+                questions = [];
+                questionList.innerHTML = '';
+                renderPublishedExams();
+            } catch (e) {
+                showCustomAlert('حدث خطأ أثناء نشر الامتحان: ' + e.message);
             }
         }
-
-        // دالة لعرض الامتحانات المنشورة
+        
         async function renderPublishedExams() {
-            if (!db) { publishedExamsList.innerHTML = '<p class="text-center text-red-500">فشل الاتصال بقاعدة البيانات.</p>'; return; }
-            if (!userId) {
-                publishedExamsList.innerHTML = '<p class="text-center text-gray-500">الرجاء تسجيل الدخول لعرض امتحاناتك.</p>';
-                return;
-            }
-
-            loadingSpinner.classList.remove('hidden');
-
+            publishedExamsList.innerHTML = '';
             try {
-                const examsCollectionRef = collection(db, `artifacts/${appId}/public/data/exams`);
-                const q = query(examsCollectionRef, where("creatorId", "==", userId));
+                const q = query(collection(db, "exams"), where("userId", "==", userId));
                 const querySnapshot = await getDocs(q);
-
-                publishedExamsList.innerHTML = '';
                 if (querySnapshot.empty) {
-                    publishedExamsList.innerHTML = '<p class="text-center text-gray-500">لم تقم بإنشاء أي امتحانات بعد.</p>';
-                } else {
-                    querySnapshot.forEach((doc) => {
-                        const exam = doc.data();
-                        const examId = doc.id;
-                        const card = document.createElement('div');
-                        card.className = 'bg-white p-4 rounded-xl shadow-md flex justify-between items-center';
-                        card.innerHTML = `
-                            <div class="flex-grow">
-                                <p class="text-lg font-bold text-gray-800">${exam.name}</p>
-                                <p class="text-sm text-gray-500">${exam.questions.length} أسئلة</p>
-                            </div>
-                            <div class="flex space-x-2 space-x-reverse">
-                                <button class="delete-exam-btn text-red-500 hover:text-red-700 transition-colors" data-id="${examId}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        `;
-                        publishedExamsList.appendChild(card);
-                    });
-
-                    // إضافة مستمعي الأحداث لأزرار الحذف
-                    document.querySelectorAll('.delete-exam-btn').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            examToDeleteId = e.currentTarget.dataset.id;
-                            confirmDeleteModal.classList.remove('hidden');
-                        });
-                    });
+                    publishedExamsList.innerHTML = '<p class="text-center text-gray-500">لا توجد امتحانات منشورة بعد.</p>';
+                    return;
                 }
-            } catch (error) {
-                console.error("فشل استرجاع الامتحانات:", error);
-                publishedExamsList.innerHTML = '<p class="text-center text-red-500">حدث خطأ أثناء تحميل الامتحانات.</p>';
-            } finally {
-                loadingSpinner.classList.add('hidden');
-            }
-        }
-
-        // دالة لعرض المواد في صفحة التقييمات
-        async function renderSubjects() {
-            if (!db) { subjectsList.innerHTML = '<p class="text-center text-red-500">فشل الاتصال بقاعدة البيانات.</p>'; noSubjectsMessage.classList.add('hidden'); return; }
-            if (!userId) {
-                subjectsList.innerHTML = '';
-                noSubjectsMessage.classList.remove('hidden');
-                return;
-            }
-            
-            loadingSpinner.classList.remove('hidden');
-
-            try {
-                const subjectsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects`);
-                const q = query(subjectsCollectionRef, where("creatorId", "==", userId));
-                const querySnapshot = await getDocs(q);
-                
-                subjectsList.innerHTML = ''; // مسح القائمة الحالية
-                if (querySnapshot.empty) {
-                    noSubjectsMessage.classList.remove('hidden');
-                } else {
-                    noSubjectsMessage.classList.add('hidden');
-                    querySnapshot.forEach((doc) => {
-                        const subject = doc.data();
-                        const card = document.createElement('div');
-                        card.className = 'bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500 flex flex-col justify-between cursor-pointer transition-transform transform hover:scale-105';
-                        card.setAttribute('data-subject-name', subject.name);
-                        card.setAttribute('data-subject-id', doc.id);
-                        card.innerHTML = `
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">${subject.name}</h3>
-                            <div class="flex justify-between items-center text-sm text-gray-500">
-                                <span>تم الإنشاء في: ${new Date(subject.createdAt).toLocaleDateString()}</span>
-                                <i class="fas fa-book text-2xl text-purple-500"></i>
-                            </div>
-                        `;
-                        card.addEventListener('click', () => {
-                            showSubjectDetailsPage(doc.id, subject.name);
-                        });
-                        subjectsList.appendChild(card);
-                    });
-                }
-            } catch (error) {
-                console.error("فشل استرجاع المواد:", error);
-                subjectsList.innerHTML = '<p class="text-center text-red-500">حدث خطأ أثناء تحميل المواد.</p>';
-                noSubjectsMessage.classList.add('hidden');
-            } finally {
-                loadingSpinner.classList.add('hidden');
-            }
-        }
-
-        // دالة لتبديل الصفحات
-        function showPage(pageId) {
-            const pages = {
-                'exams-page': examsPage,
-                'evaluations-page': evaluationsPage,
-                'profile-page': profilePage,
-                'subject-details-page': subjectDetailsPage
-            };
-            const navButtons = {
-                'exams-page': navExamsBtn,
-                'evaluations-page': navEvaluationsBtn,
-                'profile-page': navProfileBtn
-            };
-            
-            // إخفاء جميع الصفحات
-            Object.values(pages).forEach(page => page.classList.add('hidden'));
-            // إظهار الصفحة المطلوبة
-            pages[pageId].classList.remove('hidden');
-
-            // تحديث أزرار التنقل
-            Object.values(navButtons).forEach(btn => {
-                btn.classList.remove('text-blue-600', 'font-bold');
-                btn.classList.add('text-gray-500');
-            });
-            if(navButtons[pageId]) {
-                 navButtons[pageId].classList.remove('text-gray-500');
-                 navButtons[pageId].classList.add('text-blue-600', 'font-bold');
-            }
-
-            // تحميل المواد عند الانتقال إلى صفحة التقييمات
-            if (pageId === 'evaluations-page' && userId) {
-                renderSubjects();
-            }
-        }
-
-        // دالة لعرض صفحة تفاصيل المادة
-        function showSubjectDetailsPage(subjectId, subjectName) {
-            currentSubjectId = subjectId;
-            currentSubjectName = subjectName;
-            subjectDetailsTitle.textContent = subjectName;
-            weekInput.value = '';
-            linkInput.value = '';
-            displayNameInput.value = `تقييم (${subjectName}) الأسبوع ()`;
-            showPage('subject-details-page');
-        }
-
-        // تحديث الاسم الظاهر تلقائيًا
-        weekInput.addEventListener('input', () => {
-            const subjectName = subjectDetailsTitle.textContent;
-            const week = weekInput.value.trim();
-            displayNameInput.value = `تقييم (${subjectName}) الأسبوع (${week})`;
-        });
-
-        // إضافة مستمعي الأحداث لأزرار التنقل
-        navExamsBtn.addEventListener('click', () => showPage('exams-page'));
-        navEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
-        navProfileBtn.addEventListener('click', () => showPage('profile-page'));
-        backToEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
-
-        showManualBtn.addEventListener('click', () => showExamContent('manual'));
-        showImageBtn.addEventListener('click', () => showExamContent('image'));
-
-        // إضافة مستمعي الأحداث الرئيسية
-        googleSigninBtn.addEventListener('click', async () => {
-            if (!auth) { showCustomAlert('فشل المصادقة.'); return; }
-            try {
-                await signInWithPopup(auth, googleProvider);
-            } catch (err) {
-                showCustomAlert('فشل تسجيل الدخول.');
-            }
-        });
-        
-        signoutBtn.addEventListener('click', async () => {
-            if (!auth) { showCustomAlert('فشل المصادقة.'); return; }
-            try {
-                await signOut(auth);
-            } catch (err) {
-                showCustomAlert('فشل تسجيل الخروج.');
-            }
-        });
-        
-        // دالة لمعالجة الصور
-        async function processImages() {
-            if (!uploadedImages.length) {
-                showCustomAlert('الرجاء رفع صورة واحدة على الأقل.');
-                return;
-            }
-
-            loadingSpinner.classList.remove('hidden');
-            processImageBtn.disabled = true;
-
-            const base64Images = uploadedImages.map(image => image.data);
-            const prompt = `بصفتك خبيراً في استخراج البيانات من الصور، قم باستخراج جميع الأسئلة والإجابات الصحيحة من الصور التالية بسرعة وكفاءة. قم بتنسيق الإخراج ككائن JSON يحتوي على مصفوفة من الأسئلة. كل سؤال يجب أن يحتوي على "text" للسؤال، ومصفوفة "options" للخيار، و"correctAnswerIndex" للمؤشر الصحيح (0-3)، و "points" (افتراضياً 1).
-
-مثال لتنسيق الإخراج:
-{
-    "questions": [
-        {
-            "text": "نص السؤال الأول؟",
-            "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"],
-            "correctAnswerIndex": 0,
-            "points": 1
-        },
-        {
-            "text": "نص السؤال الثاني؟",
-            "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"],
-            "correctAnswerIndex": 2,
-            "points": 1
-        }
-    ]
-}
-إذا لم تتمكن من العثور على سؤال أو كانت الصورة غير واضحة، قم بتجاهلها.`;
-
-            let chatHistory = [{
-                role: "user",
-                parts: [{ text: prompt }]
-            }];
-
-            base64Images.forEach(base64Data => {
-                chatHistory[0].parts.push({
-                    inlineData: {
-                        mimeType: "image/png",
-                        data: base64Data
-                    }
+                querySnapshot.forEach((doc) => {
+                    const exam = doc.data();
+                    const li = document.createElement('li');
+                    li.className = 'bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center';
+                    li.innerHTML = `
+                        <h4 class="font-bold">${exam.title}</h4>
+                        <button class="text-red-500 hover:text-red-700" onclick="deleteExam('${doc.id}')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    `;
+                    publishedExamsList.appendChild(li);
                 });
-            });
-
-            const payload = {
-                contents: chatHistory,
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "OBJECT",
-                        properties: {
-                            "questions": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "text": { "type": "STRING" },
-                                        "options": {
-                                            "type": "ARRAY",
-                                            "items": { "type": "STRING" }
-                                        },
-                                        "correctAnswerIndex": { "type": "NUMBER" },
-                                        "points": { "type": "NUMBER" }
-                                    },
-                                    "propertyOrdering": ["text", "options", "correctAnswerIndex", "points"]
-                                }
-                            }
-                        },
-                        "propertyOrdering": ["questions"]
-                    }
-                }
-            };
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${geminiApiKey}`;
-
+            } catch (e) {
+                showCustomAlert('حدث خطأ أثناء تحميل الامتحانات: ' + e.message);
+            }
+        }
+        
+        async function deleteExam(examId) {
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!jsonText) {
-                    throw new Error('No valid JSON response received.');
-                }
-                const parsedResult = JSON.parse(jsonText);
-                const newQuestions = parsedResult.questions.map(q => ({
-                    id: 'q-' + (questions.length + 1), // Generate a unique ID
-                    text: q.text,
-                    options: q.options,
-                    correctAnswer: q.correctAnswerIndex,
-                    points: q.points || 1 // Fallback to 1 if not provided
-                }));
-
-                questions = [...questions, ...newQuestions];
-                questions.forEach(q => renderQuestion(q));
-
-                showCustomAlert('تم استخراج الأسئلة بنجاح! يمكنك الآن مراجعتها وحفظها.');
-                showExamContent('manual'); // تبديل إلى الإدخال اليدوي لعرض الأسئلة المستخرجة
-                
-            } catch (error) {
-                console.error("فشل تحليل الصور:", error);
-                showCustomAlert('حدث خطأ أثناء تحليل الصور. يرجى المحاولة مرة أخرى.');
-            } finally {
-                loadingSpinner.classList.add('hidden');
-                processImageBtn.disabled = false;
+                await deleteDoc(doc(db, "exams", examId));
+                showCustomAlert('تم حذف الامتحان بنجاح.');
+                renderPublishedExams();
+            } catch (e) {
+                showCustomAlert('حدث خطأ أثناء حذف الامتحان: ' + e.message);
             }
         }
 
-        imageUploadInput.addEventListener('change', (event) => {
-            uploadedImages = [];
-            imagePreviewContainer.innerHTML = '';
-            const files = event.target.files;
-            if (files.length > 0) {
-                uploadPlaceholder.classList.add('hidden');
-                processImageBtn.disabled = false;
-            } else {
-                uploadPlaceholder.classList.remove('hidden');
-                processImageBtn.disabled = true;
-            }
+        // ربط الأحداث
+        document.getElementById('profile-page').classList.add('hidden');
 
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const imageData = e.target.result.split(',')[1];
-                    uploadedImages.push({ name: file.name, data: imageData });
-
-                    const previewImg = document.createElement('img');
-                    previewImg.src = e.target.result;
-                    previewImg.className = 'w-full h-auto object-cover rounded-lg shadow-md';
-                    imagePreviewContainer.appendChild(previewImg);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // المستمعون للأحداث
-        processImageBtn.addEventListener('click', processImages);
-        addQuestionBtn.addEventListener('click', addQuestion);
-        saveExamBtn.addEventListener('click', saveExam);
-
-        // المستمع لحالة المصادقة
+        googleSigninBtn.addEventListener('click', () => signInWithPopup(auth, googleProvider).catch(err => showCustomAlert('فشل تسجيل الدخول.')));
+        signoutBtn.addEventListener('click', () => signOut(auth).catch(err => showCustomAlert('فشل تسجيل الخروج.')));
+        
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
                 loginPage.classList.add('hidden');
                 mainContent.classList.remove('hidden');
                 bottomNav.classList.remove('hidden');
-                userName.textContent = user.displayName || 'مستخدم';
-                userPhoto.src = user.photoURL || `https://placehold.co/128x128/9CA3AF/FFFFFF?text=${(user.displayName || 'U').charAt(0)}`;
+                userName.textContent = user.displayName;
+                userPhoto.src = user.photoURL;
                 userPhoto.classList.remove('hidden');
                 userName.classList.remove('hidden');
                 signoutBtn.classList.remove('hidden');
                 showPage('exams-page');
                 showExamContent('manual');
                 renderPublishedExams();
+                if (questions.length === 0) addQuestion();
             } else {
                 userId = null;
                 loginPage.classList.remove('hidden');
@@ -995,15 +275,116 @@
                 questions = [];
                 questionList.innerHTML = '';
                 publishedExamsList.innerHTML = '';
-                subjectsList.innerHTML = ''; // مسح المواد
-                noSubjectsMessage.classList.add('hidden'); // إخفاء الرسالة
             }
         });
 
-        // تهيئة التطبيق عند التحميل
-        window.onload = () => {
-            // لا حاجة ل signInWithCustomToken أو signInAnonymously، onAuthStateChanged سيتعامل مع حالة المستخدم
-        };
+        addQuestionBtn.addEventListener('click', addQuestion);
+        publishExamBtn.addEventListener('click', publishExam);
+
+        // جعل الدوال المساعدة متاحة عالمياً
+        window.showPage = showPage;
+        window.showExamContent = showExamContent;
+        window.removeQuestion = removeQuestion;
+        window.updateQuestionText = updateQuestionText;
+        window.updateOptionText = updateOptionText;
+        window.updateCorrectAnswer = updateCorrectAnswer;
+        window.deleteExam = deleteExam;
+
     </script>
+
+    <!-- واجهة المستخدم -->
+    <div id="login-page" class="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm w-full">
+            <h1 class="text-3xl font-bold mb-4 text-gray-800">تطبيق الامتحانات</h1>
+            <p class="text-gray-600 mb-6">قم بتسجيل الدخول لبدء إنشاء ومشاركة الامتحانات الخاصة بك.</p>
+            <button id="google-signin-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                <i class="fab fa-google ml-2"></i> تسجيل الدخول باستخدام جوجل
+            </button>
+        </div>
+    </div>
+
+    <div id="main-content" class="min-h-screen flex flex-col bg-gray-100">
+
+        <!-- رأس الصفحة -->
+        <header class="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-10">
+            <h2 class="text-xl font-bold text-indigo-600">منصة الامتحانات</h2>
+            <div class="flex items-center">
+                <span id="user-name" class="font-bold text-gray-700 hidden"></span>
+                <img id="user-photo" class="w-10 h-10 rounded-full ml-2 hidden" alt="صورة المستخدم">
+                <button id="signout-btn" class="bg-red-500 text-white text-sm px-4 py-2 rounded-lg ml-2 hidden">خروج</button>
+            </div>
+        </header>
+        
+        <!-- المحتوى الرئيسي للصفحات -->
+        <main class="flex-grow p-4 md:p-6 lg:p-8">
+
+            <!-- صفحة الامتحانات -->
+            <div id="exams-page" class="page-content">
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div id="exam-tabs" class="flex border-b border-gray-200 mb-4">
+                        <button class="py-2 px-4 text-sm font-medium text-gray-600 focus:outline-none border-b-2 border-indigo-500 transition duration-300" onclick="showExamContent('manual')">إنشاء يدوي</button>
+                        <button class="py-2 px-4 text-sm font-medium text-gray-600 focus:outline-none transition duration-300" onclick="showExamContent('published')">امتحاناتي المنشورة</button>
+                    </div>
+
+                    <!-- إنشاء يدوي -->
+                    <div id="manual-exam" class="exam-content">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">إنشاء امتحان جديد</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                            <label for="exam-title" class="block font-medium text-gray-700 mb-2">عنوان الامتحان (اختياري)</label>
+                            <input type="text" id="exam-title" placeholder="مثال: امتحان مادة الرياضيات" class="w-full p-2 border rounded-lg">
+                        </div>
+                        <ul id="question-list">
+                            <!-- الأسئلة ستظهر هنا -->
+                        </ul>
+                        <div class="flex justify-end mt-4">
+                            <button id="add-question-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                                <i class="fa-solid fa-plus ml-2"></i> إضافة سؤال
+                            </button>
+                            <button id="publish-exam-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition duration-300 mr-2">
+                                <i class="fa-solid fa-paper-plane ml-2"></i> نشر الامتحان
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- امتحاناتي المنشورة -->
+                    <div id="published-exam" class="exam-content hidden">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">امتحاناتي المنشورة</h3>
+                        <ul id="published-exams-list">
+                            <!-- قائمة الامتحانات المنشورة ستظهر هنا -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة الملف الشخصي -->
+            <div id="profile-page" class="page-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center max-w-md mx-auto">
+                    <img id="profile-photo" class="w-24 h-24 rounded-full mx-auto mb-4" src="https://placehold.co/100x100" alt="صورة الملف الشخصي">
+                    <h3 id="profile-name" class="text-2xl font-bold text-gray-800 mb-2"></h3>
+                    <p id="profile-email" class="text-gray-600 mb-4"></p>
+                    <button class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition duration-300">
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- شريط التنقل السفلي -->
+        <nav id="bottom-nav" class="bg-white shadow-inner p-2 sticky bottom-0 z-10 hidden">
+            <div class="flex justify-around">
+                <button class="text-gray-500 hover:text-indigo-600 transition duration-300 focus:outline-none" onclick="showPage('exams-page')">
+                    <i class="fa-solid fa-pencil-alt text-xl"></i>
+                    <span class="block text-xs mt-1">امتحانات</span>
+                </button>
+                <button class="text-gray-500 hover:text-indigo-600 transition duration-300 focus:outline-none" onclick="showPage('profile-page')">
+                    <i class="fa-solid fa-user text-xl"></i>
+                    <span class="block text-xs mt-1">ملف شخصي</span>
+                </button>
+            </div>
+        </nav>
+
+    </div>
+
 </body>
 </html>
