@@ -267,9 +267,18 @@
         import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // تهيئة Firebase باستخدام التكوين الذي قدمته
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-
+        // تكوين Firebase. هذا هو الجزء الذي يسبب المشكلة
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2d04L0z0X0_example_key",
+            authDomain: "tanya-thanawey.firebaseapp.com",
+            projectId: "tanya-thanawey",
+            storageBucket: "tanya-thanawey.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef1234567890",
+            measurementId: "G-12345"
+        };
+        
+        // يجب استخدام هذا التكوين
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
