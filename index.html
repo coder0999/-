@@ -193,6 +193,36 @@
             <p id="no-subjects-message" class="text-center text-gray-600 hidden">لم يتم إضافة أي مواد بعد.</p>
         </div>
 
+        <!-- صفحة تفاصيل المادة الجديدة (مخفية افتراضياً) -->
+        <div id="subject-details-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
+            <div class="flex items-center mb-8">
+                <button id="back-to-evaluations-btn" class="bg-gray-300 text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform transform active:scale-105">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <h1 id="subject-details-title" class="text-3xl font-bold text-gray-800 mr-4"></h1>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md space-y-6">
+                <div>
+                    <label for="week-input" class="block text-sm font-medium text-gray-700">الأسبوع</label>
+                    <input type="text" id="week-input" class="mt-1 block w-full bg-transparent border-b-2 border-gray-300 p-0 focus:ring-0 focus:outline-none text-lg">
+                </div>
+                <div>
+                    <label for="link-input" class="block text-sm font-medium text-gray-700">الرابط</label>
+                    <input type="text" id="link-input" class="mt-1 block w-full bg-transparent border-b-2 border-gray-300 p-0 focus:ring-0 focus:outline-none text-lg">
+                </div>
+                <div>
+                    <label for="display-name-input" class="block text-sm font-medium text-gray-700">الاسم الظاهر</label>
+                    <input type="text" id="display-name-input" class="mt-1 block w-full bg-transparent border-b-2 border-gray-300 p-0 focus:ring-0 focus:outline-none text-lg text-gray-500" readonly>
+                </div>
+                <div class="flex justify-center mt-6">
+                    <button id="save-subject-details-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform active:scale-105">
+                        حفظ
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- صفحة الملف الشخصي -->
         <div id="profile-page" class="hidden container mx-auto p-4 md:p-8 max-w-3xl w-full flex-grow mb-20 overflow-y-auto">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">الملف الشخصي</h1>
@@ -263,40 +293,41 @@
 
     <script type="module">
         // استيراد وظائف Firebase اللازمة
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
         
-        // تكوين Firebase. هذا هو الجزء الذي يسبب المشكلة
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyC2d04L0z0X0_example_key",
+            apiKey: "AIzaSyCzXajGeExTVfcMJ9L3fJjRl9TSu0apRZY",
             authDomain: "tanya-thanawey.firebaseapp.com",
             projectId: "tanya-thanawey",
-            storageBucket: "tanya-thanawey.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abcdef1234567890",
-            measurementId: "G-12345"
+            storageBucket: "tanya-thanawey.firebasestorage.app",
+            messagingSenderId: "963147710003",
+            appId: "1:963147710003:web:355267be9545ee8f1fad46",
+            measurementId: "G-QJ6TK546YK"
         };
         
-        // يجب استخدام هذا التكوين
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
         
-        // مفتاح API لـ Gemini الذي قدمته
-        const geminiApiKey = "";
+        // مفتاح API لـ Gemini
+        const geminiApiKey = "AIzaSyBGyq6bg2_MFYrmxdNRESEt1pRDHO16Kr8";
         
         // المتغيرات العالمية للوصول إليها
         let userId = null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tanya-thanawey';
+        const appId = "tanya-thanawey"; // استخدام Project ID كمُعرّف للتطبيق
         
         // هذا هو المصفوفة التي ستخزن أسئلة الامتحان
         let questions = [];
         let uploadedImages = [];
         let examToDeleteId = null;
-        let currentEditingExamId = null; // متغير لتخزين هوية الامتحان قيد التعديل
         let subjects = []; // مصفوفة لتخزين المواد
+        let currentSubjectId = null; // لتخزين معرف المادة الحالية
+        let currentSubjectName = null; // لتخزين اسم المادة الحالية
 
         // الحصول على عناصر DOM الرئيسية
         const loginPage = document.getElementById('login-page');
@@ -345,6 +376,14 @@
         const cancelSubjectBtn = document.getElementById('cancel-subject-btn');
         const subjectsList = document.getElementById('subjects-list'); // إضافة عنصر قائمة المواد
         const noSubjectsMessage = document.getElementById('no-subjects-message'); // رسالة عدم وجود مواد
+        const subjectDetailsPage = document.getElementById('subject-details-page'); // الصفحة الجديدة
+        const backToEvaluationsBtn = document.getElementById('back-to-evaluations-btn');
+        const subjectDetailsTitle = document.getElementById('subject-details-title');
+        const weekInput = document.getElementById('week-input');
+        const linkInput = document.getElementById('link-input');
+        const displayNameInput = document.getElementById('display-name-input');
+        const saveSubjectDetailsBtn = document.getElementById('save-subject-details-btn');
+
 
         // دالة لعرض مربع حواري مخصص
         function showCustomAlert(message) {
@@ -364,6 +403,7 @@
         });
 
         confirmDeleteYesBtn.addEventListener('click', async () => {
+            if (!db) { showCustomAlert('فشل الاتصال بقاعدة البيانات.'); return; }
             if (examToDeleteId) {
                 try {
                     const examDocRef = doc(db, `artifacts/${appId}/public/data/exams`, examToDeleteId);
@@ -391,6 +431,7 @@
         });
 
         saveSubjectBtn.addEventListener('click', async () => {
+            if (!db || !auth) { showCustomAlert('فشل الاتصال بقاعدة البيانات أو المصادقة.'); return; }
             const subjectName = subjectNameInput.value.trim();
             if (subjectName === '') {
                 showCustomAlert('الرجاء إدخال اسم المادة.');
@@ -414,6 +455,45 @@
             } catch (error) {
                 console.error("فشل إضافة المادة:", error);
                 showCustomAlert('حدث خطأ أثناء إضافة المادة.');
+            }
+        });
+
+        // دالة لحفظ تفاصيل المادة
+        saveSubjectDetailsBtn.addEventListener('click', async () => {
+            if (!db) { showCustomAlert('فشل الاتصال بقاعدة البيانات.'); return; }
+            const week = weekInput.value.trim();
+            const link = linkInput.value.trim();
+            const displayName = displayNameInput.value.trim();
+
+            if (!week || !link || !displayName) {
+                showCustomAlert('الرجاء تعبئة جميع الحقول.');
+                return;
+            }
+            if (!currentSubjectId) {
+                 showCustomAlert('لم يتم تحديد مادة للحفظ.');
+                 return;
+            }
+            
+            loadingSpinner.classList.remove('hidden');
+
+            try {
+                const docRef = doc(db, `artifacts/${appId}/public/data/subjects`, currentSubjectId);
+                const evaluationData = {
+                    week: week,
+                    link: link,
+                    displayName: displayName,
+                    createdAt: new Date().toISOString()
+                };
+
+                // حفظ البيانات كخريطة داخل وثيقة المادة
+                await setDoc(docRef, { evaluations: evaluationData }, { merge: true });
+                showCustomAlert('تم حفظ التفاصيل بنجاح!');
+                showPage('evaluations-page');
+            } catch (error) {
+                console.error("فشل حفظ التفاصيل:", error);
+                showCustomAlert('حدث خطأ أثناء حفظ التفاصيل.');
+            } finally {
+                loadingSpinner.classList.add('hidden');
             }
         });
 
@@ -518,6 +598,7 @@
 
         // دالة لحفظ الامتحان في Firestore
         async function saveExam() {
+            if (!db) { showCustomAlert('فشل الاتصال بقاعدة البيانات.'); return; }
             if (!userId) {
                 showCustomAlert('يجب عليك تسجيل الدخول لحفظ الامتحان.');
                 return;
@@ -561,6 +642,7 @@
 
         // دالة لعرض الامتحانات المنشورة
         async function renderPublishedExams() {
+            if (!db) { publishedExamsList.innerHTML = '<p class="text-center text-red-500">فشل الاتصال بقاعدة البيانات.</p>'; return; }
             if (!userId) {
                 publishedExamsList.innerHTML = '<p class="text-center text-gray-500">الرجاء تسجيل الدخول لعرض امتحاناتك.</p>';
                 return;
@@ -614,6 +696,7 @@
 
         // دالة لعرض المواد في صفحة التقييمات
         async function renderSubjects() {
+            if (!db) { subjectsList.innerHTML = '<p class="text-center text-red-500">فشل الاتصال بقاعدة البيانات.</p>'; noSubjectsMessage.classList.add('hidden'); return; }
             if (!userId) {
                 subjectsList.innerHTML = '';
                 noSubjectsMessage.classList.remove('hidden');
@@ -635,7 +718,9 @@
                     querySnapshot.forEach((doc) => {
                         const subject = doc.data();
                         const card = document.createElement('div');
-                        card.className = 'bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500 flex flex-col justify-between';
+                        card.className = 'bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500 flex flex-col justify-between cursor-pointer transition-transform transform hover:scale-105';
+                        card.setAttribute('data-subject-name', subject.name);
+                        card.setAttribute('data-subject-id', doc.id);
                         card.innerHTML = `
                             <h3 class="text-xl font-bold text-gray-800 mb-2">${subject.name}</h3>
                             <div class="flex justify-between items-center text-sm text-gray-500">
@@ -643,6 +728,9 @@
                                 <i class="fas fa-book text-2xl text-purple-500"></i>
                             </div>
                         `;
+                        card.addEventListener('click', () => {
+                            showSubjectDetailsPage(doc.id, subject.name);
+                        });
                         subjectsList.appendChild(card);
                     });
                 }
@@ -660,7 +748,8 @@
             const pages = {
                 'exams-page': examsPage,
                 'evaluations-page': evaluationsPage,
-                'profile-page': profilePage
+                'profile-page': profilePage,
+                'subject-details-page': subjectDetailsPage
             };
             const navButtons = {
                 'exams-page': navExamsBtn,
@@ -678,8 +767,10 @@
                 btn.classList.remove('text-blue-600', 'font-bold');
                 btn.classList.add('text-gray-500');
             });
-            navButtons[pageId].classList.remove('text-gray-500');
-            navButtons[pageId].classList.add('text-blue-600', 'font-bold');
+            if(navButtons[pageId]) {
+                 navButtons[pageId].classList.remove('text-gray-500');
+                 navButtons[pageId].classList.add('text-blue-600', 'font-bold');
+            }
 
             // تحميل المواد عند الانتقال إلى صفحة التقييمات
             if (pageId === 'evaluations-page' && userId) {
@@ -687,16 +778,36 @@
             }
         }
 
+        // دالة لعرض صفحة تفاصيل المادة
+        function showSubjectDetailsPage(subjectId, subjectName) {
+            currentSubjectId = subjectId;
+            currentSubjectName = subjectName;
+            subjectDetailsTitle.textContent = subjectName;
+            weekInput.value = '';
+            linkInput.value = '';
+            displayNameInput.value = `تقييم (${subjectName}) الأسبوع ()`;
+            showPage('subject-details-page');
+        }
+
+        // تحديث الاسم الظاهر تلقائيًا
+        weekInput.addEventListener('input', () => {
+            const subjectName = subjectDetailsTitle.textContent;
+            const week = weekInput.value.trim();
+            displayNameInput.value = `تقييم (${subjectName}) الأسبوع (${week})`;
+        });
+
         // إضافة مستمعي الأحداث لأزرار التنقل
         navExamsBtn.addEventListener('click', () => showPage('exams-page'));
         navEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
         navProfileBtn.addEventListener('click', () => showPage('profile-page'));
+        backToEvaluationsBtn.addEventListener('click', () => showPage('evaluations-page'));
 
         showManualBtn.addEventListener('click', () => showExamContent('manual'));
         showImageBtn.addEventListener('click', () => showExamContent('image'));
 
         // إضافة مستمعي الأحداث الرئيسية
         googleSigninBtn.addEventListener('click', async () => {
+            if (!auth) { showCustomAlert('فشل المصادقة.'); return; }
             try {
                 await signInWithPopup(auth, googleProvider);
             } catch (err) {
@@ -705,6 +816,7 @@
         });
         
         signoutBtn.addEventListener('click', async () => {
+            if (!auth) { showCustomAlert('فشل المصادقة.'); return; }
             try {
                 await signOut(auth);
             } catch (err) {
@@ -723,7 +835,7 @@
             processImageBtn.disabled = true;
 
             const base64Images = uploadedImages.map(image => image.data);
-            const prompt = `استخرج الأسئلة والإجابات الصحيحة من الصور التالية. قم بتنسيق الإخراج ككائن JSON يحتوي على مصفوفة من الأسئلة. كل سؤال يجب أن يحتوي على "text" للسؤال، ومصفوفة "options" للخيار، و"correctAnswerIndex" للمؤشر الصحيح (0-3)، و "points" (افتراضياً 1).
+            const prompt = `بصفتك خبيراً في استخراج البيانات من الصور، قم باستخراج جميع الأسئلة والإجابات الصحيحة من الصور التالية بسرعة وكفاءة. قم بتنسيق الإخراج ككائن JSON يحتوي على مصفوفة من الأسئلة. كل سؤال يجب أن يحتوي على "text" للسؤال، ومصفوفة "options" للخيار، و"correctAnswerIndex" للمؤشر الصحيح (0-3)، و "points" (افتراضياً 1).
 
 مثال لتنسيق الإخراج:
 {
@@ -861,7 +973,7 @@
         saveExamBtn.addEventListener('click', saveExam);
 
         // المستمع لحالة المصادقة
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
                 loginPage.classList.add('hidden');
@@ -889,19 +1001,8 @@
         });
 
         // تهيئة التطبيق عند التحميل
-        window.onload = async () => {
-            // تسجيل الدخول بالرمز المخصص أو كمجهول
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialAuthToken) {
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } catch (error) {
-                    console.error("Custom token sign-in failed:", error);
-                    await signInAnonymously(auth);
-                }
-            } else {
-                await signInAnonymously(auth);
-            }
+        window.onload = () => {
+            // لا حاجة ل signInWithCustomToken أو signInAnonymously، onAuthStateChanged سيتعامل مع حالة المستخدم
         };
     </script>
 </body>
