@@ -761,7 +761,7 @@
         // ربط الأحداث بأزرار
         addQuestionBtn.addEventListener('click', addQuestion);
 
-        // وظائف معالجة الصور (لم يتم تعديلها بناءً على طلبك)
+        // وظائف معالجة الصور (تم تعديلها هنا)
         showManualBtn.addEventListener('click', () => showExamContent('manual'));
         showImageBtn.addEventListener('click', () => showExamContent('image'));
         
@@ -774,7 +774,20 @@
                 reader.readAsDataURL(file);
             });
         }
-
+        
+        // دالة لإزالة صورة من المعاينة ومصفوفة الصور المرفوعة
+        function removeImage(id) {
+            uploadedImages = uploadedImages.filter(img => img.id !== id);
+            const imageElement = document.querySelector(`.image-preview-item[data-id="${id}"]`);
+            if (imageElement) {
+                imageElement.remove();
+            }
+            if (uploadedImages.length === 0) {
+                uploadPlaceholder.classList.remove('hidden');
+                processImageBtn.disabled = true;
+            }
+        }
+        
         // معالجة رفع الصور
         imageUploadInput.addEventListener('change', (event) => {
             const files = Array.from(event.target.files);
@@ -784,16 +797,35 @@
             processImageBtn.disabled = files.length === 0;
 
             files.forEach(file => {
+                const uniqueId = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                uploadedImages.push({ id: uniqueId, file: file });
+
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg', 'shadow-md');
-                    imagePreviewContainer.appendChild(img);
+                    const previewItem = document.createElement('div');
+                    previewItem.classList.add('relative', 'image-preview-item');
+                    previewItem.dataset.id = uniqueId;
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-full object-cover rounded-lg shadow-md">
+                        <button class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 hover:opacity-100 transition-opacity remove-image-btn" data-id="${uniqueId}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    imagePreviewContainer.appendChild(previewItem);
                 };
                 reader.readAsDataURL(file);
-                uploadedImages.push(file);
             });
+
+            // إضافة مستمعي الأحداث لزر الإزالة
+            setTimeout(() => {
+                document.querySelectorAll('.remove-image-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault(); // منع أي سلوك افتراضي للزر
+                        const id = e.currentTarget.dataset.id;
+                        removeImage(id);
+                    });
+                });
+            }, 100);
         });
         
         // معالجة تحليل الصور
@@ -807,7 +839,7 @@
 
             try {
                 // تحويل الصور إلى base64
-                const base64Images = await Promise.all(uploadedImages.map(imageToBase64));
+                const base64Images = await Promise.all(uploadedImages.map(item => imageToBase64(item.file)));
                 const textPrompt = 'استخرج الأسئلة والإجابات والخيارات من هذه الصور بصيغة JSON. يجب أن يكون الناتج مصفوفة من الكائنات، كل كائن يمثل سؤالاً. يجب أن يحتوي كل كائن على الحقول التالية: "text" (نص السؤال), "options" (مصفوفة من الخيارات), و "correctAnswer" (فهرس الخيار الصحيح يبدأ من 0).';
 
                 const parts = base64Images.map(data => ({
