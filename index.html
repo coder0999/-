@@ -518,7 +518,7 @@
                 showExamContent('manual');
                 renderPublishedExams();
                 if (questions.length === 0) addQuestion();
-                renderSubjects(); // إضافة هذه الوظيفة ليتم عرض المواد عند تسجيل الدخول
+                renderSubjects(); // استدعاء لعرض المواد
             } else {
                 userId = null;
                 loginPage.classList.remove('hidden');
@@ -527,7 +527,7 @@
                 questions = [];
                 questionList.innerHTML = '';
                 publishedExamsList.innerHTML = '';
-                subjectsContainer.innerHTML = ''; // مسح المواد عند تسجيل الخروج
+                subjectsContainer.innerHTML = '';
             }
         });
 
@@ -840,16 +840,24 @@
             try {
                 // تحويل الصور إلى base64
                 const base64Images = await Promise.all(uploadedImages.map(item => imageToBase64(item.file)));
-                const textPrompt = 'استخرج الأسئلة والإجابات والخيارات من هذه الصور بصيغة JSON. يجب أن يكون الناتج مصفوفة من الكائنات، كل كائن يمثل سؤالاً. يجب أن يحتوي كل كائن على الحقول التالية: "text" (نص السؤال), "options" (مصفوفة من الخيارات), و "correctAnswer" (فهرس الخيار الصحيح يبدأ من 0).';
+                
+                // قم بتعديل النص لطلب استخراج الأسئلة بالترتيب الصحيح
+                const textPrompt = `
+                    استخرج الأسئلة والإجابات والخيارات من هذه الصور بالترتيب الذي تم تحميله. يجب أن يكون الناتج مصفوفة من الكائنات، كل كائن يمثل سؤالاً. يجب أن يحتوي كل كائن على الحقول التالية: "text" (نص السؤال), "options" (مصفوفة من الخيارات), و "correctAnswer" (فهرس الخيار الصحيح يبدأ من 0).
+                `;
 
-                const parts = base64Images.map(data => ({
+                // قم ببناء الجزء الخاص بالصور في الـ payload
+                const imageParts = base64Images.map(data => ({
                     inlineData: {
                         mimeType: 'image/png', // أو 'image/jpeg' حسب نوع الصورة
                         data: data
                     }
                 }));
 
-                parts.unshift({ text: textPrompt });
+                const parts = [
+                    { text: textPrompt },
+                    ...imageParts // إضافة جميع الصور إلى الـ parts
+                ];
 
                 const payload = {
                     contents: [{
@@ -976,9 +984,6 @@
         
         // ربط الأحداث بأزرار
         addQuestionBtn.addEventListener('click', addQuestion);
-
-        // ربط الأحداث بأزرار
-        addQuestionBtn.addEventListener('click', addQuestion);
         
         // عند تحميل الصفحة، تأكد من استدعاء الوظيفة الصحيحة بناءً على حالة المستخدم
         onAuthStateChanged(auth, (user) => {
@@ -1012,3 +1017,4 @@
     </script>
 </body>
 </html>
+
