@@ -566,22 +566,22 @@
                 <div class="space-y-2">
                     <div class="flex items-center space-x-2 space-x-reverse">
                         <input type="radio" name="correct-answer-${questionId}" class="correct-answer-radio" data-index="0" data-question-id="${questionId}">
-                        <label for="option-${questionId}-0" class="flex-grow text-gray-700">الخيار 1</label>
+                        <label for="option-${questionId}-0" class="flex-grow text-gray-700"></label>
                         <input type="text" id="option-${questionId}-0" class="question-option w-full p-2 border rounded-lg" data-index="0">
                     </div>
                     <div class="flex items-center space-x-2 space-x-reverse">
                         <input type="radio" name="correct-answer-${questionId}" class="correct-answer-radio" data-index="1" data-question-id="${questionId}">
-                        <label for="option-${questionId}-1" class="flex-grow text-gray-700">الخيار 2</label>
+                        <label for="option-${questionId}-1" class="flex-grow text-gray-700"></label>
                         <input type="text" id="option-${questionId}-1" class="question-option w-full p-2 border rounded-lg" data-index="1">
                     </div>
                     <div class="flex items-center space-x-2 space-x-reverse">
                         <input type="radio" name="correct-answer-${questionId}" class="correct-answer-radio" data-index="2" data-question-id="${questionId}">
-                        <label for="option-${questionId}-2" class="flex-grow text-gray-700">الخيار 3</label>
+                        <label for="option-${questionId}-2" class="flex-grow text-gray-700"></label>
                         <input type="text" id="option-${questionId}-2" class="question-option w-full p-2 border rounded-lg" data-index="2">
                     </div>
                     <div class="flex items-center space-x-2 space-x-reverse">
                         <input type="radio" name="correct-answer-${questionId}" class="correct-answer-radio" data-index="3" data-question-id="${questionId}">
-                        <label for="option-${questionId}-3" class="flex-grow text-gray-700">الخيار 4</label>
+                        <label for="option-${questionId}-3" class="flex-grow text-gray-700"></label>
                         <input type="text" id="option-${questionId}-3" class="question-option w-full p-2 border rounded-lg" data-index="3">
                     </div>
                 </div>
@@ -917,7 +917,7 @@
                                 ${q.options.map((option, optIndex) => `
                                     <div class="flex items-center space-x-2 space-x-reverse">
                                         <input type="radio" name="correct-answer-${q.id}" class="correct-answer-radio" data-index="${optIndex}" data-question-id="${q.id}" ${optIndex === q.correctAnswer ? 'checked' : ''}>
-                                        <label for="option-${q.id}-${optIndex}" class="flex-grow text-gray-700">الخيار ${optIndex + 1}</label>
+                                        <label for="option-${q.id}-${optIndex}" class="flex-grow text-gray-700"></label>
                                         <input type="text" id="option-${q.id}-${optIndex}" class="question-option w-full p-2 border rounded-lg" data-index="${optIndex}" value="${option}">
                                     </div>
                                 `).join('')}
