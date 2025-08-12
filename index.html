@@ -791,30 +791,40 @@
         // معالجة رفع الصور
         imageUploadInput.addEventListener('change', (event) => {
             const files = Array.from(event.target.files);
-            uploadedImages = [];
-            imagePreviewContainer.innerHTML = '';
-            uploadPlaceholder.classList.add('hidden');
-            processImageBtn.disabled = files.length === 0;
-
+            
+            // إضافة الصور الجديدة إلى المصفوفة الحالية
             files.forEach(file => {
-                const uniqueId = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                uploadedImages.push({ id: uniqueId, file: file });
+                // منع إضافة نفس الصورة أكثر من مرة
+                const isDuplicate = uploadedImages.some(img => img.file.name === file.name && img.file.size === file.size);
+                if (!isDuplicate) {
+                    const uniqueId = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                    uploadedImages.push({ id: uniqueId, file: file });
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const previewItem = document.createElement('div');
-                    previewItem.classList.add('relative', 'image-preview-item');
-                    previewItem.dataset.id = uniqueId;
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}" class="w-full h-full object-cover rounded-lg shadow-md">
-                        <button class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 hover:opacity-100 transition-opacity remove-image-btn" data-id="${uniqueId}">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    imagePreviewContainer.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewItem = document.createElement('div');
+                        previewItem.classList.add('relative', 'image-preview-item');
+                        previewItem.dataset.id = uniqueId;
+                        previewItem.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-full object-cover rounded-lg shadow-md">
+                            <button class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 hover:opacity-100 transition-opacity remove-image-btn" data-id="${uniqueId}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        imagePreviewContainer.appendChild(previewItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
+
+            // تحديث حالة الواجهة بناءً على عدد الصور
+            if (uploadedImages.length > 0) {
+                uploadPlaceholder.classList.add('hidden');
+                processImageBtn.disabled = false;
+            } else {
+                uploadPlaceholder.classList.remove('hidden');
+                processImageBtn.disabled = true;
+            }
 
             // إضافة مستمعي الأحداث لزر الإزالة
             setTimeout(() => {
@@ -826,6 +836,9 @@
                     });
                 });
             }, 100);
+            
+            // مسح قيمة المدخل لتمكين تحميل نفس الملفات مرة أخرى في حال أراد المستخدم ذلك
+            event.target.value = '';
         });
         
         // معالجة تحليل الصور
@@ -1017,4 +1030,3 @@
     </script>
 </body>
 </html>
-
