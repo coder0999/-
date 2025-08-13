@@ -242,7 +242,7 @@
         </div>
     </div>
     
-    <!-- مربع حوار إضافة مادة -->
+    <!-- *** بداية التعديل: تعديل مربع حوار إضافة مادة *** -->
     <div id="add-subject-modal" class="custom-alert-overlay hidden">
         <div class="custom-alert-box text-right">
             <h2 class="text-xl font-bold mb-4">إضافة مادة جديدة</h2>
@@ -252,8 +252,8 @@
                     <input type="text" id="subject-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label for="subject-link-input" class="block text-sm font-medium text-gray-700 mb-2">رابط المادة</label>
-                    <input type="url" id="subject-link-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com">
+                    <label for="subject-link-input" class="block text-sm font-medium text-gray-700 mb-2">رابط التنزيل</label>
+                    <input type="url" id="subject-link-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com/file.pdf">
                 </div>
             </div>
             <div class="mt-6 flex justify-center space-x-4 space-x-reverse">
@@ -262,6 +262,7 @@
             </div>
         </div>
     </div>
+    <!-- *** نهاية التعديل *** -->
 
     <!-- شاشة التحميل -->
     <div id="loading-spinner" class="loading-overlay hidden">
@@ -345,7 +346,7 @@
         const addSubjectBtn = document.getElementById('add-subject-btn');
         const addSubjectModal = document.getElementById('add-subject-modal');
         const subjectNameInput = document.getElementById('subject-name-input');
-        const subjectLinkInput = document.getElementById('subject-link-input'); // *** التعديل: إضافة حقل الرابط
+        const subjectLinkInput = document.getElementById('subject-link-input');
         const saveSubjectBtn = document.getElementById('save-subject-btn');
         const cancelSubjectBtn = document.getElementById('cancel-subject-btn');
         const subjectsContainer = document.getElementById('subjects-container');
@@ -382,7 +383,7 @@
             }
         });
 
-        // دالة لعرض المواد كبطاقات
+        // *** بداية التعديل: تعديل دالة عرض المواد ***
         async function renderSubjects() {
             if (!userId) {
                 subjectsContainer.innerHTML = `<p class="text-center text-gray-600 col-span-full">الرجاء تسجيل الدخول لعرض المواد.</p>`;
@@ -400,15 +401,14 @@
                 } else {
                     querySnapshot.forEach((doc) => {
                         const subject = doc.data();
-                        // *** التعديل: استخدام وسم <a> للبطاقة بأكملها ***
-                        const subjectCard = document.createElement('a');
-                        subjectCard.href = subject.link || '#'; // استخدام الرابط من البيانات
-                        subjectCard.target = '_blank'; // فتح الرابط في نافذة جديدة
-                        subjectCard.rel = 'noopener noreferrer';
-                        subjectCard.classList.add('bg-white', 'rounded-xl', 'shadow-md', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'space-y-2', 'hover:shadow-lg', 'transition-shadow', 'cursor-pointer', 'no-underline', 'text-gray-800');
+                        const subjectCard = document.createElement('div');
+                        subjectCard.classList.add('bg-white', 'rounded-xl', 'shadow-md', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'space-y-4', 'hover:shadow-lg', 'transition-shadow');
                         subjectCard.innerHTML = `
-                            <h3 class="text-2xl font-bold">${subject.name}</h3>
-                            <p class="text-sm text-blue-500">انقر للانتقال إلى المادة</p>
+                            <h3 class="text-xl font-bold text-gray-800 text-center">${subject.name}</h3>
+                            <a href="${subject.link || '#'}" target="_blank" rel="noopener noreferrer" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 space-x-reverse no-underline">
+                                <i class="fas fa-download"></i>
+                                <span>تنزيل</span>
+                            </a>
                         `;
                         subjectsContainer.appendChild(subjectCard);
                     });
@@ -418,11 +418,12 @@
                 showCustomAlert('حدث خطأ أثناء عرض المواد.');
             }
         }
+        // *** نهاية التعديل ***
         
-        // وظائف مربع حوار إضافة المادة
+        // *** بداية التعديل: تعديل وظائف مربع حوار إضافة مادة ***
         addSubjectBtn.addEventListener('click', () => {
             subjectNameInput.value = '';
-            subjectLinkInput.value = ''; // *** التعديل: مسح حقل الرابط
+            subjectLinkInput.value = '';
             addSubjectModal.classList.remove('hidden');
         });
         cancelSubjectBtn.addEventListener('click', () => {
@@ -430,11 +431,10 @@
         });
         saveSubjectBtn.addEventListener('click', async () => {
             const subjectName = subjectNameInput.value.trim();
-            const subjectLink = subjectLinkInput.value.trim(); // *** التعديل: الحصول على قيمة الرابط
+            const subjectLink = subjectLinkInput.value.trim();
             
-            // *** التعديل: التحقق من أن حقل الرابط ليس فارغاً
             if (subjectName === '' || subjectLink === '') {
-                showCustomAlert('الرجاء إدخال اسم المادة والرابط.');
+                showCustomAlert('الرجاء إدخال اسم المادة ورابط التنزيل.');
                 return;
             }
             if (!userId) {
@@ -444,11 +444,10 @@
             try {
                 const subjectData = { 
                     name: subjectName,
-                    link: subjectLink, // *** التعديل: إضافة الرابط إلى البيانات
+                    link: subjectLink,
                     creatorId: userId,
                     createdAt: new Date().toISOString()
                 };
-                // تخزين المادة في مجموعة خاصة بالمستخدم
                 const subjectCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/subjects`);
                 await addDoc(subjectCollectionRef, subjectData);
                 showCustomAlert('تم إضافة المادة بنجاح.');
@@ -459,6 +458,7 @@
                 showCustomAlert('حدث خطأ أثناء إضافة المادة.');
             }
         });
+        // *** نهاية التعديل ***
 
         // دالة لتبديل عرض محتوى الامتحانات
         function showExamContent(type) {
