@@ -246,8 +246,16 @@
     <div id="add-subject-modal" class="custom-alert-overlay hidden">
         <div class="custom-alert-box text-right">
             <h2 class="text-xl font-bold mb-4">إضافة مادة جديدة</h2>
-            <label for="subject-name-input" class="block text-sm font-medium text-gray-700 mb-2">اسم المادة</label>
-            <input type="text" id="subject-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="space-y-4">
+                <div>
+                    <label for="subject-name-input" class="block text-sm font-medium text-gray-700 mb-2">اسم المادة</label>
+                    <input type="text" id="subject-name-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="subject-link-input" class="block text-sm font-medium text-gray-700 mb-2">رابط المادة</label>
+                    <input type="url" id="subject-link-input" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com">
+                </div>
+            </div>
             <div class="mt-6 flex justify-center space-x-4 space-x-reverse">
                 <button id="save-subject-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg">حفظ</button>
                 <button id="cancel-subject-btn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
@@ -337,6 +345,7 @@
         const addSubjectBtn = document.getElementById('add-subject-btn');
         const addSubjectModal = document.getElementById('add-subject-modal');
         const subjectNameInput = document.getElementById('subject-name-input');
+        const subjectLinkInput = document.getElementById('subject-link-input'); // *** التعديل: إضافة حقل الرابط
         const saveSubjectBtn = document.getElementById('save-subject-btn');
         const cancelSubjectBtn = document.getElementById('cancel-subject-btn');
         const subjectsContainer = document.getElementById('subjects-container');
@@ -391,13 +400,15 @@
                 } else {
                     querySnapshot.forEach((doc) => {
                         const subject = doc.data();
-                        const subjectCard = document.createElement('div');
-                        subjectCard.classList.add('bg-white', 'rounded-xl', 'shadow-md', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'space-y-4', 'hover:shadow-lg', 'transition-shadow');
+                        // *** التعديل: استخدام وسم <a> للبطاقة بأكملها ***
+                        const subjectCard = document.createElement('a');
+                        subjectCard.href = subject.link || '#'; // استخدام الرابط من البيانات
+                        subjectCard.target = '_blank'; // فتح الرابط في نافذة جديدة
+                        subjectCard.rel = 'noopener noreferrer';
+                        subjectCard.classList.add('bg-white', 'rounded-xl', 'shadow-md', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'space-y-2', 'hover:shadow-lg', 'transition-shadow', 'cursor-pointer', 'no-underline', 'text-gray-800');
                         subjectCard.innerHTML = `
-                            <h3 class="text-2xl font-bold text-gray-800">${subject.name}</h3>
-                            <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
-                                عرض التقييمات
-                            </button>
+                            <h3 class="text-2xl font-bold">${subject.name}</h3>
+                            <p class="text-sm text-blue-500">انقر للانتقال إلى المادة</p>
                         `;
                         subjectsContainer.appendChild(subjectCard);
                     });
@@ -411,6 +422,7 @@
         // وظائف مربع حوار إضافة المادة
         addSubjectBtn.addEventListener('click', () => {
             subjectNameInput.value = '';
+            subjectLinkInput.value = ''; // *** التعديل: مسح حقل الرابط
             addSubjectModal.classList.remove('hidden');
         });
         cancelSubjectBtn.addEventListener('click', () => {
@@ -418,8 +430,11 @@
         });
         saveSubjectBtn.addEventListener('click', async () => {
             const subjectName = subjectNameInput.value.trim();
-            if (subjectName === '') {
-                showCustomAlert('الرجاء إدخال اسم المادة.');
+            const subjectLink = subjectLinkInput.value.trim(); // *** التعديل: الحصول على قيمة الرابط
+            
+            // *** التعديل: التحقق من أن حقل الرابط ليس فارغاً
+            if (subjectName === '' || subjectLink === '') {
+                showCustomAlert('الرجاء إدخال اسم المادة والرابط.');
                 return;
             }
             if (!userId) {
@@ -429,6 +444,7 @@
             try {
                 const subjectData = { 
                     name: subjectName,
+                    link: subjectLink, // *** التعديل: إضافة الرابط إلى البيانات
                     creatorId: userId,
                     createdAt: new Date().toISOString()
                 };
