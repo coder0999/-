@@ -242,6 +242,18 @@
         </div>
     </div>
     
+    <!-- *** بداية التعديل: إضافة مربع حوار تأكيد حذف المادة *** -->
+    <div id="confirm-delete-subject-modal" class="custom-alert-overlay hidden">
+        <div class="custom-alert-box">
+            <p id="confirm-delete-subject-message" class="text-lg text-gray-700">هل أنت متأكد أنك تريد حذف هذه المادة؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            <div class="mt-6 flex justify-center space-x-4 space-x-reverse">
+                 <button id="confirm-delete-subject-yes" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg">نعم, حذف</button>
+                 <button id="confirm-delete-subject-no" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    <!-- *** نهاية التعديل *** -->
+
     <!-- *** بداية التعديل: تعديل مربع حوار إضافة مادة *** -->
     <div id="add-subject-modal" class="custom-alert-overlay hidden">
         <div class="custom-alert-box text-right">
@@ -301,6 +313,7 @@
         let questions = [];
         let uploadedImages = [];
         let examToDeleteId = null;
+        let subjectToDeleteId = null; // *** بداية التعديل: متغير لتخزين هوية المادة المراد حذفها ***
         let currentEditingExamId = null; // متغير لتخزين هوية الامتحان قيد التعديل
 
         // الحصول على عناصر DOM الرئيسية
@@ -350,6 +363,11 @@
         const saveSubjectBtn = document.getElementById('save-subject-btn');
         const cancelSubjectBtn = document.getElementById('cancel-subject-btn');
         const subjectsContainer = document.getElementById('subjects-container');
+        // *** بداية التعديل: الحصول على عناصر مربع حوار حذف المادة ***
+        const confirmDeleteSubjectModal = document.getElementById('confirm-delete-subject-modal');
+        const confirmDeleteSubjectYesBtn = document.getElementById('confirm-delete-subject-yes');
+        const confirmDeleteSubjectNoBtn = document.getElementById('confirm-delete-subject-no');
+        // *** نهاية التعديل ***
 
         // دالة لعرض مربع حواري مخصص
         function showCustomAlert(message) {
@@ -382,8 +400,31 @@
                 }
             }
         });
+        
+        // *** بداية التعديل: وظائف مربع حوار تأكيد حذف المادة ***
+        confirmDeleteSubjectNoBtn.addEventListener('click', () => {
+            confirmDeleteSubjectModal.classList.add('hidden');
+            subjectToDeleteId = null;
+        });
+        confirmDeleteSubjectYesBtn.addEventListener('click', async () => {
+            if (subjectToDeleteId && userId) {
+                try {
+                    const subjectDocRef = doc(db, `artifacts/${appId}/users/${userId}/subjects`, subjectToDeleteId);
+                    await deleteDoc(subjectDocRef);
+                    showCustomAlert('تم حذف المادة بنجاح.');
+                    renderSubjects(); // إعادة عرض القائمة المحدثة
+                } catch (error) {
+                    console.error("فشل حذف المادة:", error);
+                    showCustomAlert('حدث خطأ أثناء حذف المادة.');
+                } finally {
+                    confirmDeleteSubjectModal.classList.add('hidden');
+                    subjectToDeleteId = null;
+                }
+            }
+        });
+        // *** نهاية التعديل ***
 
-        // *** بداية التعديل: تعديل دالة عرض المواد ***
+        // *** بداية التعديل: تعديل دالة عرض المواد لإضافة زر الحذف ***
         async function renderSubjects() {
             if (!userId) {
                 subjectsContainer.innerHTML = `<p class="text-center text-gray-600 col-span-full">الرجاء تسجيل الدخول لعرض المواد.</p>`;
@@ -392,7 +433,6 @@
             subjectsContainer.innerHTML = ''; // مسح المحتوى الحالي
             
             try {
-                // استعلام عن المواد الخاصة بالمستخدم الحالي
                 const q = query(collection(db, `artifacts/${appId}/users/${userId}/subjects`));
                 const querySnapshot = await getDocs(q);
                 
@@ -402,15 +442,29 @@
                     querySnapshot.forEach((doc) => {
                         const subject = doc.data();
                         const subjectCard = document.createElement('div');
-                        subjectCard.classList.add('bg-white', 'rounded-xl', 'shadow-md', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'space-y-4', 'hover:shadow-lg', 'transition-shadow');
+                        // إضافة 'relative' لتحديد موضع زر الحذف
+                        subjectCard.classList.add('bg-white', 'rounded-xl', 'shadow-md', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'space-y-4', 'hover:shadow-lg', 'transition-shadow', 'relative');
+                        // إضافة زر الحذف (أيقونة x)
                         subjectCard.innerHTML = `
-                            <h3 class="text-xl font-bold text-gray-800 text-center">${subject.name}</h3>
+                            <button class="absolute top-2 left-2 text-gray-400 hover:text-red-600 transition-colors delete-subject-btn" data-id="${doc.id}">
+                                <i class="fas fa-times fa-lg"></i>
+                            </button>
+                            <h3 class="text-xl font-bold text-gray-800 text-center pt-4">${subject.name}</h3>
                             <a href="${subject.link || '#'}" target="_blank" rel="noopener noreferrer" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 space-x-reverse no-underline">
                                 <i class="fas fa-download"></i>
                                 <span>تنزيل</span>
                             </a>
                         `;
                         subjectsContainer.appendChild(subjectCard);
+                    });
+
+                    // إضافة مستمعي الأحداث لأزرار الحذف بعد إنشائها
+                    document.querySelectorAll('.delete-subject-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            e.stopPropagation(); // منع أي أحداث أخرى على البطاقة
+                            subjectToDeleteId = e.currentTarget.dataset.id;
+                            confirmDeleteSubjectModal.classList.remove('hidden');
+                        });
                     });
                 }
             } catch (error) {
@@ -420,7 +474,7 @@
         }
         // *** نهاية التعديل ***
         
-        // *** بداية التعديل: تعديل وظائف مربع حوار إضافة مادة ***
+        // وظائف مربع حوار إضافة مادة
         addSubjectBtn.addEventListener('click', () => {
             subjectNameInput.value = '';
             subjectLinkInput.value = '';
@@ -458,7 +512,6 @@
                 showCustomAlert('حدث خطأ أثناء إضافة المادة.');
             }
         });
-        // *** نهاية التعديل ***
 
         // دالة لتبديل عرض محتوى الامتحانات
         function showExamContent(type) {
