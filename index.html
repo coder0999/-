@@ -283,11 +283,9 @@
 
     <script type="module">
         // استيراد وظائف Firebase اللازمة
-        // *** بداية التعديل: إضافة updateDoc ***
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, collection, query, getDocs, getDoc, where, deleteDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // *** نهاية التعديل ***
         
         // تهيئة Firebase باستخدام التكوين الذي قدمته
         const firebaseConfig = {
@@ -408,7 +406,9 @@
         confirmDeleteSubjectYesBtn.addEventListener('click', async () => {
             if (subjectToDeleteId && userId) {
                 try {
-                    const subjectDocRef = doc(db, `artifacts/${appId}/users/${userId}/subjects`, subjectToDeleteId);
+                    // *** بداية التعديل: تعديل مسار الحذف ليطابق المسار العام ***
+                    const subjectDocRef = doc(db, `artifacts/${appId}/public/data/subjects`, subjectToDeleteId);
+                    // *** نهاية التعديل ***
                     await deleteDoc(subjectDocRef);
                     showCustomAlert('تم حذف المادة بنجاح.');
                     renderSubjects(); // إعادة عرض القائمة المحدثة
@@ -422,6 +422,7 @@
             }
         });
 
+        // *** بداية التعديل: تعديل دالة عرض المواد ***
         async function renderSubjects() {
             if (!userId) {
                 subjectsContainer.innerHTML = `<p class="text-center text-gray-600 col-span-full">الرجاء تسجيل الدخول لعرض المواد.</p>`;
@@ -430,7 +431,8 @@
             subjectsContainer.innerHTML = ''; 
             
             try {
-                const q = query(collection(db, `artifacts/${appId}/users/${userId}/subjects`));
+                // تعديل الاستعلام ليقرأ من المسار العام ويفلتر حسب المستخدم الحالي
+                const q = query(collection(db, `artifacts/${appId}/public/data/subjects`), where("creatorId", "==", userId));
                 const querySnapshot = await getDocs(q);
                 
                 if (querySnapshot.empty) {
@@ -466,6 +468,7 @@
                 showCustomAlert('حدث خطأ أثناء عرض المواد.');
             }
         }
+        // *** نهاية التعديل ***
         
         addSubjectBtn.addEventListener('click', () => {
             subjectNameInput.value = '';
@@ -475,6 +478,8 @@
         cancelSubjectBtn.addEventListener('click', () => {
             addSubjectModal.classList.add('hidden');
         });
+
+        // *** بداية التعديل: تعديل دالة حفظ المادة ***
         saveSubjectBtn.addEventListener('click', async () => {
             const subjectName = subjectNameInput.value.trim();
             const subjectLink = subjectLinkInput.value.trim();
@@ -494,7 +499,8 @@
                     creatorId: userId,
                     createdAt: new Date().toISOString()
                 };
-                const subjectCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/subjects`);
+                // تعديل المسار ليحفظ في المسار العام
+                const subjectCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects`);
                 await addDoc(subjectCollectionRef, subjectData);
                 showCustomAlert('تم إضافة المادة بنجاح.');
                 addSubjectModal.classList.add('hidden');
@@ -504,6 +510,7 @@
                 showCustomAlert('حدث خطأ أثناء إضافة المادة.');
             }
         });
+        // *** نهاية التعديل ***
 
         function showExamContent(type) {
             if (type === 'manual') {
@@ -590,7 +597,6 @@
             }
         });
 
-        // *** بداية التعديل: دالة لعرض بطاقة سؤال واحدة ***
         function renderQuestion(questionData, index) {
             const questionElement = document.createElement('div');
             questionElement.id = questionData.id;
@@ -622,7 +628,6 @@
             `;
             questionList.appendChild(questionElement);
 
-            // إضافة مستمعي الأحداث لمدخلات السؤال
             const questionTextarea = questionElement.querySelector(`#question-text-${questionData.id}`);
             questionTextarea.addEventListener('input', (e) => {
                 const questionToUpdate = questions.find(q => q.id === questionData.id);
@@ -665,9 +670,7 @@
                 updateQuestionNumbers();
             });
         }
-        // *** نهاية التعديل ***
 
-        // *** بداية التعديل: دالة لإضافة سؤال جديد يدوياً (معدلة) ***
         function addQuestion() {
             const questionIndex = questions.length;
             const questionId = `q-${Date.now()}-${questionIndex}`;
@@ -682,7 +685,6 @@
             questions.push(newQuestion);
             renderQuestion(newQuestion, questionIndex);
         }
-        // *** نهاية التعديل ***
 
         function updateQuestionNumbers() {
             const questionElements = questionList.querySelectorAll('.bg-white');
@@ -694,7 +696,6 @@
             });
         }
 
-        // *** بداية التعديل: دالة لتحميل الامتحان للتعديل ***
         async function loadExamForEditing(examId) {
             loadingSpinner.classList.remove('hidden');
             try {
@@ -736,9 +737,7 @@
                 loadingSpinner.classList.add('hidden');
             }
         }
-        // *** نهاية التعديل ***
 
-        // *** بداية التعديل: دالة لعرض الامتحانات المنشورة (معدلة) ***
         async function renderPublishedExams() {
             if (!userId) {
                 publishedExamsList.innerHTML = `<p class="text-center text-gray-600">الرجاء تسجيل الدخول لعرض الامتحانات.</p>`;
@@ -798,9 +797,7 @@
                 publishedExamsList.innerHTML = `<p class="text-center text-red-500">حدث خطأ أثناء تحميل الامتحانات.</p>`;
             }
         }
-        // *** نهاية التعديل ***
 
-        // *** بداية التعديل: دالة لإعادة تعيين نموذج الامتحان ***
         function resetExamForm() {
             examNameInput.value = '';
             examDurationInput.value = '';
@@ -816,16 +813,12 @@
 
             addQuestion(); 
         }
-        // *** نهاية التعديل ***
         
-        // *** بداية التعديل: ربط حدث لزر "امتحان جديد" ***
         newExamBtn.addEventListener('click', () => {
             resetExamForm();
             showCustomAlert('تم مسح النموذج. يمكنك الآن إنشاء امتحان جديد.');
         });
-        // *** نهاية التعديل ***
 
-        // *** بداية التعديل: دالة لحفظ أو تحديث الامتحان ***
         saveExamBtn.addEventListener('click', async () => {
             if (!userId) {
                 showCustomAlert('يجب عليك تسجيل الدخول لحفظ الامتحان.');
@@ -880,7 +873,6 @@
                 loadingSpinner.classList.add('hidden');
             }
         });
-        // *** نهاية التعديل ***
         
         addQuestionBtn.addEventListener('click', addQuestion);
 
