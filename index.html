@@ -65,6 +65,23 @@
         .nav-icon {
             font-size: 1.5rem;
         }
+        .question-number-box {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.125rem; /* text-lg */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid white;
+        }
         /* إزالة أسهم التحديد من حقول الأرقام */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
@@ -600,39 +617,51 @@
         function renderQuestion(questionData, index) {
             const questionElement = document.createElement('div');
             questionElement.id = questionData.id;
-            questionElement.classList.add('bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'mb-4');
+            questionElement.classList.add('bg-white', 'p-6', 'rounded-xl', 'shadow-lg', 'mb-6', 'relative');
             questionElement.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-gray-800">السؤال ${index + 1}</h3>
+                <div class="question-number-box">
+                    <span>${index + 1}</span>
+                </div>
+                <div class="flex justify-end items-center mb-4">
                     <div class="flex items-center space-x-2 space-x-reverse">
                         <label class="block text-sm font-medium text-gray-700">النقاط:</label>
-                        <input type="number" value="${questionData.points}" class="question-points w-16 p-1 border-b-2 border-gray-300 text-center">
-                        <button class="remove-question-btn text-red-500 hover:text-red-700 transition-colors" data-id="${questionData.id}">
-                            <i class="fas fa-trash"></i>
+                        <input type="number" value="${questionData.points}" class="question-points w-16 p-1 border-b-2 border-gray-300 text-center bg-transparent focus:outline-none">
+                        <button class="remove-question-btn text-gray-400 hover:text-red-600 transition-colors" data-id="${questionData.id}">
+                            <i class="fas fa-trash fa-lg"></i>
                         </button>
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label for="question-text-${questionData.id}" class="block text-sm font-medium text-gray-700">نص السؤال</label>
-                    <textarea id="question-text-${questionData.id}" class="w-full p-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${questionData.text}</textarea>
+                    <textarea id="question-text-${questionData.id}" class="w-full p-2 mt-1 border-none rounded-lg focus:outline-none focus:ring-0 text-lg text-gray-800 break-words bg-transparent resize-none" placeholder="اكتب نص السؤال هنا..." rows="2">${questionData.text}</textarea>
                 </div>
-                <div class="space-y-2">
-                    ${questionData.options.map((option, optIndex) => `
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <input type="radio" name="correct-answer-${questionData.id}" class="correct-answer-radio" data-index="${optIndex}" data-question-id="${questionData.id}" ${optIndex === questionData.correctAnswer ? 'checked' : ''}>
-                            <label for="option-${questionData.id}-${optIndex}" class="flex-grow text-gray-700"></label>
-                            <input type="text" id="option-${questionData.id}-${optIndex}" class="question-option w-full p-2 border rounded-lg" data-index="${optIndex}" value="${option}">
-                        </div>
-                    `).join('')}
+                <div class="space-y-3">
+                    ${questionData.options.map((option, optIndex) => {
+                        const isChecked = optIndex === questionData.correctAnswer;
+                        const bgColor = isChecked ? 'bg-green-100' : 'bg-gray-50';
+                        return `
+                            <div class="flex items-center space-x-2 space-x-reverse ${bgColor} p-2 rounded-lg transition-colors duration-200">
+                                <input type="radio" name="correct-answer-${questionData.id}" class="correct-answer-radio form-radio h-5 w-5 text-blue-600 focus:ring-blue-500" data-index="${optIndex}" data-question-id="${questionData.id}" ${isChecked ? 'checked' : ''}>
+                                <input type="text" id="option-${questionData.id}-${optIndex}" class="question-option w-full p-1 border-none bg-transparent focus:outline-none focus:ring-0 text-base text-gray-700" data-index="${optIndex}" value="${option}" placeholder="خيار ${optIndex + 1}">
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
             questionList.appendChild(questionElement);
 
+            // Auto-resize textarea
             const questionTextarea = questionElement.querySelector(`#question-text-${questionData.id}`);
+            const autoResizeTextarea = (el) => {
+                el.style.height = 'auto';
+                el.style.height = (el.scrollHeight) + 'px';
+            };
             questionTextarea.addEventListener('input', (e) => {
                 const questionToUpdate = questions.find(q => q.id === questionData.id);
                 if (questionToUpdate) questionToUpdate.text = e.target.value;
+                autoResizeTextarea(e.target);
             });
+            setTimeout(() => autoResizeTextarea(questionTextarea), 0);
+
 
             const optionInputs = questionElement.querySelectorAll('.question-option');
             optionInputs.forEach(input => {
@@ -648,10 +677,24 @@
             const correctRadios = questionElement.querySelectorAll('.correct-answer-radio');
             correctRadios.forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    const questionToUpdate = questions.find(q => q.id === questionData.id);
+                    const questionId = e.target.name.replace('correct-answer-', '');
+                    const questionToUpdate = questions.find(q => q.id === questionId);
                     if (questionToUpdate) {
                         questionToUpdate.correctAnswer = parseInt(e.target.dataset.index);
                     }
+
+                    // Update styling for all options in the same question
+                    const allOptionContainers = document.querySelectorAll(`input[name="correct-answer-${questionId}"]`);
+                    allOptionContainers.forEach(r => {
+                        const container = r.parentElement;
+                        if (r.checked) {
+                            container.classList.add('bg-green-100');
+                            container.classList.remove('bg-gray-50');
+                        } else {
+                            container.classList.remove('bg-green-100');
+                            container.classList.add('bg-gray-50');
+                        }
+                    });
                 });
             });
 
@@ -687,11 +730,11 @@
         }
 
         function updateQuestionNumbers() {
-            const questionElements = questionList.querySelectorAll('.bg-white');
+            const questionElements = questionList.querySelectorAll('.bg-white.relative'); // More specific selector
             questionElements.forEach((el, index) => {
-                const questionTitle = el.querySelector('h3');
-                if (questionTitle) {
-                    questionTitle.textContent = `السؤال ${index + 1}`;
+                const numberBox = el.querySelector('.question-number-box span');
+                if (numberBox) {
+                    numberBox.textContent = index + 1;
                 }
             });
         }
