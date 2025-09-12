@@ -129,16 +129,7 @@
                     <label for="exam-name" class="block text-sm font-medium text-gray-700">اسم الامتحان</label>
                     <input type="text" id="exam-name" class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-lg">
                 </div>
-                <div class="flex space-x-4 space-x-reverse">
-                    <div class="border-b-2 border-gray-300 pb-2 w-1/2">
-                        <label for="exam-duration" class="block text-sm font-medium text-gray-700">المدة الزمنية (دقيقة)</label>
-                        <input type="number" id="exam-duration" class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-lg">
-                    </div>
-                    <div class="border-b-2 border-gray-300 pb-2 w-1/2">
-                        <label for="default-points" class="block text-sm font-medium text-gray-700">النقاط الافتراضية</label>
-                        <input type="number" id="default-points" class="mt-1 block w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-lg" value="1">
-                    </div>
-                </div>
+                
             </div>
 
             <!-- محتوى الإدخال اليدوي -->
@@ -354,8 +345,7 @@
         const mainButtonsContainer = document.getElementById('main-buttons-container');
         const mainHr = document.getElementById('main-hr');
         const examNameInput = document.getElementById('exam-name');
-        const examDurationInput = document.getElementById('exam-duration');
-        const defaultPointsInput = document.getElementById('default-points');
+        
         const questionList = document.getElementById('question-list');
         const addQuestionBtn = document.getElementById('add-question-btn');
         const saveExamBtn = document.getElementById('save-exam-btn');
@@ -624,8 +614,6 @@
                 </div>
                 <div class="flex justify-end items-center mb-4">
                     <div class="flex items-center space-x-2 space-x-reverse">
-                        <label class="block text-sm font-medium text-gray-700">النقاط:</label>
-                        <input type="number" value="${questionData.points}" class="question-points w-16 p-1 border-b-2 border-gray-300 text-center bg-transparent focus:outline-none">
                         <button class="remove-question-btn text-gray-400 hover:text-red-600 transition-colors" data-id="${questionData.id}">
                             <i class="fas fa-trash fa-lg"></i>
                         </button>
@@ -698,13 +686,7 @@
                 });
             });
 
-            const pointsInput = questionElement.querySelector('.question-points');
-            pointsInput.addEventListener('input', (e) => {
-                const questionToUpdate = questions.find(q => q.id === questionData.id);
-                if (questionToUpdate) {
-                    questionToUpdate.points = parseFloat(e.target.value) || 0;
-                }
-            });
+            
 
             const removeButton = questionElement.querySelector('.remove-question-btn');
             removeButton.addEventListener('click', () => {
@@ -723,7 +705,6 @@
                 type: 'multiple-choice',
                 options: ['', '', '', ''],
                 correctAnswer: null,
-                points: parseFloat(defaultPointsInput.value) || 1,
             };
             questions.push(newQuestion);
             renderQuestion(newQuestion, questionIndex);
@@ -749,7 +730,7 @@
                     const examData = docSnap.data();
                     
                     examNameInput.value = examData.name;
-                    examDurationInput.value = examData.duration;
+                    
                     
                     questions = examData.questions.map((q, index) => ({
                         ...q,
@@ -806,11 +787,14 @@
                         examItem.innerHTML = `
                             <div>
                                 <h3 class="text-xl font-bold text-gray-800">${exam.name}</h3>
-                                <p class="text-gray-600">المدة: ${exam.duration} دقيقة | عدد الأسئلة: ${exam.questions.length}</p>
+                                <p class="text-gray-600">عدد الأسئلة: ${exam.questions.length}</p>
                             </div>
                             <div class="flex space-x-2 space-x-reverse">
+                                <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors copy-link-btn" data-id="${doc.id}">
+                                    نسخ الرابط
+                                </button>
                                 <button class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors view-exam-btn" data-id="${doc.id}">
-                                    عرض/تعديل
+                                    تعديل
                                 </button>
                                 <button class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors delete-exam-btn" data-id="${doc.id}">
                                     حذف
@@ -835,6 +819,19 @@
                     });
                 });
 
+                document.querySelectorAll('.copy-link-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const examId = e.currentTarget.dataset.id;
+                        const link = `https://coder0999.github.io/-/?examId=${examId}`;
+                        navigator.clipboard.writeText(link).then(() => {
+                            showCustomAlert('تم نسخ رابط الامتحان بنجاح!');
+                        }).catch(err => {
+                            console.error('Failed to copy link: ', err);
+                            showCustomAlert('فشل نسخ الرابط.');
+                        });
+                    });
+                });
+
             } catch (error) {
                 console.error("فشل عرض الامتحانات المنشورة:", error);
                 publishedExamsList.innerHTML = `<p class="text-center text-red-500">حدث خطأ أثناء تحميل الامتحانات.</p>`;
@@ -843,8 +840,7 @@
 
         function resetExamForm() {
             examNameInput.value = '';
-            examDurationInput.value = '';
-            defaultPointsInput.value = '1';
+
             questionList.innerHTML = '';
             questions = [];
             currentEditingExamId = null;
@@ -869,10 +865,9 @@
             }
         
             const examName = examNameInput.value.trim();
-            const examDuration = examDurationInput.value.trim();
         
-            if (!examName || !examDuration || questions.length === 0) {
-                showCustomAlert('الرجاء إدخال اسم الامتحان، المدة، وإضافة سؤال واحد على الأقل.');
+            if (!examName || questions.length === 0) {
+                showCustomAlert('الرجاء إدخال اسم الامتحان، وإضافة سؤال واحد على الأقل.');
                 return;
             }
         
@@ -891,7 +886,6 @@
             try {
                 const examData = {
                     name: examName,
-                    duration: examDuration,
                     questions: validQuestions,
                     creatorId: userId,
                 };
@@ -1086,7 +1080,6 @@
                         type: 'multiple-choice',
                         options: q.options,
                         correctAnswer: q.correctAnswer,
-                        points: parseFloat(defaultPointsInput.value) || 1,
                     }));
 
                     questionList.innerHTML = '';
