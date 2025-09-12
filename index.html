@@ -822,7 +822,7 @@
                 document.querySelectorAll('.copy-link-btn').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const examId = e.currentTarget.dataset.id;
-                        const link = `https://coder0999.github.io/-/?examId=${examId}`;
+                        const link = `https://coder0999.github.io/testt/?examId=${examId}`;
                         navigator.clipboard.writeText(link).then(() => {
                             showCustomAlert('تم نسخ رابط الامتحان بنجاح!');
                         }).catch(err => {
